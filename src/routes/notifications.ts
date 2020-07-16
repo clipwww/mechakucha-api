@@ -1,5 +1,5 @@
 import { Router } from 'express';
-// import { format } from 'date-fns';
+import * as moment from 'moment-timezone';
 
 import { sendNotifyMessage } from '../libs/line.lib';
 import { parseXMLtoData } from '../libs/youtube.lib';
@@ -49,7 +49,7 @@ router.post('/yt', async (req, res) => {
   ${entry.author.name} 發布了新的影片！
   影片標題: ${entry.title}
   影片連結: ${entry.link.href}
-  發布時間: ${new Date(entry.published).toLocaleString()}
+  發布時間: ${moment(entry.published).format('YYYY/MM/DD HH:mm')}
       `,
       imageFullsize: `https://img.youtube.com/vi/${entry["yt:videoId"]}/maxresdefault.jpg`,
       imageThumbnail: `https://img.youtube.com/vi/${entry["yt:videoId"]}/default.jpg`

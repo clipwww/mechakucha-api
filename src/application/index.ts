@@ -3,9 +3,11 @@ import * as bodyParser from "body-parser";
 import * as helmet from "helmet";
 import * as cookieParser from 'cookie-parser';
 import * as xmlBodyparser from 'express-xml-bodyparser';
+import * as moment from 'moment-timezone';
 
 import routes from '../routes';
 
+moment.tz.setDefault('Asia/Taipei');
 
 export class Application {
     private app: express.Application = null
