@@ -1,0 +1,57 @@
+{
+  "name": "mechakucha-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "node_modules/nodemon/bin/nodemon.js",
+    "nodemon-exec": "npm run build && npm start",
+    "clean": "rm -rf dist",
+    "init": "mkdir dist",
+    "prebuild": "npm run clean && npm run init",
+    "build": "node_modules/typescript/bin/tsc",
+    "start": "node ./dist",
+    "heroku-postbuild": "npm run build",
+    "stage": "node ./dist"
+  },
+  "engines": {
+    "node": "12.13.1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/body-parser": "^1.19.0",
+    "@types/cookie-parser": "^1.4.2",
+    "@types/express": "^4.17.6",
+    "@types/helmet": "0.0.47",
+    "@types/node": "^14.0.13",
+    "@types/node-fetch": "^2.5.7",
+    "@types/xml2json": "^0.11.0",
+    "body-parser": "^1.19.0",
+    "cookie-parser": "^1.4.5",
+    "date-fns": "^2.14.0",
+    "express": "^4.17.1",
+    "express-xml-bodyparser": "^0.3.0",
+    "helmet": "^3.23.2",
+    "node-fetch": "^2.6.0",
+    "nodemon": "^2.0.4",
+    "typescript": "^3.9.5",
+    "xml2json": "^0.12.0"
+  },
+  "nodemonConfig": {
+    "ignore": [
+      "**/*.test.ts",
+      "**/*.spec.ts",
+      ".git",
+      "node_modules"
+    ],
+    "watch": [
+      "*.ts"
+    ],
+    "exec": "npm run nodemon-exec",
+    "ext": "ts"
+  },
+  "devDependencies": {
+    "@types/express-xml-bodyparser": "^0.3.1"
+  }
+}
