@@ -1,6 +1,8 @@
 import fetch from 'node-fetch';
 import * as FormData from 'form-data';
 
+import { LineChatTokenModel } from '../nosql/models/line.model';
+
 const notifyURL = 'https://notify-api.line.me/api/notify';
 
 interface Params {
@@ -34,4 +36,9 @@ export const sendNotifyMessage = async (token: string, params: Params): Promise<
   } catch (err) {
     console.error(err);
   }
+}
+
+export const getChatTokens = async () => {
+  const items = await LineChatTokenModel.find({});
+  return items.map(item => item.token);
 }
