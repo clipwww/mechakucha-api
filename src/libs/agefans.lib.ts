@@ -34,18 +34,10 @@ declare global {
   }
 }
 
-let browser: puppeteer.Browser;
-
-async function initBrowser() {
-  browser = await puppeteer.launch({
+export const getAnimeList = async () => {
+  const browser = await puppeteer.launch({
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
-  console.log('browser init');
-}
-
-initBrowser();
-
-export const getAnimeList = async () => {
 
   const page = await browser.newPage();
   await page.setJavaScriptEnabled(true)
@@ -53,9 +45,11 @@ export const getAnimeList = async () => {
   await page.goto(BASE_URL, {
     waitUntil: 'networkidle0',
   });
-  const list: Array<SimpleAnimeVM> = await page.evaluate(() => window.new_anime_list);
+  const list: Array<SimpleAnimeVM> = await page.evaluate(function() {
+    return window.new_anime_list
+  });
 
-  page.close();
+  browser.close();
 
   return list.map(item => {
     return {
@@ -71,6 +65,7 @@ export const getAnimeDetails = async (id: string) => {
     method: 'GET',
   })
   const htmlString = await res.text();
+  console.log(`${BASE_URL}/detail/${id}`, htmlString)
 
   const $ = cheerio.load(htmlString);
 
@@ -150,6 +145,11 @@ export const getAnimeDetails = async (id: string) => {
 }
 
 export const getAnimeVideo = async (id: string, pId: string, eId: string) => {
+  const browser = await puppeteer.launch({
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  });
+
+
   const page = await browser.newPage();
   await page.setCookie({
     name: 'username',
@@ -163,7 +163,7 @@ export const getAnimeVideo = async (id: string, pId: string, eId: string) => {
     waitUntil: 'networkidle0',
   });
 
-  const path = await page.evaluate(async () => {
+  const path = await page.evaluate(async function () {
     const $iframe = document.getElementById('age_playfram');
 
     function getIframeSrc(): Promise<string> {
@@ -179,7 +179,7 @@ export const getAnimeVideo = async (id: string, pId: string, eId: string) => {
     return src;
   }) as string;
 
-  page.close();
+  browser.close();
   // await page.screenshot({ path: 'screenshot/example.png' });
   return decodeURIComponent(path.match(/(https|http):\/\/([\w-]+\.)+[\w-]+([\w-./?%&=]*)?/)[0]);
 }
@@ -227,12 +227,12 @@ export const queryAnimeList = async (keyword: string, page = 1) => {
       id: $cell.find('.cell_imform_name').attr('href')?.replace('detail', '')?.replace(/\//g, ''),
       title: tify($cell.find('.cell_imform_name').text()),
       imgUrl: `https://${$cell.find('img').attr('src')}`,
-      type, 
-      originName, 
-      studio, 
-      dateAired, 
-      status, 
-      tags, 
+      type,
+      originName,
+      studio,
+      dateAired,
+      status,
+      tags,
       description
     }
   }).get();
