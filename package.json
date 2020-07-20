@@ -27,6 +27,8 @@
     "@types/node-fetch": "^2.5.7",
     "@types/xml2json": "^0.11.0",
     "body-parser": "^1.19.0",
+    "cheerio": "^1.0.0-rc.3",
+    "chinese-conv": "^1.0.1",
     "cookie-parser": "^1.4.5",
     "date-fns": "^2.14.0",
     "dotenv": "^8.2.0",
@@ -38,6 +40,7 @@
     "mongoose": "^5.9.24",
     "node-fetch": "^2.6.0",
     "nodemon": "^2.0.4",
+    "puppeteer": "^5.2.0",
     "shortid": "^2.2.15",
     "typescript": "^3.9.5",
     "uuid": "^8.2.0",
@@ -57,7 +60,9 @@
     "ext": "ts"
   },
   "devDependencies": {
+    "@types/cheerio": "^0.22.21",
     "@types/express-xml-bodyparser": "^0.3.1",
-    "@types/mongoose": "^5.7.32"
+    "@types/mongoose": "^5.7.32",
+    "@types/puppeteer": "^3.0.1"
   }
 }

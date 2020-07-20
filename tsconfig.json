@@ -10,72 +10,7 @@
         "experimentalDecorators": true,
         "allowSyntheticDefaultImports": true,
         "skipDefaultLibCheck": true,
-        "skipLibCheck": true,
-        "paths": {
-            "@services/*": [
-                "services/*"
-            ],
-            "@services": [
-                "services/*"
-            ],
-            "@mol-services/*": [
-                "mol-services/*"
-            ],
-            "@mol-service-events/*": [
-                "mol-service-events/*"
-            ],
-            "@mol-service-actions/*": [
-                "mol-service-actions/*"
-            ],
-            "@configuration": [
-                "configuration"
-            ],
-            "@configurations/*": [
-                "configuration/*"
-            ],
-            "@view-models/*": [
-                "view-models/*"
-            ],
-            "@data-accessors/*": [
-                "data-accessors/*"
-            ],
-            "@entities/*": [
-                "entities/*"
-            ],
-            "@database": [
-                "database"
-            ],
-            "@router-models/*": [
-                "router-models/*"
-            ],
-            "@localUtilities/*": [
-                "utilities/*"
-            ],
-            "@localUtilities": [
-                "utilities/index"
-            ],
-            "@db-models/*": [
-                "db-models/*"
-            ],
-            "@cache/*": [
-                "cache/*"
-            ],
-            "@nosql/*": [
-                "nosql/*"
-            ],
-            "@middlewares/*": [
-                "middlewares/*"
-            ],
-            "@middlewares": [
-                "middlewares/index"
-            ],
-            "@managers/*": [
-                "managers/*"
-            ],
-            "@schemas/*": [
-                "schemas/*"
-            ]
-        }
+        "skipLibCheck": true
     },
     "include": [
         "./src/**/*"

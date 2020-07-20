@@ -1,0 +1,241 @@
+import fetch from 'node-fetch';
+import * as puppeteer from 'puppeteer';
+import * as cheerio from 'cheerio';
+import { tify as originTify } from 'chinese-conv';
+
+function tify(value: string = '') {
+  return originTify(value || '');
+}
+
+const BASE_URL = 'https://www.agefans.tv';
+
+interface SimpleAnimeVM {
+  id: string;
+  name: string;
+  wd: number;
+  isnew: boolean;
+  mttime: Date | string;
+  namefornew: string;
+}
+
+interface EpisodeVM {
+  id: string;
+  pId: string;
+  eId: string;
+  href: string;
+  title: string;
+}
+
+declare global {
+  interface Window {
+    new_anime_list: SimpleAnimeVM[];
+    __yx_SetMainPlayIFrameSRC: Function;
+    __age_cb_getplay_url: Function;
+  }
+}
+
+let browser: puppeteer.Browser;
+
+async function initBrowser() {
+  browser = await puppeteer.launch({
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  });
+  console.log('browser init');
+}
+
+initBrowser();
+
+export const getAnimeList = async () => {
+
+  const page = await browser.newPage();
+  await page.setJavaScriptEnabled(true)
+
+  await page.goto(BASE_URL, {
+    waitUntil: 'networkidle0',
+  });
+  const list: Array<SimpleAnimeVM> = await page.evaluate(() => window.new_anime_list);
+
+  page.close();
+
+  return list.map(item => {
+    return {
+      ...item,
+      name: tify(item.name),
+      namefornew: tify(item.namefornew)
+    }
+  });
+}
+
+export const getAnimeDetails = async (id: string) => {
+  const res = await fetch(`${BASE_URL}/detail/${id}`, {
+    method: 'GET',
+  })
+  const htmlString = await res.text();
+
+  const $ = cheerio.load(htmlString);
+
+  const $img = $('img.poster');
+
+  const animeObj = {
+    area: '',
+    type: '',
+    originName: '',
+    studio: '',
+    dateAired: '',
+    status: '',
+    tags: [],
+    officialWebsite: '',
+  };
+  $('.detail_imform_kv').each((i, kv) => {
+    const tag = $(kv).find('span:nth-child(1)').text()
+    const value = $(kv).find('span:nth-child(2)').text()
+    switch (tag) {
+      case '地区：':
+        animeObj.area = tify(value);
+        break;
+      case '动画种类：':
+        animeObj.type = tify(value);
+        break;
+      case '原版名称：':
+        animeObj.originName = value;
+        break;
+      case '制作公司：':
+        animeObj.studio = value;
+        break;
+      case '首播时间：':
+        animeObj.dateAired = value;
+        break;
+      case '播放状态：':
+        animeObj.status = tify(value);
+        break;
+      case '标签：':
+        animeObj.tags = value.split(' ').map(text => tify(text));
+        break;
+      case '官方网站：':
+        animeObj.officialWebsite = value;
+        break;
+    }
+  })
+  // https://apd-vliveachy.apdcdn.tc.qq.com/vmtt.tc.qq.com/1098_7d490da8190677a7ac4584160c4f8c09.f0.mp4?vkey=87C66692CC6BD228350E34FA8C334CC490B04E87F33679AA070DBDC20CD758B80364E351A46773CD35770D1A46C8D83B68C33EDE0A72317AE0084BA1F87771E3F61B952C3F85CD13F1924C3E932E1CF005E0F59581B9A0EA
+
+  let episodeList: EpisodeVM[];
+  $('.movurl').each((i, movurl) => {
+    const $movurl = $(movurl);
+    if ($movurl.css('display') !== 'none') {
+      episodeList = $movurl.find('li').map((i, li) => {
+        const $li = $(li);
+        const href = $li.find('a').attr('href');
+        const playid = href.match(/(playid=)+([\w-]*)?/)?.[0]?.replace('playid=', '');
+
+        return {
+          id: playid,
+          pId: playid.split('_')[0],
+          eId: playid.split('_')[1],
+          href: `${BASE_URL}${href}`,
+          title: tify($li.text().trim())
+        } as EpisodeVM;
+      }).get();
+    }
+  })
+
+  const desc = $('.detail_imform_desc_pre p')?.text()?.trim() ?? '';
+  return {
+    id,
+    title: tify($img.attr('alt')),
+    imgUrl: `https://${$img.attr('src')}`,
+    description: tify(desc),
+    ...animeObj,
+    episodeList,
+  };
+}
+
+export const getAnimeVideo = async (id: string, pId: string, eId: string) => {
+  const page = await browser.newPage();
+  await page.setCookie({
+    name: 'username',
+    value: 'admin',
+    path: '/',
+    domain: 'www.agefans.tv'
+  });
+
+  await page.setJavaScriptEnabled(true)
+  await page.goto(`${BASE_URL}/play/${id}?playid=${pId}_${eId}`, {
+    waitUntil: 'networkidle0',
+  });
+
+  const path = await page.evaluate(async () => {
+    const $iframe = document.getElementById('age_playfram');
+
+    function getIframeSrc(): Promise<string> {
+      return new Promise(reslove => {
+        $iframe.onload = () => {
+          const src = $iframe.getAttribute('src');
+          reslove(src);
+        }
+      })
+    }
+    window.__yx_SetMainPlayIFrameSRC("age_playfram", window.__age_cb_getplay_url);
+    const src = await getIframeSrc();
+    return src;
+  }) as string;
+
+  page.close();
+  // await page.screenshot({ path: 'screenshot/example.png' });
+  return decodeURIComponent(path.match(/(https|http):\/\/([\w-]+\.)+[\w-]+([\w-./?%&=]*)?/)[0]);
+}
+
+export const queryAnimeList = async (keyword: string, page = 1) => {
+  const res = await fetch(`${BASE_URL}/search?query=${encodeURIComponent(keyword)}&page=${page}`, {
+    method: 'GET',
+  })
+  const htmlString = await res.text();
+
+  const $ = cheerio.load(htmlString);
+
+  const list = $('.blockcontent1 .cell').map((i, cell) => {
+    const $cell = $(cell);
+    let type: string, originName: string, studio: string, dateAired: string, status: string, tags: string[], description: string;
+    $cell.find('.cell_imform_kv').each((i, kv) => {
+      const tag = $(kv).find('span:nth-child(1)').text()
+      const value = $(kv).find('span:nth-child(2)').text()
+      switch (tag) {
+        case '动画种类：':
+          type = tify(value);
+          break;
+        case '原版名称：':
+          originName = value;
+          break;
+        case '制作公司：':
+          studio = value;
+          break;
+        case '首播时间：':
+          dateAired = value;
+          break;
+        case '播放状态：':
+          status = tify(value);
+          break;
+        case '剧情类型：':
+          tags = value.split(' ').map(text => tify(text));
+          break;
+        case '简介：':
+          description = tify($(kv).find('.cell_imform_desc').text().trim());
+          break;
+      }
+    })
+
+    return {
+      id: $cell.find('.cell_imform_name').attr('href')?.replace('detail', '')?.replace(/\//g, ''),
+      title: tify($cell.find('.cell_imform_name').text()),
+      imgUrl: `https://${$cell.find('img').attr('src')}`,
+      type, 
+      originName, 
+      studio, 
+      dateAired, 
+      status, 
+      tags, 
+      description
+    }
+  }).get();
+
+  return list;
+}
