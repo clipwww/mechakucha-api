@@ -26,6 +26,7 @@
     "@types/node": "^14.0.13",
     "@types/node-fetch": "^2.5.7",
     "@types/xml2json": "^0.11.0",
+    "axios": "^0.19.2",
     "body-parser": "^1.19.0",
     "cheerio": "^1.0.0-rc.3",
     "chinese-conv": "^1.0.1",

@@ -1,7 +1,9 @@
-import fetch from 'node-fetch';
+// import fetch from 'node-fetch';
 import * as puppeteer from 'puppeteer';
 import * as cheerio from 'cheerio';
 import { tify as originTify } from 'chinese-conv';
+
+import { axiosInstance } from '../utilities/axios';
 
 function tify(value: string = '') {
   return originTify(value || '');
@@ -40,16 +42,20 @@ export const getAnimeList = async () => {
   });
 
   const page = await browser.newPage();
-  await page.setJavaScriptEnabled(true)
+  page.on('console', msg => console.log('PAGE LOG:', msg.text()));
 
+  // await page.setJavaScriptEnabled(true)
   await page.goto(BASE_URL, {
     waitUntil: 'networkidle0',
   });
   const list: Array<SimpleAnimeVM> = await page.evaluate(function() {
+    console.log('[evaluate]')
+    console.log(`url is ${location.href}`)
+    console.log(window, typeof window, window.new_anime_list)
     return window.new_anime_list
   });
 
-  browser.close();
+  await browser.close();
 
   return list.map(item => {
     return {
@@ -61,11 +67,7 @@ export const getAnimeList = async () => {
 }
 
 export const getAnimeDetails = async (id: string) => {
-  const res = await fetch(`${BASE_URL}/detail/${id}`, {
-    method: 'GET',
-  })
-  const htmlString = await res.text();
-  console.log(`${BASE_URL}/detail/${id}`, htmlString)
+  const { data: htmlString } = await axiosInstance.get(`${BASE_URL}/detail/${id}`)
 
   const $ = cheerio.load(htmlString);
 
@@ -158,7 +160,7 @@ export const getAnimeVideo = async (id: string, pId: string, eId: string) => {
     domain: 'www.agefans.tv'
   });
 
-  await page.setJavaScriptEnabled(true)
+  // await page.setJavaScriptEnabled(true)
   await page.goto(`${BASE_URL}/play/${id}?playid=${pId}_${eId}`, {
     waitUntil: 'networkidle0',
   });
@@ -179,16 +181,18 @@ export const getAnimeVideo = async (id: string, pId: string, eId: string) => {
     return src;
   }) as string;
 
-  browser.close();
+  await browser.close();
   // await page.screenshot({ path: 'screenshot/example.png' });
   return decodeURIComponent(path.match(/(https|http):\/\/([\w-]+\.)+[\w-]+([\w-./?%&=]*)?/)[0]);
 }
 
 export const queryAnimeList = async (keyword: string, page = 1) => {
-  const res = await fetch(`${BASE_URL}/search?query=${encodeURIComponent(keyword)}&page=${page}`, {
-    method: 'GET',
+  const { data: htmlString } = await axiosInstance.get(`${BASE_URL}/search`, {
+    params: {
+      query: encodeURIComponent(keyword),
+      page,
+    }
   })
-  const htmlString = await res.text();
 
   const $ = cheerio.load(htmlString);
 
