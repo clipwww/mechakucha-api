@@ -12,6 +12,7 @@ import * as moment from 'moment-timezone';
 
 import { connectMongoDB } from '../nosql/mongodb-data-accessor';
 import routes from '../routes';
+import { ResultVM, ResultCode } from '../view-models/result.vm';
 
 moment.tz.setDefault('Asia/Taipei');
 
@@ -35,7 +36,11 @@ export class Application {
             .use(bodyParser.json())
             .use(xmlBodyparser())
             .use(cookieParser())
-            .use(routes);
+            .use(routes)
+            .use((error, req, res, next) => {
+                const result = new ResultVM();
+                res.json(result.setResultValue(false, ResultCode.error, error.message));
+            });
         return
     }
 
