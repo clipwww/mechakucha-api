@@ -42,16 +42,16 @@ export const getAnimeList = async () => {
   });
 
   const page = await browser.newPage();
-  page.on('console', msg => console.log('PAGE LOG:', msg.text()));
+  // page.on('console', msg => console.log('PAGE LOG:', msg.text()));
 
   // await page.setJavaScriptEnabled(true)
   await page.goto(BASE_URL, {
     waitUntil: 'networkidle0',
   });
   const list: Array<SimpleAnimeVM> = await page.evaluate(function() {
-    console.log('[evaluate]')
-    console.log(`url is ${location.href}`)
-    console.log(window, typeof window, window.new_anime_list)
+    // console.log('[evaluate]')
+    // console.log(`url is ${location.href}`)
+    // console.log(window, typeof window, window.new_anime_list)
     return window.new_anime_list
   });
 

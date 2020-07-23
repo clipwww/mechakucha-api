@@ -21,7 +21,7 @@ export class Application {
     static readonly applicationName: string = "my-api";
 
     async start(): Promise<void> {
-        
+
         connectMongoDB();
         this.setRouters();
         await this.startListenPort();
@@ -31,7 +31,13 @@ export class Application {
 
     private async setRouters(): Promise<void> {
         this.app = express();
-        this.app.use(helmet())
+        this.app
+            .use((req, res, next) => {
+                res.header('Access-Control-Allow-Origin', '*');
+                res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+                next();
+            })
+            .use(helmet())
             .use(bodyParser.urlencoded({ extended: true }))
             .use(bodyParser.json())
             .use(xmlBodyparser())
