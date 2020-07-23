@@ -189,7 +189,7 @@ export const getAnimeVideo = async (id: string, pId: string, eId: string) => {
 export const queryAnimeList = async (keyword: string, page = 1) => {
   const { data: htmlString } = await axiosInstance.get(`${BASE_URL}/search`, {
     params: {
-      query: encodeURIComponent(keyword),
+      query: decodeURIComponent(keyword),
       page,
     }
   })
