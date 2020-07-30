@@ -32,3 +32,5 @@ archive-files/
 
 # config
 .env
+
+screenshot/

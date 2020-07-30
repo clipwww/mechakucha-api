@@ -37,6 +37,7 @@ export class ResultGenericVM<T> extends ResultVM {
 
 export class ResultListGenericVM<T> extends ResultVM {
   items!: T[];
+  item?: any;
   page?: {
     index: number;
     size: number;

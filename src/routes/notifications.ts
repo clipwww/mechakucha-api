@@ -4,13 +4,14 @@ import * as moment from 'moment-timezone';
 import { sendNotifyMessage, getChatTokens } from '../libs/line.lib';
 import { parseXMLtoData } from '../libs/youtube.lib';
 import { parseCwbXMLtoItems } from '../libs/cwb.lib';
+import { ResultCode } from '../view-models/result.vm';
 
 const router = Router();
 
 const handleGooglePubsubhubbubChallenge: RequestHandler = (req, res) => {
   const query = req.query;
   console.log(query);
-  res.status(200).send(query['hub.challenge']);
+  res.status(+ResultCode.success).send(query['hub.challenge']);
 }
 
 router.get('/yt', handleGooglePubsubhubbubChallenge)
@@ -37,7 +38,7 @@ ${entry.author.name} 發布了新的影片！
   }
 
 
-  res.status(200).send(entry ? 'ok' : '不ok');
+  res.status(+ResultCode.success).send(entry ? 'ok' : '不ok');
 })
 
 router.post('/cwb', async (req, res) => {
@@ -59,7 +60,7 @@ ${item.link}
     })
   }
   
-  res.status(200).send(items.length ? 'ok' : '不ok');
+  res.status(+ResultCode.success).send(items.length ? 'ok' : '不ok');
 })
 
 export default router;
