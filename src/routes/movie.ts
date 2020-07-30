@@ -74,7 +74,7 @@ router.get('/next', async (req, res: ResponseExtension, next) => {
   }
 });
 
-router.get('/', async (req, res: ResponseExtension, next) => {
+router.get('/theater', async (req, res: ResponseExtension, next) => {
   try {
     const { cityId } = req.query;
     const result = new ResultListGenericVM();
