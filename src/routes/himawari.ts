@@ -1,5 +1,6 @@
 import { Router } from 'express';
 
+import { lruCache } from '../utilities/lru-cache';
 import { getHimawariDougaList, getHimawariDougaDetails, getHimawariDougaDanmaku } from '../libs/himawari.lib';
 import { ResultCode, ResultListGenericVM, ResultGenericVM } from '../view-models/result.vm';
 import { ResponseExtension } from '../view-models/extension.vm';
@@ -51,9 +52,16 @@ router.get('/:id/danmaku', async (req, res: ResponseExtension, next) => {
     const { id } = req.params;
 
     const result = new ResultListGenericVM();
-    const danmakuList = await getHimawariDougaDanmaku(id);
-
-    result.items = danmakuList;
+    const key = `himawari-danmaku-${id}`;
+    const cacheItems = lruCache.get(key) as any[];
+    
+    if (cacheItems) {
+      result.items = cacheItems
+    } else {
+      const danmakuList = await getHimawariDougaDanmaku(id);
+      result.items = danmakuList;
+      lruCache.set(key, result.items)
+    }
 
     res.result = result.setResultValue(true, ResultCode.success)
 

@@ -17,7 +17,11 @@ interface EntryVM {
   updated: string;
 }
 
-export const parseXMLtoData = (xmlStr: string): EntryVM => {
-  const data: { feed: { entry: EntryVM } } = JSON.parse(toJson(xmlStr));
-  return data?.feed?.entry;
+export const parseXMLtoData = (xmlStr: string): { entry: EntryVM, self: string } => {
+  const data: { feed: { link: any[], entry: EntryVM } } = JSON.parse(toJson(xmlStr));
+  const self =  data.feed?.link?.find(link => link.rel === 'self')?.href ?? '';
+  return {
+    entry: data?.feed?.entry,
+    self
+  };
 } 
