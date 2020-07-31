@@ -34,7 +34,7 @@ const subscribe = async (callback: string, topic: string): Promise<boolean> => {
 
     return true;
   } catch (err) {
-    console.error(err);
+    console.error(err.message);
     return false;
   }
 }
@@ -69,7 +69,7 @@ ${entry.author.name} 發布了新的影片！
       // imageThumbnail: `https://img.youtube.com/vi/${entry["yt:videoId"]}/default.jpg`
     }))
 
-    subscribe(`https://mechakucha-api.herokuapp.com/${req.originalUrl}`, self);
+    subscribe(`${req.protocol}://${req.hostname}${req.originalUrl}`, self);
   }
 
 
@@ -95,7 +95,7 @@ ${item.link}
     })
 
     console.log(req.hostname);
-    subscribe(`https://mechakucha-api.herokuapp.com/${req.originalUrl}`, 'https://www.cwb.gov.tw/rss/Data/cwb_warning.xml');
+    subscribe(`${req.protocol}://${req.hostname}${req.originalUrl}`, 'https://www.cwb.gov.tw/rss/Data/cwb_warning.xml');
   }
   
   res.status(+ResultCode.success).send(items.length ? 'ok' : '不ok');

@@ -46,9 +46,7 @@ export class Application {
             .use(routes)
             .use((error: Error, req: RequestExtension, res: ResponseExtension) => {
                 console.log('[ERROR]', error)
-                const result = new ResultVM();
-                result.setResultValue(false, ResultCode.error, error.message)
-                res.json(result);
+                res.status(+ResultCode.error).send(error.message);
             });
         return
     }
