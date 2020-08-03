@@ -7,6 +7,37 @@ import { ResponseExtension } from '../view-models/extension.vm';
 
 const router = Router();
 
+/**
+ * @api {get} /niconico/:id/danmaku?mode= 取得 NicoNico 動畫彈幕
+ * @apiName GetNicoNicoDanmaku
+ * @apiGroup NicoNico動畫
+ * @apiVersion 1.0.0
+ *
+ * @apiParam {String} id NicoNico 動畫的 Id
+ * @apiParam {String} mode 為`download`時直接下載彈幕 .json
+ *
+ *
+ * @apiSuccessExample Success Response
+{
+  "success": true,
+  "resultCode": "200",
+  "resultMessage": "",
+  "items": [
+    {
+      "text": "ガルパン最終章おめでとう！",
+      "time": 0.78,
+      "color": "#ffffff",
+      "mode": "BOTTOM",
+      "size": 36,
+      "id": 19135,
+      "user_id": "RLmRNQvcNNzRDZd1IV4HMg5OJlQ",
+      "date": 1472384190,
+      "date_iso_string": "2016-08-28T11:36:30.000Z"
+    }
+  ]
+}
+ * 
+ */
 router.get('/:id/danmaku', async (req, res: ResponseExtension, next) => {
   try {
     const { id } = req.params;

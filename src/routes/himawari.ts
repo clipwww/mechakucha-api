@@ -47,9 +47,44 @@ router.get('/:id', async (req, res: ResponseExtension, next) => {
   }
 })
 
+
+/**
+ * @api {get} /himawari/:id/danmaku?mode= 取得向日葵動畫彈幕
+ * @apiName GetHimawariDanmaku
+ * @apiGroup 向日葵動畫
+ * @apiVersion 1.0.0
+ *
+ * @apiParam {String} id 向日葵動畫的 Id
+ * @apiParam {String} mode 為`download`時直接下載彈幕 .json
+ *
+ *
+ * @apiSuccessExample Success Response
+{
+  "success": true,
+  "resultCode": "200",
+  "resultMessage": "",
+  "items": [
+    {
+      "id": "KKc8vr.I2U",
+      "no": "286486964",
+      "mail": "",
+      "vpos": 42,
+      "vpos_master": 140,
+      "time": 1.4,
+      "date": 1596102341,
+      "msg": "チー牛絶賛アニメ",
+      "text": "チー牛絶賛アニメ",
+      "digital_time": "00:01",
+      "date_iso_string": "2020-07-30T09:45:41.000Z"
+    }
+  ]
+}
+ * 
+ */
 router.get('/:id/danmaku', async (req, res: ResponseExtension, next) => {
   try {
     const { id } = req.params;
+    const { mode } = req.query;
 
     const result = new ResultListGenericVM();
     const key = `himawari-danmaku-${id}`;
@@ -61,6 +96,18 @@ router.get('/:id/danmaku', async (req, res: ResponseExtension, next) => {
       const danmakuList = await getHimawariDougaDanmaku(id);
       result.items = danmakuList;
       lruCache.set(key, result.items)
+    }
+
+    if (mode === 'download') {
+      res.setHeader('Content-disposition', `attachment; filename=himawari-${id}.json`);
+      res.setHeader('Content-type', 'application/json');
+      res.write(JSON.stringify(result.items, null, 4),  (err) => {
+        if (err) {
+          next(err);
+        }
+        res.status(+ResultCode.success).end();
+        return;
+      })
     }
 
     res.result = result.setResultValue(true, ResultCode.success)

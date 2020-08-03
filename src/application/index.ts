@@ -9,11 +9,10 @@ import * as helmet from "helmet";
 import * as cookieParser from 'cookie-parser';
 import * as xmlBodyparser from 'express-xml-bodyparser';
 import * as moment from 'moment-timezone';
+import * as path from 'path';
 
 import { connectMongoDB } from '../nosql/mongodb-data-accessor';
 import routes from '../routes';
-import { ResultVM, ResultCode } from '../view-models/result.vm';
-import { RequestExtension, ResponseExtension } from 'view-models/extension.vm';
 
 moment.tz.setDefault('Asia/Taipei');
 
@@ -44,6 +43,8 @@ export class Application {
             .use(xmlBodyparser())
             .use(cookieParser())
             .use(routes)
+            .use(express.static(path.join(__dirname, '../apidoc')));
+
         return
     }
 

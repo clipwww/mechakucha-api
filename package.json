@@ -5,18 +5,19 @@
   "main": "src/index.ts",
   "scripts": {
     "dev": "node_modules/nodemon/bin/nodemon.js",
-    "nodemon-exec": "npm run build && npm start",
+    "nodemon-exec": "npm run build &&  npm start",
     "clean": "rm -rf dist",
     "init": "mkdir dist",
     "prebuild": "npm run clean && npm run init",
     "build": "node_modules/typescript/bin/tsc",
     "start": "node ./dist",
-    "heroku-postbuild": "npm run build"
+    "build:apidoc": "apidoc -i src/ -o dist/apidoc",
+    "heroku-postbuild": "npm run build && npm run build:apidoc"
   },
   "engines": {
     "node": "12.13.1"
   },
-  "author": "",
+  "author": "me",
   "license": "ISC",
   "dependencies": {
     "@types/body-parser": "^1.19.0",
@@ -67,6 +68,12 @@
     "@types/lodash": "^4.14.158",
     "@types/lru-cache": "^5.1.0",
     "@types/mongoose": "^5.7.32",
-    "@types/puppeteer": "^3.0.1"
+    "@types/puppeteer": "^3.0.1",
+    "grunt-apidoc": "^0.11.0"
+  },
+  "apidoc": {
+    "title": "めちゃくちゃ Api",
+    "name": "めちゃくちゃ Api",
+    "url" : "https://mechakucha-api.herokuapp.com"
   }
 }
