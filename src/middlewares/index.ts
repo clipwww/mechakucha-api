@@ -1,5 +1,7 @@
-import { responseEndMiddleware } from './response-end.middleware';
+import { responseEndMiddleware, errorHandlerMiddleware, endMiddlewares } from './end.middleware';
 
 export {
-  responseEndMiddleware
+  responseEndMiddleware,
+  errorHandlerMiddleware, 
+  endMiddlewares
 };

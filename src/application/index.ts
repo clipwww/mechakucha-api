@@ -44,10 +44,6 @@ export class Application {
             .use(xmlBodyparser())
             .use(cookieParser())
             .use(routes)
-            .use((error: Error, req: RequestExtension, res: ResponseExtension) => {
-                console.log('[ERROR]', error)
-                res.status(+ResultCode.error).send(error.message);
-            });
         return
     }
 
