@@ -8,7 +8,7 @@ import { ResponseExtension } from '../view-models/extension.vm';
 const router = Router();
 
 /**
- * @api {get} /niconico/:id/danmaku?mode= 取得 NicoNico 動畫彈幕
+ * @api {get} /niconico/:id/danmaku?mode= 取得動畫彈幕
  * @apiName GetNicoNicoDanmaku
  * @apiGroup NicoNico動畫
  * @apiVersion 1.0.0

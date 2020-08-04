@@ -1,4 +1,5 @@
 import * as puppeteer from 'puppeteer';
+import * as moment from 'moment';
 
 const BASE_URL = `https://www.nicovideo.jp/watch`;
 
@@ -61,6 +62,7 @@ const niconicoParser = (resultArray: any[]) => {
     return {
       text: content,
       time: vpos / 100,
+      digital_time: moment.utc(vpos * 10).format('mm:ss'),
       color: parseNiconicoColor(mail),
       mode: parseNiconicoMode(mail),
       size: parseNiconicoSize(mail),

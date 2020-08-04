@@ -49,7 +49,7 @@ router.get('/:id', async (req, res: ResponseExtension, next) => {
 
 
 /**
- * @api {get} /himawari/:id/danmaku?mode= 取得向日葵動畫彈幕
+ * @api {get} /himawari/:id/danmaku?mode= 取得動畫彈幕
  * @apiName GetHimawariDanmaku
  * @apiGroup 向日葵動畫
  * @apiVersion 1.0.0

@@ -8,7 +8,7 @@ import { ResponseExtension } from '../view-models/extension.vm';
 const router = Router();
 
 /**
- * @api {get} /agefans?keyword 取得 AGE 動漫番劇列表
+ * @api {get} /agefans?keyword 取得番劇列表
  * @apiName GetAnimeList
  * @apiGroup AGE動漫
  * @apiVersion 1.0.0
