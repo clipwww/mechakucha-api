@@ -53,14 +53,15 @@ export const getHimawariDougaDetails = async (id: string) => {
   return xml.movie;
 }
 
-export const getHimawariDougaDanmaku = async (id: string) => {
-  const { data: htmlString } = await axiosInstance.get(`${BASE_URL}/${id}`)
+export const getHimawariDougaDanmaku = async (id: string, isGroupId = false) => {
+  const url = isGroupId ? `${BASE_URL}?mode=commentgroup&group_id=${id}` : `${BASE_URL}${id}`
+  const { data: htmlString } = await axiosInstance.get(url)
   
   const $ = cheerio.load(htmlString);
   const group_id = $('input[name="group_id"]').val();
   const key = $('input[name="key"]').val();
 
-  const { data: xmlString } = await axiosInstance.get(`${BASE_URL}/api/player`, {
+  const { data: xmlString } = await axiosInstance.get(`${BASE_URL}api/player`, {
     params: {
       mode: 'comment',
       id,

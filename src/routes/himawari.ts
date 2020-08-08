@@ -84,7 +84,7 @@ router.get('/:id', async (req, res: ResponseExtension, next) => {
 router.get('/:id/danmaku', async (req, res: ResponseExtension, next) => {
   try {
     const { id } = req.params;
-    const { mode } = req.query;
+    const { mode, group } = req.query;
 
     const result = new ResultListGenericVM();
     const key = `himawari-danmaku-${id}`;
@@ -93,7 +93,7 @@ router.get('/:id/danmaku', async (req, res: ResponseExtension, next) => {
     if (cacheItems) {
       result.items = cacheItems
     } else {
-      const danmakuList = await getHimawariDougaDanmaku(id);
+      const danmakuList = await getHimawariDougaDanmaku(id, !!group);
       result.items = danmakuList;
       lruCache.set(key, result.items)
     }
