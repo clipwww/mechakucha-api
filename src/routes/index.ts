@@ -7,6 +7,7 @@ import movie from './movie';
 import komica from './komica';
 import himawari from './himawari';
 import niconico from './niconico';
+import convert from './convert';
 
 const router = Router();
 
@@ -17,5 +18,6 @@ router
 .use('/komica', komica, ...endMiddlewares)
 .use('/himawari', himawari, ...endMiddlewares)
 .use('/niconico', niconico, ...endMiddlewares)
+.use('/convert', convert, ...endMiddlewares)
 
 export default router;

@@ -38,6 +38,7 @@
     "express-xml-bodyparser": "^0.3.0",
     "helmet": "^3.23.2",
     "lru-cache": "^6.0.0",
+    "m3u8stream": "^0.7.1",
     "moment": "^2.27.0",
     "moment-timezone": "^0.5.31",
     "mongoose": "^5.9.24",
@@ -74,6 +75,6 @@
   "apidoc": {
     "title": "めちゃくちゃ Api",
     "name": "めちゃくちゃ Api",
-    "url" : "https://mechakucha-api.herokuapp.com"
+    "url": "https://mechakucha-api.herokuapp.com"
   }
 }
