@@ -52,7 +52,9 @@ router.get('/:id/danmaku', async (req, res: ResponseExtension, next) => {
     } else {
       const danmakuList = await getNicoNicoDanmaku(id);
       result.items = danmakuList;
-      lruCache.set(key, result.items)
+      if (result.items.length) {
+        lruCache.set(key, result.items)
+      }
     }
 
     if (mode === 'download') {

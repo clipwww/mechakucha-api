@@ -48,7 +48,7 @@ export const getAnimeList = async () => {
   await page.goto(BASE_URL, {
     waitUntil: 'networkidle0',
   });
-  const list: Array<SimpleAnimeVM> = await page.evaluate(function() {
+  const list: Array<SimpleAnimeVM> = await page.evaluate(function () {
     // console.log('[evaluate]')
     // console.log(`url is ${location.href}`)
     // console.log(window, typeof window, window.new_anime_list)
@@ -146,44 +146,59 @@ export const getAnimeDetails = async (id: string) => {
   };
 }
 
-export const getAnimeVideo = async (id: string, pId: string, eId: string) => {
-  const browser = await puppeteer.launch({
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  });
+export const getAnimeVideo = (id: string, pId: string, eId: string): Promise<string> => {
+  return new Promise(async (reslove, reject) => {
+    const browser = await puppeteer.launch({
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
 
 
-  const page = await browser.newPage();
-  await page.setCookie({
-    name: 'username',
-    value: 'admin',
-    path: '/',
-    domain: 'www.agefans.tv'
-  });
+    const page = await browser.newPage();
+    await page.setCookie({
+      name: 'username',
+      value: 'admin',
+      path: '/',
+      domain: 'www.agefans.tv'
+    });
 
-  // await page.setJavaScriptEnabled(true)
-  await page.goto(`${BASE_URL}/play/${id}?playid=${pId}_${eId}`, {
-    waitUntil: 'networkidle0',
-  });
+    // await page.setJavaScriptEnabled(true)
+    page.on('response', async response => {
+      const url = response.url();
+      if (!url.includes('play.agefans.tv/_getplay2')) {
+        return;
+      }
+      // console.lokg(response.request().postData())
 
-  const path = await page.evaluate(async function () {
-    const $iframe = document.getElementById('age_playfram');
+      const ret = await response.json() as any;
+      console.log(url, response.status(), ret);
+      reslove(decodeURIComponent(ret.vurl));
+    });
+    await page.goto(`${BASE_URL}/play/${id}?playid=${pId}_${eId}`, {
+      waitUntil: 'networkidle0',
+    });
+    await page.waitFor(1000 * 15);
+    reject('timeout.')
+  })
 
-    function getIframeSrc(): Promise<string> {
-      return new Promise(reslove => {
-        $iframe.onload = () => {
-          const src = $iframe.getAttribute('src');
-          reslove(src);
-        }
-      })
-    }
-    window.__yx_SetMainPlayIFrameSRC("age_playfram", window.__age_cb_getplay_url);
-    const src = await getIframeSrc();
-    return src;
-  }) as string;
+  // const path = await page.evaluate(async function () {
+  //   const $iframe = document.getElementById('age_playfram');
 
-  await browser.close();
-  // await page.screenshot({ path: 'screenshot/example.png' });
-  return decodeURIComponent(path.match(/(https|http):\/\/([\w-]+\.)+[\w-]+([\w-./?%&=]*)?/)[0]);
+  //   function getIframeSrc(): Promise<string> {
+  //     return new Promise(reslove => {
+  //       $iframe.onload = () => {
+  //         const src = $iframe.getAttribute('src');
+  //         reslove(src);
+  //       }
+  //     })
+  //   }
+  //   window.__yx_SetMainPlayIFrameSRC("age_playfram", window.__age_cb_getplay_url);
+  //   const src = await getIframeSrc();
+  //   return src;
+  // }) as string;
+
+  // await browser.close();
+  // // await page.screenshot({ path: 'screenshot/example.png' });
+  // return decodeURIComponent(path.match(/(https|http):\/\/([\w-]+\.)+[\w-]+([\w-./?%&=]*)?/)[0]);
 }
 
 export const queryAnimeList = async (keyword: string, page = 1) => {
