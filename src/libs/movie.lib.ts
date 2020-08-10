@@ -327,6 +327,7 @@ export const searchMovieRating = async (keyword: string) => {
       });
   });
   // await page.screenshot({ path: 'screenshot/example.png' });
+  await browser.close();
 
   return items;
 }
