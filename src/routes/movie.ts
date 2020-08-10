@@ -26,8 +26,9 @@ const notifyToken = process.env.NOTIFY_TOKEN;
   "items": [
     {
       "id": "108528",
+      "no": "108528",
+      "officialDoc": "局影外字第108528號",
       "year": "108",
-      "ratingId": "局影外字第108528號",
       "title": "《少女與戰車 總集篇4DX》-第63屆戰車道全國高中生大會",
       "country": "日本",
       "runtime": "2時2分1秒",
@@ -39,22 +40,23 @@ const notifyToken = process.env.NOTIFY_TOKEN;
  */
 router.get('/rating', async (req, res: ResponseExtension, next) => {
   try {
-    const { keyword } = req.query;
-
+    let { keyword } = req.query;
     if (!keyword) {
       next();
       return;
     }
+    
+    keyword = decodeURIComponent(keyword as string);
 
     const result = new ResultListGenericVM();
 
-    const items = await searchMovieRating(keyword as string);
+    const items = await searchMovieRating(keyword);
     result.items = items;
     res.result = result.setResultValue(true, ResultCode.success);
     
     const key = `movie-rating-${keyword}`;
     const cacheValue =  lruCache.get(key) as any[];
-    if (cacheValue?.[0]?.no !== items?.[0]?.no && (keyword as string).includes('戰車')) {
+    if (cacheValue?.[0]?.no !== items?.[0]?.no && keyword.includes('戰車')) {
       items.forEach(async item => {
         const movieDoc = await MovieRatingModel.findOne({ no: item.no })
         if (!movieDoc) {

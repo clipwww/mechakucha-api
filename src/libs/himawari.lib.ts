@@ -53,6 +53,64 @@ export const getHimawariDougaDetails = async (id: string) => {
   return xml.movie;
 }
 
+export const getHimawariDanmakuList = async (keyword: string, page = 1) => {
+  const { data: htmlString } = await axiosInstance.get(BASE_URL, {
+    params: {
+      keyword,
+      page: page - 1,
+      mode: 'commentgroup',
+      cat: 'search',
+      sort: 'comment_cnt',
+      sortby: 'desc'
+    }
+  })
+
+  const $ = cheerio.load(htmlString);
+  const items = $('#thumb tr').map((i, tr) => {
+    const $tds = $(tr).find('td');
+
+    let group_id = '';
+    let title = '';
+    let count = 0;
+    let source = '';
+
+    $tds.each((index, el) => {
+      switch(index) {
+        case 0:
+          const queryParams = new URLSearchParams($(el).find('a').attr('href'));
+          group_id = queryParams.get('group_id')
+          title = $(el)?.text()?.trim() ?? '';
+          break;
+        case 1:
+          count = +$(el)?.text();
+          break;
+        case 2:
+          source = $(el)?.text()?.trim() ?? '';
+          break;
+      }
+    })
+
+    return {
+      group_id,
+      title,
+      count,
+      source,
+    }
+  }).get() as { group_id: string, title: string, count: string, source: string }[];
+
+  const pagenav = $('.pagenavi_res').first().text();
+  const pageMatch = pagenav.match(/page (.*) of (.*) result:(.*)/)
+
+  return {
+    items,
+    pageInfo: {
+      index: +pageMatch?.[1] ?? page,
+      size: +pageMatch?.[2] ?? 0,
+      amount: +pageMatch?.[3] ?? 0,
+    },
+  }
+}
+
 export const getHimawariDougaDanmaku = async (id: string, isGroupId = false) => {
   const url = isGroupId ? `${BASE_URL}?mode=commentgroup&group_id=${id}` : `${BASE_URL}${id}`
   const { data: htmlString } = await axiosInstance.get(url)

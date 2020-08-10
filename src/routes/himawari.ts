@@ -1,7 +1,7 @@
 import { Router } from 'express';
 
 import { lruCache } from '../utilities/lru-cache';
-import { getHimawariDougaList, getHimawariDougaDetails, getHimawariDougaDanmaku } from '../libs/himawari.lib';
+import { getHimawariDougaList, getHimawariDougaDetails, getHimawariDougaDanmaku, getHimawariDanmakuList } from '../libs/himawari.lib';
 import { ResultCode, ResultListGenericVM, ResultGenericVM } from '../view-models/result.vm';
 import { ResponseExtension } from '../view-models/extension.vm';
 
@@ -9,18 +9,27 @@ const router = Router();
 
 router.get('/', async (req, res: ResponseExtension, next) => {
   try {
-    const { sort, keyword, cat, page } = req.query;
+    const { sort, keyword, cat, page, mode } = req.query;
 
     const result = new ResultListGenericVM();
-    const { channel, items } = await getHimawariDougaList({
-      sort: sort as string,
-      keyword: keyword as string,
-      cat: cat as string,
-      page,
-    })
+    if (mode === 'commentgroup') {
+      const { items, pageInfo  } = await getHimawariDanmakuList(keyword as string, +page)
+      result.items = items;
+      result.page = pageInfo;
+    } else {
+      const { channel, items } = await getHimawariDougaList({
+        sort: sort as string,
+        keyword: keyword as string,
+        cat: cat as string,
+        page,
+      })
 
-    result.item = channel;
-    result.items = items;
+      result.item = channel;
+      result.items = items;
+    }
+    
+
+    
 
     res.result = result.setResultValue(true, ResultCode.success)
 
