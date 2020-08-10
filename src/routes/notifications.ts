@@ -10,6 +10,8 @@ import { ResultCode } from '../view-models/result.vm';
 
 const router = Router();
 
+const notifyToken = process.env.NOTIFY_TOKEN;
+
 const subscribe = async (callback: string, topic: string): Promise<boolean> => {
   try {
     const formData = new FormData();
@@ -27,7 +29,7 @@ const subscribe = async (callback: string, topic: string): Promise<boolean> => {
       formData.append(`hub.${key}`, hub[key]);
     }
 
-    const response = await fetch(`https://pubsubhubbub.appspot.com/subscribe`, {
+    await fetch(`https://pubsubhubbub.appspot.com/subscribe`, {
       method: 'POST',
       body: formData,
     })
@@ -57,17 +59,17 @@ router.post('/yt', async (req, res) => {
   const { entry, self } = parseXMLtoData(xmlString);
   console.log('entry', entry)
   if (entry) {
-    const tokens = await getChatTokens();
-    tokens.map(token => sendNotifyMessage(token, {
+   
+    sendNotifyMessage(notifyToken, {
       message: `
-${entry.author.name} 發布了新的影片！
+--- ${entry.author.name} 有新的通知! ---
 影片標題: ${entry.title}
 影片連結: ${entry.link.href}
 發布時間: ${moment(entry.published).format('YYYY/MM/DD HH:mm')}
       `,
       // imageFullsize: `https://img.youtube.com/vi/${entry["yt:videoId"]}/maxresdefault.jpg`,
       // imageThumbnail: `https://img.youtube.com/vi/${entry["yt:videoId"]}/default.jpg`
-    }))
+    })
 
     subscribe(`${req.protocol}://${req.hostname}${req.originalUrl}`, self);
   }
@@ -82,16 +84,16 @@ router.post('/cwb', async (req, res) => {
   const items = parseCwbXMLtoItems(xmlString);
 
   if (items.length) {
-    const tokens = await getChatTokens();
+
     items.forEach(item => {
-      tokens.map(token => sendNotifyMessage(token, {
+      sendNotifyMessage(notifyToken, {
         message: `
-中央氣象局警報、特報
+--- 中央氣象局警報、特報 ---
 ${item.title}
 ${item.description.replace(/\\n/g, '\n')}
 ${item.link}
         `,
-      }))
+      })
     })
 
     console.log(req.hostname);

@@ -4,7 +4,7 @@ import * as mongoose from 'mongoose';
 export function connectMongoDB() {
   let db: mongoose.Connection
 
-  mongoose.connect(`${process.env.MONGODB_URI}?poolSize=100`, {
+  mongoose.connect(`${process.env.MONGODB_URI}?retryWrites=true&w=majority&poolSize=100`, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   });

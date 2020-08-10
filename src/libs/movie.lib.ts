@@ -313,10 +313,12 @@ export const searchMovieRating = async (keyword: string) => {
       })
       .filter(arr => arr.length)
       .map(arr => {
+        const id = arr[1].replace(/[^\d]/g, '');
         return {
-          id: arr[1].replace(/[^\d]/g, ''),
+          id,
+          no: id,
+          officialDoc: arr[1],
           year: arr[0],
-          ratingId: arr[1],
           title: arr[2],
           country: arr[3],
           runtime: arr[4],

@@ -17,6 +17,9 @@ interface Params {
 export const sendNotifyMessage = async (token: string, params: Params): Promise<boolean> => {
   console.log('token', token)
   try {
+    if (!token) {
+      throw Error('token is empty.')
+    }
     const form = new FormData();
 
     for (const key in params) {

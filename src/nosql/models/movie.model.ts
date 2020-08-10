@@ -1,10 +1,12 @@
 import { Schema, Model, Document, model } from 'mongoose';
 
+import { idGenerator } from '../../utilities';
 
 export interface MovieRatingDocumentDef extends Document {
-  id: string;
+  id?: string;
+  no: string;
+  officialDoc: string;
   year: string;
-  ratingId: string;
   title: string;
   country:string;
   runtime:string;
@@ -15,13 +17,17 @@ export interface MovieRatingDocumentDef extends Document {
 const MovieRating = new Schema({
   id: {
     type: String,
-    default: ''
+    default: idGenerator.generateV4UUID(),
   },
-  year: {
+  no: {
     type: String,
     default: ''
   },
-  ratingId: {
+  officialDoc: {
+    type: String,
+    default: ''
+  },
+  year: {
     type: String,
     default: ''
   },

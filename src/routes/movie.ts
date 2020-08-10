@@ -1,11 +1,14 @@
 import { Router } from 'express';
 
+import { lruCache } from '../utilities/lru-cache';
 import { searchMovieRating, getCityList, getMovieList, getMovieListGroupByDate, getTheaterList, getMovieTimes, getTheaterTimes } from '../libs/movie.lib';
 import { ResultCode, ResultListGenericVM } from '../view-models/result.vm';
 import { ResponseExtension } from '../view-models/extension.vm';
+import { MovieRatingModel } from '../nosql/models/movie.model'
+import { sendNotifyMessage } from '../libs/line.lib';
 
 const router = Router();
-
+const notifyToken = process.env.NOTIFY_TOKEN;
 /**
  * @api {get} /movie/rating?keyword= 取得分級證字號搜尋
  * @apiName GetMovieRating
@@ -40,13 +43,33 @@ router.get('/rating', async (req, res: ResponseExtension, next) => {
 
     if (!keyword) {
       next();
+      return;
     }
 
     const result = new ResultListGenericVM();
 
-    result.items = await searchMovieRating(keyword as string);
+    const items = await searchMovieRating(keyword as string);
+    result.items = items;
     res.result = result.setResultValue(true, ResultCode.success);
-
+    
+    const key = `movie-rating-${keyword}`;
+    const cacheValue =  lruCache.get(key) as any[];
+    if (cacheValue?.[0]?.no !== items?.[0]?.no && (keyword as string).includes('戰車')) {
+      items.forEach(async item => {
+        const movieDoc = await MovieRatingModel.findOne({ no: item.no })
+        if (!movieDoc) {
+          const { id, ...other } = item;
+          await MovieRatingModel.create(other);
+          sendNotifyMessage(notifyToken, {
+            message: `
+--- 電影分級查詢結果: "${keyword}" ---
+找到一筆新的資料: ${item.title}
+            `
+          })
+        }
+      })
+      lruCache.set(key, items, 1000 * 60 * 60 * 24 * 30)
+    }
 
     next();
   } catch (err) {
