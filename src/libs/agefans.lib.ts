@@ -171,12 +171,16 @@ export const getAnimeVideo = (id: string, pId: string, eId: string): Promise<str
 
       const ret = await response.json() as any;
       console.log(url, response.status(), ret);
+      
+      await browser.close();
       reslove(decodeURIComponent(ret.vurl));
     });
     await page.goto(`${BASE_URL}/play/${id}?playid=${pId}_${eId}`, {
       waitUntil: 'networkidle0',
     });
+    
     await page.waitFor(1000 * 15);
+    await browser.close();
     reject('timeout.')
   })
 

@@ -98,12 +98,15 @@ export const getNicoNicoDanmaku = async (id: string): Promise<any[]> => {
       // console.log(response.request().postData())
 
       const ret = await response.json() as any[];
+      await browser.close();
       reslove(niconicoParser(ret));
     });
     await page.goto(`${BASE_URL}/${id}`, {
       waitUntil: 'networkidle0',
     });
+    
     await page.waitFor(1000 * 15);
+    await browser.close();
     reject('timeout.')
   })
 }
