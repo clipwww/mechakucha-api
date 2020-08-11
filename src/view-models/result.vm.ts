@@ -41,6 +41,7 @@ export class ResultListGenericVM<T> extends ResultVM {
   page?: {
     index: number;
     size: number;
-    amount: number;
+    dataAmount: number;
+    pageAmount?: number;
   }
 }
