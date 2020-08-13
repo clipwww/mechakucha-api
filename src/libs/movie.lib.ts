@@ -1,10 +1,8 @@
-import * as puppeteer from 'puppeteer';
 import * as cheerio from 'cheerio';
 import * as moment from 'moment';
 import { groupBy as _groupBy } from 'lodash';
 
-import { axiosInstance } from '../utilities/axios'
-import { lruCache } from '../utilities/lru-cache';
+import { axiosInstance, lruCache, puppeteerUtil } from '../utilities'
 
 const BASE_URL = 'http://www.atmovies.com.tw';
 
@@ -285,11 +283,7 @@ export async function getTheaterTimes(theaterId: string, cityId: string, date: s
 }
 
 export const searchMovieRating = async (keyword: string) => {
-  const browser = await puppeteer.launch({
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  });
-
-  const page = await browser.newPage();
+  const page = await puppeteerUtil.newPage();
   await page.goto(`https://cinema.bamid.gov.tw:9443/TheaterMangSystem/Pages/MovieRating/page-search.aspx`, {
     waitUntil: 'networkidle0',
   });
@@ -301,7 +295,7 @@ export const searchMovieRating = async (keyword: string) => {
     document.getElementById('ImageButton1').click();
     return;
   }, keyword);
-
+  
   await page.waitForNavigation();
   const items = await page.evaluate(() => {
     const nodes = document.querySelectorAll('#GridView1 tbody tr')
@@ -327,7 +321,6 @@ export const searchMovieRating = async (keyword: string) => {
       });
   });
   // await page.screenshot({ path: 'screenshot/example.png' });
-  await browser.close();
 
   return items;
 }

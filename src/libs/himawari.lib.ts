@@ -2,7 +2,7 @@ import * as cheerio from 'cheerio';
 import * as moment from 'moment';
 import { toJson } from 'xml2json';
 
-import { axiosInstance } from '../utilities/axios';
+import { axiosInstance } from '../utilities';
 
 const BASE_URL = 'http://himado.in/';
 
@@ -158,7 +158,7 @@ export const getHimawariDougaDanmaku = async (id: string, isGroupId = false) => 
       date,
       msg: $(e).text(),
       text: $(e).text(),
-      digital_time: moment.utc(vpos_master * 10).format('mm:ss'),
+      digital_time: moment.utc(vpos_master * 10).format('HH:mm:ss'),
       date_iso_string: new Date(date * 1000).toISOString(),
       deleted,
     }

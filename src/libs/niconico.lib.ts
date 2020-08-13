@@ -1,5 +1,6 @@
-import * as puppeteer from 'puppeteer';
 import * as moment from 'moment';
+
+import { puppeteerUtil } from '../utilities'
 
 const BASE_URL = `https://www.nicovideo.jp/watch`;
 
@@ -62,7 +63,7 @@ const niconicoParser = (resultArray: any[]) => {
     return {
       text: content,
       time: vpos / 100,
-      digital_time: moment.utc(vpos * 10).format('mm:ss'),
+      digital_time: moment.utc(vpos * 10).format('HH:mm:ss'),
       color: parseNiconicoColor(mail),
       mode: parseNiconicoMode(mail),
       size: parseNiconicoSize(mail),
@@ -76,11 +77,7 @@ const niconicoParser = (resultArray: any[]) => {
 
 export const getNicoNicoDanmaku = async (id: string): Promise<any[]> => {
   return new Promise(async (reslove, reject) => {
-    const browser = await puppeteer.launch({
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
-  
-    const page = await browser.newPage();
+    const page = await puppeteerUtil.newPage();
     await page.setCookie({
       name: 'lang',
       value: 'ja-jp',
@@ -88,7 +85,7 @@ export const getNicoNicoDanmaku = async (id: string): Promise<any[]> => {
       domain: '.nicovideo.jp'
     });
     // page.on('console', msg => console.log('PAGE LOG:', msg.text()));
-  
+    
     page.on('response', async response => {
       const url = response.url();
       if (!url.includes('://nmsg.nicovideo.jp/api.json')) {
@@ -98,7 +95,6 @@ export const getNicoNicoDanmaku = async (id: string): Promise<any[]> => {
       // console.log(response.request().postData())
 
       const ret = await response.json() as any[];
-      await browser.close();
       reslove(niconicoParser(ret));
     });
     await page.goto(`${BASE_URL}/${id}`, {
@@ -106,7 +102,7 @@ export const getNicoNicoDanmaku = async (id: string): Promise<any[]> => {
     });
     
     await page.waitFor(1000 * 15);
-    await browser.close();
+
     reject('timeout.')
   })
 }

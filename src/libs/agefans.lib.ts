@@ -1,9 +1,8 @@
 // import fetch from 'node-fetch';
-import * as puppeteer from 'puppeteer';
 import * as cheerio from 'cheerio';
 import { tify as originTify } from 'chinese-conv';
 
-import { axiosInstance } from '../utilities/axios';
+import { axiosInstance, puppeteerUtil } from '../utilities';
 
 function tify(value: string = '') {
   return originTify(value || '');
@@ -37,11 +36,7 @@ declare global {
 }
 
 export const getAnimeList = async () => {
-  const browser = await puppeteer.launch({
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  });
-
-  const page = await browser.newPage();
+  const page = await puppeteerUtil.newPage();
   // page.on('console', msg => console.log('PAGE LOG:', msg.text()));
 
   // await page.setJavaScriptEnabled(true)
@@ -54,8 +49,6 @@ export const getAnimeList = async () => {
     // console.log(window, typeof window, window.new_anime_list)
     return window.new_anime_list
   });
-
-  await browser.close();
 
   return list.map(item => {
     return {
@@ -148,12 +141,8 @@ export const getAnimeDetails = async (id: string) => {
 
 export const getAnimeVideo = (id: string, pId: string, eId: string): Promise<string> => {
   return new Promise(async (reslove, reject) => {
-    const browser = await puppeteer.launch({
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
 
-
-    const page = await browser.newPage();
+    const page = await puppeteerUtil.newPage();
     await page.setCookie({
       name: 'username',
       value: 'admin',
@@ -171,8 +160,7 @@ export const getAnimeVideo = (id: string, pId: string, eId: string): Promise<str
 
       const ret = await response.json() as any;
       console.log(url, response.status(), ret);
-      
-      await browser.close();
+    
       reslove(decodeURIComponent(ret.vurl));
     });
     await page.goto(`${BASE_URL}/play/${id}?playid=${pId}_${eId}`, {
@@ -180,7 +168,7 @@ export const getAnimeVideo = (id: string, pId: string, eId: string): Promise<str
     });
     
     await page.waitFor(1000 * 15);
-    await browser.close();
+
     reject('timeout.')
   })
 
