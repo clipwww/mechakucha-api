@@ -8,6 +8,7 @@ import komica from './komica';
 import himawari from './himawari';
 import niconico from './niconico';
 import convert from './convert';
+import bahamut from './bahamut';
 
 const router = Router();
 
@@ -19,5 +20,6 @@ router
 .use('/himawari', himawari, ...endMiddlewares)
 .use('/niconico', niconico, ...endMiddlewares)
 .use('/convert', convert, ...endMiddlewares)
+.use('/bahamut', bahamut, ...endMiddlewares)
 
 export default router;

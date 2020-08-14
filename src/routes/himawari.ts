@@ -93,7 +93,7 @@ router.get('/:id', async (req, res: ResponseExtension, next) => {
 router.get('/:id/danmaku', async (req, res: ResponseExtension, next) => {
   try {
     const { id } = req.params;
-    const { mode, group, filename } = req.query;
+    const { mode, group } = req.query;
 
     const result = new ResultListGenericVM();
     const key = `himawari-danmaku-${id}`;
@@ -110,7 +110,7 @@ router.get('/:id/danmaku', async (req, res: ResponseExtension, next) => {
     }
 
     if (mode === 'download') {
-      res.setHeader('Content-disposition', `attachment; filename=himawari-${filename || id}.json`);
+      res.setHeader('Content-disposition', `attachment; filename=himawari-${id}.json`);
       res.setHeader('Content-type', 'application/json');
       res.write(JSON.stringify(result.items, null, 4),  (err) => {
         if (err) {

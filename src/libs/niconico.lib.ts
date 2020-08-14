@@ -34,9 +34,9 @@ const parseNiconicoColor = (mail: string) => {
 
 const parseNiconicoMode = (mail: string) => {
   const line = mail.toLowerCase().split(/\s+/);
-  if (line.includes('ue')) return 'TOP';
-  if (line.includes('shita')) return 'BOTTOM';
-  return 'RTL';
+  if (line.includes('ue')) return 'top';
+  if (line.includes('shita')) return 'bottom';
+  return 'rtl';
 };
 
 const parseNiconicoSize = (mail: string) => {
