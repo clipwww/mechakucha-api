@@ -9,6 +9,7 @@ import himawari from './himawari';
 import niconico from './niconico';
 import convert from './convert';
 import bahamut from './bahamut';
+import bilibili from './bilibili';
 
 const router = Router();
 
@@ -21,5 +22,6 @@ router
 .use('/niconico', niconico, ...endMiddlewares)
 .use('/convert', convert, ...endMiddlewares)
 .use('/bahamut', bahamut, ...endMiddlewares)
+.use('/bilibili', bilibili, ...endMiddlewares)
 
 export default router;

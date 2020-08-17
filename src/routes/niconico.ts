@@ -67,6 +67,7 @@ router.get('/:id/danmaku', async (req, res: ResponseExtension, next) => {
         res.status(+ResultCode.success).end();
         return;
       })
+      return;
     }
 
     res.result = result.setResultValue(true, ResultCode.success)
