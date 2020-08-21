@@ -4,6 +4,10 @@ import * as FormData from 'form-data';
 import { LineChatTokenModel } from '../nosql/models/line.model';
 
 const notifyURL = 'https://notify-api.line.me/api/notify';
+const tokenURL = 'https://notify-bot.line.me/oauth/token';
+const statusURL = 'https://notify-api.line.me/api/status';
+
+// https://notify-bot.line.me/oauth/authorize?response_type=code&scope=notify&response_mode=form_post&client_id={client_id}&redirect_uri={redirect_uri}&state=f094a459-1d16-42d6-a709-c2b61ec53d60
 
 interface Params {
   message: string;
@@ -14,7 +18,41 @@ interface Params {
   imageFullsize?: string;
 }
 
-export const sendNotifyMessage = async (token: string, params: Params): Promise<boolean> => {
+export const handleSubscribe = async (code: string, redirect_uri: string) => {
+  console.log('code', code);
+  console.log('redirect_uri', redirect_uri);
+  try {
+    const form = new FormData();
+    form.append('grant_type', 'authorization_code');
+    form.append('redirect_uri', redirect_uri);
+    form.append('client_id', process.env.NOTIFY_CLIENT_ID);
+    form.append('client_secret', process.env.NOTIFY_CLIENT_SECRET);
+    form.append('code', code);
+
+    const ret = await fetch(tokenURL, {
+      method: 'POST',
+      body: form,
+    })
+    const json = await ret.json();
+    console.log(json);
+    if (json.status !== 200) {
+      return false;
+    }
+    const token = json.access_token;
+    const status = await getTokenStatus(token);
+
+    await LineChatTokenModel.create({
+      name: status?.target ?? '',
+      token,
+    })
+    return true;
+  } catch (err) {
+    console.error(err);
+    return false;
+  }
+}
+
+export const postNotifyMessage = async (token: string, params: Params): Promise<boolean> => {
   console.log('token', token)
   try {
     if (!token) {
@@ -38,6 +76,31 @@ export const sendNotifyMessage = async (token: string, params: Params): Promise<
     return json.status === 200;
   } catch (err) {
     console.error(err);
+  }
+}
+
+export const sendNotifyMessage = async (params: Params) => {
+  const tokens = await getChatTokens();
+  const resultArr = await Promise.all(tokens.map(token => postNotifyMessage(token, params)));
+  return resultArr.every(bool => bool);
+}
+
+export const getTokenStatus = async (token: string) => {
+  try {
+    const ret = await fetch(statusURL, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+    const json = await ret.json();
+    console.log(json);
+    if (json.status !== 200) {
+      return;
+    }
+    return json.status === 200 ? json : null;
+  } catch (err) {
+    return null;
   }
 }
 

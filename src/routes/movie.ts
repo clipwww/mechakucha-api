@@ -8,7 +8,6 @@ import { MovieRatingModel } from '../nosql/models/movie.model'
 import { sendNotifyMessage } from '../libs/line.lib';
 
 const router = Router();
-const notifyToken = process.env.NOTIFY_TOKEN;
 /**
  * @api {get} /movie/rating?keyword= 取得分級證字號搜尋
  * @apiName GetMovieRating
@@ -62,7 +61,7 @@ router.get('/rating', async (req, res: ResponseExtension, next) => {
         if (!movieDoc) {
           const { id, ...other } = item;
           await MovieRatingModel.create(other);
-          sendNotifyMessage(notifyToken, {
+          sendNotifyMessage({
             message: `
 --- 電影分級查詢結果: "${keyword}" ---
 找到一筆新的資料: ${item.title}

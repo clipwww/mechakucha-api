@@ -3,14 +3,12 @@ import * as moment from 'moment-timezone';
 import fetch from 'node-fetch';
 import * as FormData from 'form-data';
 
-import { sendNotifyMessage, getChatTokens } from '../libs/line.lib';
+import { sendNotifyMessage, handleSubscribe } from '../libs/line.lib';
 import { parseXMLtoData } from '../libs/youtube.lib';
 import { parseCwbXMLtoItems } from '../libs/cwb.lib';
 import { ResultCode } from '../view-models/result.vm';
 
 const router = Router();
-
-const notifyToken = process.env.NOTIFY_TOKEN;
 
 const subscribe = async (callback: string, topic: string): Promise<boolean> => {
   try {
@@ -60,7 +58,7 @@ router.post('/yt', async (req, res) => {
   console.log('entry', entry)
   if (entry) {
    
-    sendNotifyMessage(notifyToken, {
+    sendNotifyMessage({
       message: `
 --- ${entry.author.name} 有新的通知! ---
 影片標題: ${entry.title}
@@ -84,9 +82,8 @@ router.post('/cwb', async (req, res) => {
   const items = parseCwbXMLtoItems(xmlString);
 
   if (items.length) {
-
     items.forEach(item => {
-      sendNotifyMessage(notifyToken, {
+      sendNotifyMessage({
         message: `
 --- 中央氣象局警報、特報 ---
 ${item.title}
@@ -96,11 +93,19 @@ ${item.link}
       })
     })
 
-    console.log(req.hostname);
+    // console.log(req.hostname);
     subscribe(`${req.protocol}://${req.hostname}${req.originalUrl}`, 'https://www.cwb.gov.tw/rss/Data/cwb_warning.xml');
   }
   
   res.status(+ResultCode.success).send(items.length ? 'ok' : '不ok');
+})
+
+
+router.post('/line-notify', async (req, res) => {
+  const { code } = req.body;
+  const isOk = await handleSubscribe(code, `https://${req.hostname}${req.originalUrl}`);
+
+  res.status(+ResultCode.success).send(isOk ? '訂閱成功' : '訂閱失敗');
 })
 
 export default router;
