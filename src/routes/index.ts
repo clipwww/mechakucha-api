@@ -10,6 +10,7 @@ import niconico from './niconico';
 import convert from './convert';
 import bahamut from './bahamut';
 import bilibili from './bilibili';
+import metaFetcher from './meta-fetcher';
 
 const router = Router();
 
@@ -23,5 +24,6 @@ router
 .use('/convert', convert, ...endMiddlewares)
 .use('/bahamut', bahamut, ...endMiddlewares)
 .use('/bilibili', bilibili, ...endMiddlewares)
+.use('/meta-fetcher', metaFetcher, ...endMiddlewares)
 
 export default router;
