@@ -13,7 +13,7 @@ router.get('/', async (req, res: ResponseExtension, next) => {
 
     const result = new ResultGenericVM();
 
-    const key = `agefans-list-${url}`;
+    const key = `meta-fetcher-${url}`;
     const cacheValue = lruCache.get(key) as any[];
     if (cacheValue) {
       result.item = cacheValue

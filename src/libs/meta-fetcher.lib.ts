@@ -1,5 +1,7 @@
 import * as cheerio from 'cheerio';
 import fetch from 'node-fetch';
+// import { lruCache, puppeteerUtil } from '../utilities'
+
 
 const handleURL = (url: string): string => {
   const urlObj = new URL(url.trim());
@@ -9,65 +11,81 @@ const handleURL = (url: string): string => {
   return urlObj.href;
 }
 
-const createValidUri = (host: string, path: string): string => {
-  if (path.includes(host)) {
+const createValidUri = (url: string, path: string): string => {
+  const urlObj = new URL(url);
+  if (path.includes(urlObj.host)) {
     return path;
   }
 
   const updatedPath = path.replace('/', '');
-  return `${host}${updatedPath}`;
+  return `${urlObj.host}${updatedPath}`;
 };
 
 export const fetchMetaData = async (url: string): Promise<any> => {
   const urlString: string = handleURL(url);
 
+  // const page = await puppeteerUtil.newPage();
+  // await page.goto(urlString, {
+  //   waitUntil: 'networkidle0',
+  // });
+
+  // const htmlString = await page.evaluate(() => {
+  //   return document.documentElement.innerHTML;
+  // });
   const response = await fetch(urlString, {
     method: 'GET'
   });
   const htmlString = await response.text();
+  
+
   const $ = cheerio.load(htmlString);
-  const $head = $('head');
 
   const basic = {
-    url: response.url,
-    title: $head.find('title').text(),
-    description: $head.find('meta[name=description]').attr('content')
+    url: urlString,
+    title: $('title').text(),
+    description: $('meta[name=description]').attr('content')
   }
 
   const opengraph = {};
-  $head.find('meta[property]').each((_, meta) => {
-    const property = $(meta).attr('property');
+  $('meta[property]').each((_, meta) => {
+    const key = $(meta).attr('property');
     const content = $(meta).attr('content');
-    
-    if (!property.includes('twitter')) {
-      opengraph[property] = content;
-    }
+
+    opengraph[key] = content;
   })
 
   const opengraph_social = {};
-  $head.find('meta[name]').each((_, meta) => {
-    const property = $(meta).attr('name');
+  $('meta[name]').each((_, meta) => {
+    const key = $(meta).attr('name');
     const content = $(meta).attr('content');
 
-    if (property.includes('twitter')) {
-      opengraph_social[property] = content;
-    }
+    opengraph_social[key] = content;
   });
 
-  const favicons = $head.find('link[rel]')
-  .filter((_, el) => {
-    const href = $(el).attr('href');
-    return href.includes('shortcut icon') || href.includes('icon') || href.includes('apple-touch-startup-image') || href.includes('apple-touch-icon')
-  }).map((_, el) => {
-    const href = $(el).attr('href');
-    return createValidUri(response.url, href)
-  }).get();
+  const itemprop = {};
+  $('[itemprop]').each((_, meta) => {
+    const key = $(meta).attr('itemprop');
+    const content = $(meta).attr('content');
+    const href = $(meta).attr('href');
+
+    itemprop[key] = content || href;
+  });
+
+  const favicons = $('link[rel]')
+    .filter((_, el) => {
+      const href = $(el).attr('href');
+      return href.includes('shortcut icon') || href.includes('icon') || href.includes('apple-touch-startup-image') || href.includes('apple-touch-icon')
+    }).map((_, el) => {
+      const href = $(el).attr('href');
+      return createValidUri(urlString, href)
+    }).get();
 
 
   return {
     ...basic,
     opengraph,
     opengraph_social,
+    itemprop,
     favicons,
   };
 }
