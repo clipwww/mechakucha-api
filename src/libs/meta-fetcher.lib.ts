@@ -33,7 +33,10 @@ export const fetchMetaData = async (url: string): Promise<any> => {
   //   return document.documentElement.innerHTML;
   // });
   const response = await fetch(urlString, {
-    method: 'GET'
+    method: 'GET',
+    headers: {
+      'User-Agent': 'MetaFetcher'
+    }
   });
   const htmlString = await response.text();
   
