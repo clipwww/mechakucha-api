@@ -1,6 +1,6 @@
 import * as cheerio from 'cheerio';
 import fetch from 'node-fetch';
-// import { lruCache, puppeteerUtil } from '../utilities'
+import { lruCache, puppeteerUtil } from '../utilities'
 
 
 const handleURL = (url: string): string => {
@@ -23,23 +23,26 @@ const createValidUri = (url: string, path: string): string => {
 
 export const fetchMetaData = async (url: string): Promise<any> => {
   const urlString: string = handleURL(url);
+  let htmlString = '';
 
-  // const page = await puppeteerUtil.newPage();
-  // await page.goto(urlString, {
-  //   waitUntil: 'networkidle0',
-  // });
+  if (/youtube.com|twitter.com/g.test(urlString)) {
+    const page = await puppeteerUtil.newPage();
+    await page.goto(urlString, {
+      waitUntil: 'networkidle0',
+    });
+    htmlString = await page.evaluate(() => {
+      return document.documentElement.innerHTML;
+    });
+  } else {
+    const response = await fetch(urlString, {
+      method: 'GET',
+      headers: {
+        'User-Agent': 'MetaFetcher'
+      }
+    });
+    htmlString = await response.text();
+  }
 
-  // const htmlString = await page.evaluate(() => {
-  //   return document.documentElement.innerHTML;
-  // });
-  const response = await fetch(urlString, {
-    method: 'GET',
-    headers: {
-      'User-Agent': 'MetaFetcher'
-    }
-  });
-  const htmlString = await response.text();
-  
 
   const $ = cheerio.load(htmlString);
 
