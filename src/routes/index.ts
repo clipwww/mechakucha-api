@@ -11,6 +11,7 @@ import convert from './convert';
 import bahamut from './bahamut';
 import bilibili from './bilibili';
 import metaFetcher from './meta-fetcher';
+import myMovieRecord from './my-movie-record';
 
 const router = Router();
 
@@ -25,5 +26,6 @@ router
 .use('/bahamut', bahamut, ...endMiddlewares)
 .use('/bilibili', bilibili, ...endMiddlewares)
 .use('/meta-fetcher', metaFetcher, ...endMiddlewares)
+.use('/my-movie-record', myMovieRecord, ...endMiddlewares)
 
 export default router;
