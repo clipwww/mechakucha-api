@@ -39,7 +39,7 @@ router.get('/', async (req, res: ResponseExtension, next) => {
             newObj.date = moment(value, 'YYYY/MM/DD HH:mm').toISOString();
             break;
           default:
-            newObj[COLUMN_MAPPING[key]] = isNaN(value) ? value : +value;
+            newObj[COLUMN_MAPPING[key]] = isNaN(value) || !value ? value : +value;
             break;
         }
       }
