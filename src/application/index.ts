@@ -43,7 +43,8 @@ export class Application {
             .use(xmlBodyparser())
             .use(cookieParser())
             .use(routes)
-            .use(express.static(path.join(__dirname, '../apidoc')));
+            .use(express.static(path.join(__dirname, '../apidoc')))
+            // .use('/screenshot', express.static(path.join(__dirname, '../../screenshot')));
 
         return
     }
