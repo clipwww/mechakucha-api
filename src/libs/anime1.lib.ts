@@ -1,10 +1,10 @@
 import * as cheerio from 'cheerio';
 import fetch from 'node-fetch';
-import path from 'path';
-import fs from 'fs';
+import * as path from 'path';
+import * as fs from 'fs';
 
 import { m3u8toStream } from '../libs/convert.lib';
-import { puppeteerUtil } from '../utilities'
+import { puppeteerUtil, axiosInstance } from '../utilities'
 
 export interface Anime1ListVM {
   id: string;
@@ -15,7 +15,7 @@ export interface Anime1ListVM {
 export interface Anime1BangumiVM {
   id: string;
   name: string;
-  type: 'mp4' | 'm3u8';
+  type: 'mp4' | 'm3u8' | 'yt';
   m3u8Url?: string;
   mp4Url?: string;
   iframeSrc?: string;
@@ -62,10 +62,24 @@ export const getBangumiEpisode = async (id: string) => {
 
       for (let i = 0; i < bangumis.length; i++) {
         const $el = $(bangumis[i]);
-        const iframeSrc = $el.find('iframe')?.attr('src') ?? $el.find('.loadvideo')?.attr('data-src');
-        const type = $el.find('iframe').length ? 'mp4' : 'm3u8';
+        let iframeSrc = '';
+        let type = '';
 
+        switch (true) {
+          case !!$el.find('iframe').length:
+            iframeSrc = $el.find('iframe')?.attr('src');
+            type = 'mp4';
+            break;
+          case !!$el.find('.loadvideo')?.attr('data-src'):
+            iframeSrc = $el.find('.loadvideo')?.attr('data-src');
+            type = 'm3u8';
+            break;
+          case !!$el.find('.youtubePlayer').attr('data-vid'):
+            iframeSrc = `https://www.youtube-nocookie.com/embed/${$el.find('.youtubePlayer').attr('data-vid')}?rel=0&autoplay=1&modestbranding=1`;
+            type = 'yt';
+            break;
 
+        }
 
         bangumiItems.push({
           id: $el.attr('id')?.replace('post-', '') ?? '',
@@ -122,7 +136,7 @@ export const getM3u8Url = async (url: string): Promise<string> => {
   }
 }
 
-export const getMp4Url = async (url: string): Promise<string> => {
+export const getMp4Url = async (url: string): Promise<{ url: string, setCookies: string[] }> => {
   return new Promise(async (reslove, reject) => {
     const page = await puppeteerUtil.newPage();
     await page.setCookie({
@@ -131,26 +145,44 @@ export const getMp4Url = async (url: string): Promise<string> => {
       path: '/',
       domain: 'anime1.me'
     });
-    // page.on('console', msg => console.log('PAGE LOG:', msg.text()));
+    page.on('console', msg => console.log('PAGE LOG:', msg.text()));
 
-    page.on('response', async response => {
-      const url = response.url();
+    page.on('request', async (request) => {
+      const url = request.url();
       if (!url.includes('://v.anime1.me/api')) {
         return;
       }
+ 
+      const res = await axiosInstance.post(url, request.postData(), {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      })
 
-      // console.log(response.request().postData())
-
-      const ret = await response.json() as any;
-      reslove(`https:${ret?.l}`);
+      reslove({
+        url: `https:${res?.data?.l}`,
+        setCookies: res.headers['set-cookie']
+      });
     });
+    // page.on('response', async (response) => {
+    //   const url = response.url();
+    //   if (!url.includes('://v.anime1.me/api')) {
+    //     return;
+    //   }
+
+    //   // console.log(response.request().postData())
+    //   const ret = await response.json() as any;
+    //   reslove(`https:${ret?.l}`);
+    // });
+
     await page.goto(url, {
       waitUntil: 'networkidle0',
     });
-    await page.evaluate(() => {
-      document.getElementById('player').click();
-      return;
-    });
+    // await page.evaluate(() => {
+    //   document.getElementById('player').click();
+    //   return;
+    // });
 
     await page.waitFor(1000 * 15);
 
@@ -158,7 +190,7 @@ export const getMp4Url = async (url: string): Promise<string> => {
   })
 }
 
-export const getBangumiPlayerById = async (id: string) => {
+export const getBangumiPlayerById = async (id: string): Promise<{ type: string, url: string, setCookies?: string[] }> => {
   const response = await fetch(`${BASE_URL}${id}`, {
     // @ts-ignore
     credentials: 'include',
@@ -169,20 +201,42 @@ export const getBangumiPlayerById = async (id: string) => {
   const htmlString = await response.text();
   const $ = cheerio.load(htmlString);
 
-  const url = $('iframe')?.attr('src') ?? $('.loadvideo')?.attr('data-src');
-  const type = $('iframe').length ? 'mp4' : 'm3u8';
+  let src = '';
+  let type = '';
 
+  switch (true) {
+    case !!$('iframe').length:
+      src = $('iframe')?.attr('src');
+      type = 'mp4';
+      break;
+    case !!$('.loadvideo')?.attr('data-src'):
+      src = $('.loadvideo')?.attr('data-src');
+      type = 'm3u8';
+      break;
+    case !!$('.youtubePlayer').attr('data-vid'):
+      src = `http://www.youtube.com/watch?v=${$('.youtubePlayer').attr('data-vid')}`;
+      type = 'yt';
+      break;
+
+  }
 
   switch (type) {
     case 'mp4':
+      const { url, setCookies } =  await getMp4Url(src);
       return {
         type,
-        url: await getMp4Url(url),
+        url,
+        setCookies
       };
     case 'm3u8':
       return {
         type,
-        url: await getM3u8Url(url),
+        url: await getM3u8Url(src),
+      }
+    case 'yt':
+      return {
+        type,
+        url: src,
       }
     default:
       return {
@@ -195,7 +249,7 @@ export const getBangumiPlayerById = async (id: string) => {
 export const m3u8toMP4 = async (m3u8Url: string): Promise<string> => {
   return new Promise((resolve) => {
     const timestamp = +new Date();
-    const filePath = path.join(__dirname, `../video/${timestamp}.mp4`);
+    const filePath = path.join(__dirname, `../../videos/${timestamp}.mp4`);
     const stream = m3u8toStream(m3u8Url);
 
     stream.on('end', () => {
