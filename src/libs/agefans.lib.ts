@@ -8,7 +8,7 @@ function tify(value: string = '') {
   return originTify(value || '');
 }
 
-const BASE_URL = 'https://www.agefans.tv';
+const BASE_URL = 'https://www.agefans.net';
 
 interface SimpleAnimeVM {
   id: string;
@@ -147,13 +147,13 @@ export const getAnimeVideo = (id: string, pId: string, eId: string): Promise<str
       name: 'username',
       value: 'admin',
       path: '/',
-      domain: 'www.agefans.tv'
+      domain: 'www.agefans.net'
     });
 
     // await page.setJavaScriptEnabled(true)
     page.on('response', async response => {
       const url = response.url();
-      if (!url.includes('play.agefans.tv/_getplay2')) {
+      if (!url.includes('_getplay2')) {
         return;
       }
       // console.lokg(response.request().postData())
