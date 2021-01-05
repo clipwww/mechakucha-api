@@ -9,11 +9,11 @@ const router = Router();
 
 router.get('/', async (req, res: ResponseExtension, next) => {
   try {
-    const { sort, keyword, cat, page, mode } = req.query;
+    const { sort, keyword, cat, page, mode, sortby } = req.query;
 
     const result = new ResultListGenericVM();
     if (mode === 'commentgroup') {
-      const { items, pageInfo  } = await getHimawariDanmakuList(keyword as string, +page)
+      const { items, pageInfo  } = await getHimawariDanmakuList(keyword as string, +page, sort as string, sortby as string)
       result.items = items;
       result.page = pageInfo;
     } else {

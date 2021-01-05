@@ -1,4 +1,7 @@
 import * as moment from 'moment';
+import { toJson } from 'xml2json';
+import fetch from 'node-fetch';
+import * as cheerio from 'cheerio';
 
 import { puppeteerUtil } from '../utilities'
 
@@ -85,13 +88,13 @@ export const getNicoNicoDanmaku = async (id: string): Promise<any[]> => {
       domain: '.nicovideo.jp'
     });
     // page.on('console', msg => console.log('PAGE LOG:', msg.text()));
-    
+
     page.on('response', async response => {
       const url = response.url();
       if (!url.includes('://nmsg.nicovideo.jp/api.json')) {
         return;
       }
-      
+
       // console.log(response.request().postData())
 
       const ret = await response.json() as any[];
@@ -100,9 +103,35 @@ export const getNicoNicoDanmaku = async (id: string): Promise<any[]> => {
     await page.goto(`${BASE_URL}/${id}`, {
       waitUntil: 'networkidle0',
     });
-    
+
     await page.waitFor(1000 * 15);
 
     reject('timeout.')
   })
 }
+
+export const getRankingList = async (type = 'all', term = '24h') => {
+  const response = await fetch(`http://www.nicovideo.jp/ranking/genre/${type}?term=${term}&rss=2.0&lang=ja-jp`);
+  const xmlString = await response.text();
+
+  const { rss } = JSON.parse(toJson(xmlString));
+
+  rss.channel.pubDate = moment(rss.channel.pubDate);
+  rss.channel.lastBuildDate = moment(rss.channel.lastBuildDate);
+  
+  return rss.channel.item.map(item => {
+    const $ = cheerio.load(`<div>${item.description}</div>`);
+
+    return {
+      ...item,
+      pubDate: moment(item.pubDate),
+      description: $('.nico-description').html() || '',
+      originDescription: item.description,
+      memo: $('.nico-memo').text() || '',
+      timeLength: $('.nico-info-length').text() || '',
+      nicoInfoDate: $('.nico-info-date').text() || '',
+      thumbnailSrc: $('.nico-thumbnail img').attr('src') || '',
+    };
+  });
+
+};

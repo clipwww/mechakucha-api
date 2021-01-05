@@ -53,15 +53,15 @@ export const getHimawariDougaDetails = async (id: string) => {
   return xml.movie;
 }
 
-export const getHimawariDanmakuList = async (keyword: string, page = 1) => {
+export const getHimawariDanmakuList = async (keyword: string, page = 1, sort = 'comment_cnt', sortby = 'desc') => {
   const { data: htmlString } = await axiosInstance.get(BASE_URL, {
     params: {
       keyword,
       page: page - 1,
       mode: 'commentgroup',
       cat: 'search',
-      sort: 'comment_cnt',
-      sortby: 'desc'
+      sort,
+      sortby
     }
   })
 
