@@ -79,9 +79,10 @@ router.get('/:id/danmaku', async (req, res: ResponseExtension, next) => {
 })
 
 
+
 /**
  * @api {get} /niconico/ranking 取得 Nico 排行榜
- * @apiName GetNicoNicoDanmaku
+ * @apiName GetNicoNicoRanking
  * @apiGroup NicoNico動畫
  * @apiVersion 1.0.0
  *
@@ -96,15 +97,19 @@ router.get('/:id/danmaku', async (req, res: ResponseExtension, next) => {
   "resultMessage": "",
   "items": [
     {
-      "title": "第1位：もしも孫悟空の判断がすごかったら",
-      "link": "http://www.nicovideo.jp/watch/sm38065817?ref=rss_specified_ranking_rss2",
-      "pubDate": "2021-01-05T05:18:39.000Z",
-      "description": "&#x3067;&#x3048;&#x3058;&#x3087;&#x3046;&#x3076;&#x3060;&#x30C9;&#x30E9;&#x30B4;&#x30F3;&#x30DC;&#x30FC;&#x30EB;&#x3067;&#x3044;&#x304D;&#x3051;&#x3048;&#x308C;&#x308B;&#x3055;&#x6B21; &#x524D; sm38047354&#x4F5C;&#x3063;&#x305F;&#x52D5;&#x753B; mylist/5",
-      "originDescription": "<p class=\"nico-thumbnail\"><img alt=\"もしも孫悟空の判断がすごかったら\" src=\"http://nicovideo.cdn.nimg.jp/thumbnails/38065817/38065817.41341600\" width=\"94\" height=\"70\" border=\"0\"/></p>\n                                <p class=\"nico-description\">でえじょうぶだドラゴンボールでいきけえれるさ次 前 sm38047354作った動画 mylist/5</p>\n                                <p class=\"nico-info\"><small><strong class=\"nico-info-length\">1:11</strong>｜<strong class=\"nico-info-date\">2021年01月03日 13：00：00</strong> 投稿<br/><strong>合計</strong>&nbsp;&#x20;再生：<strong class=\"nico-info-total-view\">103,529</strong>&nbsp;&#x20;コメント：<strong class=\"nico-info-total-res\">425</strong>&nbsp;&#x20;マイリスト：<strong class=\"nico-info-total-mylist\">303</strong></small></p>",
+      "title": "第1位：ウマ娘 プリティーダービー Season 2 第1話「トウカイテイオー」",
+      "link": "https://www.nicovideo.jp/watch/so38015385?ref=rss_specified_ranking_rss2",
+      "pubDate": "2021-01-06T09:13:26.000Z",
+      "description": "動画一覧はこちらシンボリルドルフに憧れて無敗の三冠を目指すトウカイテイオーは、次走の日本ダービーを目",
+      "id": "so38015385",
+      "originDescription": "<p class=\"nico-thumbnail\"><img alt=\"ウマ娘 プリティーダービー Season 2 第1話「トウカイテイオー」\" src=\"https://nicovideo.cdn.nimg.jp/thumbnails/38015385/38015385.87708699\" width=\"94\" height=\"70\" border=\"0\"/></p>\n                                <p class=\"nico-description\">動画一覧はこちらシンボリルドルフに憧れて無敗の三冠を目指すトウカイテイオーは、次走の日本ダービーを目</p>\n                                <p class=\"nico-info\"><small><strong class=\"nico-info-length\">23:55</strong>｜<strong class=\"nico-info-date\">2021年01月05日 12：00：00</strong> 投稿<br/><strong>合計</strong>&nbsp;&#x20;再生：<strong class=\"nico-info-total-view\">82,257</strong>&nbsp;&#x20;コメント：<strong class=\"nico-info-total-res\">12,268</strong>&nbsp;&#x20;マイリスト：<strong class=\"nico-info-total-mylist\">413</strong></small></p>",
       "memo": "",
-      "timeLength": "1:11",
-      "nicoInfoDate": "2021年01月03日 13：00：00",
-      "thumbnailSrc": "http://nicovideo.cdn.nimg.jp/thumbnails/38065817/38065817.41341600"
+      "timeLength": "23:55",
+      "nicoInfoDate": "2021年01月05日 12：00：00",
+      "totalView": 82257,
+      "commentCount": 12268,
+      "mylistCount": 413,
+      "thumbnailSrc": "https://nicovideo.cdn.nimg.jp/thumbnails/38015385/38015385.87708699"
     }
   ]
 }

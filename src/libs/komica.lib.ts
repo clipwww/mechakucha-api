@@ -1,5 +1,6 @@
 import * as cheerio from 'cheerio';
 import * as moment from 'moment';
+import { decode } from 'he';
 
 import { axiosInstance } from '../utilities/axios';
 
@@ -73,7 +74,7 @@ const getPostData = ($el: Cheerio): PostVM => {
   return {
     id,
     title,
-    text: text?.replace(/onclick/g, str => `__${str}`),
+    text: decode(text?.replace(/onclick/g, str => `__${str}`)),
     email,
     oImg,
     sImg,

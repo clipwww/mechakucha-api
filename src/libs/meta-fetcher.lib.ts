@@ -1,6 +1,6 @@
 import * as cheerio from 'cheerio';
 import fetch from 'node-fetch';
-import { lruCache, puppeteerUtil } from '../utilities'
+import { puppeteerUtil } from '../utilities'
 
 
 const handleURL = (url: string): string => {

@@ -1,6 +1,7 @@
 import * as cheerio from 'cheerio';
 import * as moment from 'moment';
 import { toJson } from 'xml2json';
+import { decode } from 'he';
 
 import { axiosInstance } from '../utilities';
 
@@ -30,7 +31,7 @@ export const getHimawariDougaList = async ({ sort = 'today_view_cnt', keyword = 
         title: item.title,
         link: item.link,
         image: $('img').attr('src'),
-        description: $('.riRssContributor').html(),
+        description: decode($('.riRssContributor').html()),
         date_publish: moment(item.pubDate).toISOString(),
       }
     }) ?? []

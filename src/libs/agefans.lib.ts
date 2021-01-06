@@ -1,6 +1,7 @@
 // import fetch from 'node-fetch';
 import * as cheerio from 'cheerio';
 import { tify as originTify } from 'chinese-conv';
+import { decode } from 'he';
 
 import { axiosInstance, puppeteerUtil } from '../utilities';
 
@@ -128,12 +129,12 @@ export const getAnimeDetails = async (id: string) => {
     }
   })
 
-  const desc = $('.detail_imform_desc_pre p')?.text()?.trim() ?? '';
+  const desc = $('.detail_imform_desc_pre p')?.html() ?? '';
   return {
     id,
     title: tify($img.attr('alt')),
     imgUrl: `https://${$img.attr('src')}`,
-    description: tify(desc),
+    description: tify(decode(desc)),
     ...animeObj,
     episodeList,
   };

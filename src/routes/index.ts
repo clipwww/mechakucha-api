@@ -13,6 +13,7 @@ import bilibili from './bilibili';
 import metaFetcher from './meta-fetcher';
 import myMovieRecord from './my-movie-record';
 import anime1 from './anime1';
+import line from './line';
 
 const router = Router();
 
@@ -29,5 +30,6 @@ router
 .use('/meta-fetcher', metaFetcher, ...endMiddlewares)
 .use('/my-movie-record', myMovieRecord, ...endMiddlewares)
 .use('/anime1', anime1, ...endMiddlewares)
+.use('/line', line, ...endMiddlewares)
 
 export default router;

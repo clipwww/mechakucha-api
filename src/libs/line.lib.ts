@@ -1,7 +1,8 @@
 import fetch from 'node-fetch';
 import * as FormData from 'form-data';
 
-import { LineChatTokenModel } from '../nosql/models/line.model';
+import { LineChatTokenModel, LineProfileModel } from '../nosql/models/line.model';
+import { LineProfile } from '../view-models/line.vm';
 
 const notifyURL = 'https://notify-api.line.me/api/notify';
 const tokenURL = 'https://notify-bot.line.me/oauth/token';
@@ -107,4 +108,33 @@ export const getTokenStatus = async (token: string) => {
 export const getChatTokens = async () => {
   const items = await LineChatTokenModel.find({});
   return items.map(item => item.token);
+}
+
+
+export const getUserProfile = async (userId: string) => {
+  const user = await LineProfileModel.findOne({
+    userId,
+  })
+  return user.toJSON();
+}
+
+export const createUserProfile = async (profile: LineProfile) => {
+  const user = await LineProfileModel.create({
+    ...profile,
+  })
+  return user.toJSON();
+}
+
+export const updateUserProfile = async (profile: LineProfile) => {
+  LineProfileModel.updateOne({
+    userId: profile.userId,
+  },
+    {
+      $set: {
+        displayName: profile.displayName,
+        pictureUrl: profile.pictureUrl,
+        statusMessage: profile.statusMessage,
+        dateUpdated: new Date()
+      }
+    })
 }

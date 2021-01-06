@@ -2,6 +2,7 @@ import * as moment from 'moment';
 import { toJson } from 'xml2json';
 import fetch from 'node-fetch';
 import * as cheerio from 'cheerio';
+import { decode } from 'he';
 
 import { puppeteerUtil } from '../utilities'
 
@@ -111,7 +112,7 @@ export const getNicoNicoDanmaku = async (id: string): Promise<any[]> => {
 }
 
 export const getRankingList = async (type = 'all', term = '24h') => {
-  const response = await fetch(`http://www.nicovideo.jp/ranking/genre/${type}?term=${term}&rss=2.0&lang=ja-jp`);
+  const response = await fetch(`https://www.nicovideo.jp/ranking/genre/${type}?term=${term}&rss=2.0&lang=ja-jp`);
   const xmlString = await response.text();
 
   const { rss } = JSON.parse(toJson(xmlString));
@@ -121,15 +122,20 @@ export const getRankingList = async (type = 'all', term = '24h') => {
   
   return rss.channel.item.map(item => {
     const $ = cheerio.load(`<div>${item.description}</div>`);
+    const url = new URL(item.link)
 
     return {
       ...item,
-      pubDate: moment(item.pubDate),
-      description: $('.nico-description').html() || '',
+      id: url.pathname.replace('/watch/', ''),
+      pubDate: moment(item.pubDate).toISOString(),
+      description: decode($('.nico-description').html()) || '',
       originDescription: item.description,
       memo: $('.nico-memo').text() || '',
       timeLength: $('.nico-info-length').text() || '',
       nicoInfoDate: $('.nico-info-date').text() || '',
+      totalView: +$('.nico-info-total-view').text().replace(/,/g, ''),
+      commentCount: +$('.nico-info-total-res').text().replace(/,/g, ''),
+      mylistCount: +$('.nico-info-total-mylist').text().replace(/,/g, ''),
       thumbnailSrc: $('.nico-thumbnail img').attr('src') || '',
     };
   });
