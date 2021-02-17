@@ -14,6 +14,7 @@ import metaFetcher from './meta-fetcher';
 import myMovieRecord from './my-movie-record';
 import anime1 from './anime1';
 import line from './line';
+import myLog from './my-log';
 
 const router = Router();
 
@@ -31,5 +32,6 @@ router
 .use('/my-movie-record', myMovieRecord, ...endMiddlewares)
 .use('/anime1', anime1, ...endMiddlewares)
 .use('/line', line, ...endMiddlewares)
+.use('/my-log', myLog, ...endMiddlewares)
 
 export default router;
