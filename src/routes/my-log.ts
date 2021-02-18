@@ -37,6 +37,8 @@ router.get('/mi/:type', async (req, res: ResponseExtension, next) => {
       case 'sleep':
         result.items = await getMiLog('3');
         break;
+      default:
+        throw Error('Type is required.')
     }
 
     res.result = result.setResultValue(true, ResultCode.success)

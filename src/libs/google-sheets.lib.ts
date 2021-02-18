@@ -25,11 +25,15 @@ export const getMovieLog = async () => {
 
     return data.feed.entry.map((item: { 'gsx$日期': { $t: string }; }) => {
       const newObj = {
+        id: '',
         date: ''
       }
       for (const key in item) {
         const value = item[key].$t;
         switch (key) {
+          case 'id':
+            newObj.id = value.split('/')?.pop() ?? `${+new Date()}`;
+            break;
           case 'gsx$日期':
             newObj.date = moment(value, 'YYYY/MM/DD HH:mm').toISOString();
             break;
@@ -46,18 +50,28 @@ export const getMovieLog = async () => {
   }
 }
 
-export const getMiLog = async (workSheetId: '1' | '2' | '3') => {
+export const getMiLog = async (workSheetId: '1' | '2' | '3'): Promise<[]> => {
+  /**
+   * 1. sport
+   * 2. activity
+   * 3. sleep
+   */
   try {
     const { data } = await fetchGoogleSheet('1Ea0efiYHiwUJlR4LdUhPdOKbBmW4_FU4sqsCqtOyfCQ', workSheetId);
 
     return data.feed.entry.map((item: { 'gsx$日期': { $t: string }; }) => {
-      const newObj = {};
+      const newObj = {
+        id: ''
+      };
 
       for (const key in item) {
         const value = item[key].$t;
         const newKey = key.replace('gsx$', '');
 
         switch (newKey) {
+          case 'id':
+            newObj.id = value.split('/')?.pop() ?? `${+new Date()}`;
+            break;
           case 'date':
             newObj[newKey] = moment(value, 'YYYY/MM/DD HH:mm').toISOString();
             break;
