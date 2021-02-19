@@ -101,13 +101,13 @@ export async function getCityList(): Promise<{ id: string, name: string }[]> {
     const citys: Array<{ id: string, name: string }> = [];
     $('select[name=area] option')
     .filter((i, el) => {
-      return !!el.attribs.value;
+      return !!$(el).val();
     })
     .each((i, el) => {
-      const id = el.attribs.value;
+      const id = $(el).val();
       if (!citys.find(c => c.id === id)) {
         citys.push({
-          id: el.attribs.value,
+          id: $(el).val(),
           name: $(el).text().trim(),
         })
       }

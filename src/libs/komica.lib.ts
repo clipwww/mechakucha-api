@@ -47,7 +47,7 @@ const deCodeMailProtection = (href: string): string => {
   return 'mailto: ' + n(href, url.length);
 };
 
-const getPostData = ($el: Cheerio): PostVM => {
+const getPostData = ($el: cheerio.Cheerio): PostVM => {
   const id = $el.attr('id')?.replace('r', '') ?? '';
   const title = $el.find('.title')?.text() ?? '';
   const text = $el.find('.quote')?.html() ?? '';
