@@ -2,7 +2,8 @@ import { Router } from 'express';
 
 import { ResultCode, ResultGenericVM } from '../view-models/result.vm';
 import { ResponseExtension } from '../view-models/extension.vm';
-import { axiosInstance, lruCache } from '../utilities';
+import { lruCache, puppeteerUtil } from '../utilities';
+import * as moment from 'moment';
 
 
 const router = Router();
@@ -11,16 +12,24 @@ router.get('/', async (req, res: ResponseExtension, next) => {
   try {
 
     const result = new ResultGenericVM();
+    
+    const key = 'umamusume';
+    const value = lruCache.get(key) as { updateTime: string };
 
-    const { data: { updateTime } } = await axiosInstance.get('http://urarawin.com/dbd');
-    const value = lruCache.get(updateTime);
-
-    if (value) {
+    if (value && moment().isBefore(value.updateTime, 'day')) {
       result.item = value;
     } else {
-      const { data } = await axiosInstance.get('http://urarawin.com/db');
-      result.item = data;
-      lruCache.set(data.updateTime, data);
+      const page = await puppeteerUtil.newPage();
+
+      await page.goto('http://urarawin.com', {
+        waitUntil: 'networkidle0',
+      });
+      const localStorage = await page.evaluate(() => Object.assign({}, window.localStorage));
+      page.close();
+  
+      const db = JSON.parse(localStorage.db);
+      result.item = db;
+      lruCache.set(key, db);
     }
 
     res.result = result.setResultValue(true, ResultCode.success)
