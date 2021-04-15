@@ -10,8 +10,10 @@ import * as cookieParser from 'cookie-parser';
 import * as xmlBodyparser from 'express-xml-bodyparser';
 import * as moment from 'moment-timezone';
 import * as path from 'path';
+import { SignatureValidationFailed, JSONParseError } from '@line/bot-sdk';
 
 import { connectMongoDB } from '../nosql/mongodb-data-accessor';
+import { lineWebhookMiddlewares, errorHandlerMiddleware } from '../middlewares';
 import routes from '../routes';
 
 moment.tz.setDefault('Asia/Taipei');
@@ -32,6 +34,7 @@ export class Application {
     private async setRouters(): Promise<void> {
         this.app = express();
         this.app
+            .use('/webhook', ...lineWebhookMiddlewares)
             .use((req, res, next) => {
                 res.header('Access-Control-Allow-Origin', '*');
                 res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
@@ -44,7 +47,17 @@ export class Application {
             .use(cookieParser())
             .use(routes)
             .use(express.static(path.join(__dirname, '../apidoc')))
-            // .use('/screenshot', express.static(path.join(__dirname, '../../screenshot')));
+
+        this.app.use((err: Error, req, res, next) => {
+            if (err instanceof SignatureValidationFailed) {
+                res.status(401).send(err.signature)
+                return
+            } else if (err instanceof JSONParseError) {
+                res.status(400).send(err.raw)
+                return
+            }
+            next(err) // will throw default 500
+        }, errorHandlerMiddleware)
 
         return
     }
