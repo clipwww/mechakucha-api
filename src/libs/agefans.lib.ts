@@ -60,6 +60,35 @@ export const getAnimeList = async () => {
   });
 }
 
+export const getAnimeUpdate = async (): Promise<{
+  id: string;
+  link: string;
+  name: string;
+  imgUrl: string;
+  description: string;
+}[]> => {
+  // 取得最近更新的列表
+  const { data: htmlString } = await axiosInstance.get(`${BASE_URL}/update`)
+
+  const $ = cheerio.load(htmlString);
+
+  const $ul = $('ul');
+
+  const items = $ul.find('li').map((_, li) => {
+    const $li = $(li);
+    const href = $li.find('a')?.attr('href') ?? '';
+    return {
+      id: href,
+      link: `${BASE_URL}${href}`,
+      name: tify($li.find('h4')?.text()?.trim() ?? ''),
+      imgUrl: $li.find('img').attr('src') || '',
+      description: tify($li.find('span')?.text()?.trim() ?? '')
+    }
+  }).get();
+
+  return items;
+}
+
 export const getAnimeDetails = async (id: string) => {
   const { data: htmlString } = await axiosInstance.get(`${BASE_URL}/detail/${id}`)
 
@@ -161,13 +190,13 @@ export const getAnimeVideo = (id: string, pId: string, eId: string): Promise<str
 
       const ret = await response.json() as any;
       console.log(url, response.status(), ret);
-    
+
       reslove(decodeURIComponent(ret.vurl));
     });
     await page.goto(`${BASE_URL}/play/${id}?playid=${pId}_${eId}`, {
       waitUntil: 'networkidle0',
     });
-    
+
     await page.waitFor(1000 * 15);
 
     reject('timeout.')

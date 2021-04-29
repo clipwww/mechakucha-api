@@ -1,6 +1,6 @@
-import { TextMessage, ReplyableEvent, WebhookEvent } from '@line/bot-sdk';
+import { WebhookEvent } from '@line/bot-sdk';
 
-import { lineBotMiddleware, handleMessageEvent } from '../libs/line-bot.lib';
+import { lineBotMiddleware, handleMessageEvent } from '../libs/line-bot';
 import { ResponseExtension } from '../view-models/extension.vm';
 
 
@@ -14,7 +14,6 @@ export const lineWebhookMiddlewares = [
         case 'message':
           return handleMessageEvent(event);
       }
-
 
       return 
     })

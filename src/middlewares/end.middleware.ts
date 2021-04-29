@@ -11,10 +11,9 @@ export const responseEndMiddleware = async (req: RequestExtension, res: Response
   }
 };
 
-export const errorHandlerMiddleware = async (error: Error, req: RequestExtension, res: ResponseExtension) => {
-  console.log('[ERROR]', error)
-  console.log(res);
-  res.status(+ResultCode.error).send(error.message).end();
+export const errorHandlerMiddleware = async (req: RequestExtension, res: ResponseExtension) => {
+  // console.log(res);
+  res.status(+ResultCode.error).send().end();
 };
 
 

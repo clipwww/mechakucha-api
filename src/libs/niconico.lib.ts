@@ -111,7 +111,21 @@ export const getNicoNicoDanmaku = async (id: string): Promise<any[]> => {
   })
 }
 
-export const getRankingList = async (type = 'all', term = '24h') => {
+export async function getRankingList(type = 'all', term = '24h'): Promise<{
+  id: string;
+  title: string;
+  link: string;
+  pubDate: string;
+  thumbnailSrc: string;
+  description: string;
+  originDescription: string;
+  memo: string;
+  timeLength: string;
+  nicoInfoDate: string;
+  totalView: number;
+  commentCount: number;
+  mylistCount: number;
+}[]> {
   const response = await fetch(`https://www.nicovideo.jp/ranking/genre/${type}?term=${term}&rss=2.0&lang=ja-jp`);
   const xmlString = await response.text();
 
@@ -119,7 +133,7 @@ export const getRankingList = async (type = 'all', term = '24h') => {
 
   rss.channel.pubDate = moment(rss.channel.pubDate);
   rss.channel.lastBuildDate = moment(rss.channel.lastBuildDate);
-  
+
   return rss.channel.item.map(item => {
     const $ = cheerio.load(`<div>${item.description}</div>`);
     const url = new URL(item.link)

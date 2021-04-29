@@ -7,7 +7,17 @@ import { axiosInstance } from '../utilities';
 
 const BASE_URL = 'http://himado.in/';
 
-export const getHimawariDougaList = async ({ sort = 'today_view_cnt', keyword = '', cat, page }) => {
+export const getHimawariDougaList = async ({ sort = 'today_view_cnt', keyword = '', cat, page }): Promise<{
+  channel: any;
+  items: {
+    id: string;
+    title: string;
+    link: string;
+    image: string;
+    description: string;
+    date_publish: string;
+  }[]
+}> => {
   const { data: xmlString } = await axiosInstance.get(BASE_URL, {
     params: {
       sort,
@@ -25,7 +35,7 @@ export const getHimawariDougaList = async ({ sort = 'today_view_cnt', keyword = 
     channel,
     items: items?.map(item => {
       const $ = cheerio.load(item.description);
-  
+
       return {
         id: item.link.replace(BASE_URL, ''),
         title: item.title,
@@ -76,7 +86,7 @@ export const getHimawariDanmakuList = async (keyword: string, page = 1, sort = '
     let source = '';
 
     $tds.each((index, el) => {
-      switch(index) {
+      switch (index) {
         case 0:
           const queryParams = new URLSearchParams($(el).find('a').attr('href'));
           group_id = queryParams.get('group_id')
@@ -116,7 +126,7 @@ export const getHimawariDanmakuList = async (keyword: string, page = 1, sort = '
 export const getHimawariDougaDanmaku = async (id: string, isGroupId = false) => {
   const url = isGroupId ? `${BASE_URL}?mode=commentgroup&group_id=${id}` : `${BASE_URL}${id}`
   const { data: htmlString } = await axiosInstance.get(url)
-  
+
   const $ = cheerio.load(htmlString);
   const group_id = $('input[name="group_id"]').val();
   const key = $('input[name="key"]').val();
@@ -142,7 +152,7 @@ export const getHimawariDougaDanmaku = async (id: string, isGroupId = false) => 
     const id = $(e).attr("u");
     ids[index] = id;
   })
-  
+
   return $xml.find("c").map((i, e) => {
     const deleted = $(e).attr("deleted");
     const arr = $(e).attr("p").split(",");
