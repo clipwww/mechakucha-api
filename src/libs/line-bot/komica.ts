@@ -1,26 +1,27 @@
 
-import { FlexBubble, FlexMessage, MessageEvent } from '@line/bot-sdk';
+import { FlexMessage, MessageEvent } from '@line/bot-sdk';
 
-import { getRankingList } from '../niconico.lib';
+import { getPostListResult } from '../komica.lib';
 import { client } from './index';
 
-export async function handleNicoRankList(event: MessageEvent, page = 1) {
-  const items = await getRankingList();
+export async function handleKomicaList(event: MessageEvent, boardType = 'live', page = 1) {
+  const { posts } = await getPostListResult(boardType, page);
 
   return client.replyMessage(event.replyToken, {
     type: "flex",
-    altText: 'Nico排行',
+    altText: 'Komica',
     contents: {
       type: 'carousel',
-      contents: items.slice((page - 1) * 12, page * 12).map(item => {
+      contents: posts.slice((page - 1) * 12, page * 12).map((item) => {
         return {
           type: 'bubble',
           size: 'micro',
           hero: {
             type: "image",
-            url: item.thumbnailSrc,
+            url: item.sImg || 'https://www.fillmurray.com/200/100',
             size: "full",
-            aspectRatio: '130:100',
+            aspectMode: 'cover',
+            aspectRatio: '200:100',
             backgroundColor: '#000000'
           },
           body: {
@@ -30,11 +31,9 @@ export async function handleNicoRankList(event: MessageEvent, page = 1) {
               {
                 type: 'text',
                 weight: 'bold',
-                size: 'sm',
+                size: 'md',
                 text: item.title,
                 wrap: true,
-                maxLines: 3,
-                margin: 'sm'
               },
             ]
           },
@@ -46,11 +45,10 @@ export async function handleNicoRankList(event: MessageEvent, page = 1) {
                 type: "button",
                 style: "link",
                 action: {
-                  type: "uri",
-                  label: "前往",
-                  uri: item.link
+                  type: 'uri',
+                  label: '前往',
+                  uri: item.url
                 },
-                
               }
             ]
           }

@@ -1,12 +1,12 @@
 import * as line from '@line/bot-sdk';
-import { ReplyableEvent, MessageEvent, TextEventMessage, FlexMessage, FlexCarousel, FlexBubble } from '@line/bot-sdk';
-import * as moment from 'moment';
+import { MessageEvent, TextEventMessage, FlexBubble } from '@line/bot-sdk';
 
 import { handleMovieList } from './movie';
 import { handleNicoRankList } from './niconico';
 import { handleHimawariDougaList } from './himawari';
-import { handleAnime1List } from './anime1';
-import { handleAgefansList } from './agefans';
+import { handleAnime1List, handleAnime1BangumiEpisode, handleAnime1Video } from './anime1';
+import { handleAgefansList, handleAgefansEpisode, handleAgefansVideo } from './agefans';
+import { handleKomicaList } from './komica';
 
 
 export const config = {
@@ -21,8 +21,10 @@ export const client = new line.Client(config);
 
 export async function handleMessageEvent(event: MessageEvent) {
   const text = (event.message as TextEventMessage).text;
-  let page = +text.match(/p=(.*)/i)?.[1];
+  let page = +text.match(/p=(.*)/)?.[1];
   page = isNaN(page) ? 1 : page;
+  const id = text.match(/id=(.*)/)?.[1];
+  const videoId = text.match(/videoId=(.*)/)?.[1];
 
   switch (true) {
     case text.includes('@hey'):
@@ -34,9 +36,28 @@ export async function handleMessageEvent(event: MessageEvent) {
     case text.includes('@向日葵動畫'):
       return handleHimawariDougaList(event, page);
     case text.includes('@Anime1'):
-      return handleAnime1List(event, page);
+      switch (true) {
+        case !!id:
+          return handleAnime1BangumiEpisode(event, id)
+        case !!videoId:
+          return handleAnime1Video(event, videoId);
+        default:
+          return handleAnime1List(event, page);
+      }
     case text.includes('@Agefans'):
       return handleAgefansList(event, page);
+      // switch (true) {
+      //   case !!id:
+      //     return handleAgefansEpisode(event, id)
+      //   case !!videoId:
+      //     return handleAgefansVideo(event, videoId);
+      //   default:
+      //     return handleAgefansList(event, page);
+      // }
+    case text.includes('@新番實況'):
+      return handleKomicaList(event, 'live', page);
+    case text.includes('@新番捏他'):
+      return handleKomicaList(event, 'new', page);
     default:
       break;
     // return client.replyMessage(event.replyToken, {
@@ -116,6 +137,22 @@ function replyActionList(event: MessageEvent) {
               "type": "message",
               "label": "向日葵動畫",
               "text": "@向日葵動畫"
+            }
+          },
+          {
+            "type": "button",
+            "action": {
+              "type": "message",
+              "label": "新番實況",
+              "text": "@新番實況"
+            }
+          },
+          {
+            "type": "button",
+            "action": {
+              "type": "message",
+              "label": "新番捏他",
+              "text": "@新番捏他"
             }
           },
           // {

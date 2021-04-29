@@ -105,9 +105,9 @@ export const getNicoNicoDanmaku = async (id: string): Promise<any[]> => {
       waitUntil: 'networkidle0',
     });
 
-    await page.waitFor(1000 * 15);
-
-    reject('timeout.')
+    setTimeout(() => {
+      reject('timeout.')
+    }, 1000 * 15)
   })
 }
 

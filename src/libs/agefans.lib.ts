@@ -78,7 +78,7 @@ export const getAnimeUpdate = async (): Promise<{
     const $li = $(li);
     const href = $li.find('a')?.attr('href') ?? '';
     return {
-      id: href,
+      id: href.replace('/detail/', ''),
       link: `${BASE_URL}${href}`,
       name: tify($li.find('h4')?.text()?.trim() ?? ''),
       imgUrl: $li.find('img').attr('src') || '',
@@ -197,9 +197,9 @@ export const getAnimeVideo = (id: string, pId: string, eId: string): Promise<str
       waitUntil: 'networkidle0',
     });
 
-    await page.waitFor(1000 * 15);
-
-    reject('timeout.')
+    setTimeout(() => {
+      reject('timeout.')
+    }, 1000 * 15)
   })
 
   // const path = await page.evaluate(async function () {

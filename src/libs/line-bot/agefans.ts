@@ -1,7 +1,7 @@
 
-import { FlexBubble, FlexMessage, MessageEvent } from '@line/bot-sdk';
+import { VideoMessage, FlexMessage, MessageEvent } from '@line/bot-sdk';
 
-import { getAnimeUpdate } from '../agefans.lib';
+import { getAnimeUpdate, getAnimeDetails, getAnimeVideo } from '../agefans.lib';
 import { client } from './index';
 
 export async function handleAgefansList(event: MessageEvent, page = 1) {
@@ -59,12 +59,15 @@ export async function handleAgefansList(event: MessageEvent, page = 1) {
             contents: [
               {
                 type: "button",
+                style: "link",
                 action: {
-                  type: "uri",
-                  label: "前往",
+                  // type: "message",
+                  // label: "查看",
+                  // text: `@Agefans?id=${item.id}`
+                  type: 'uri',
+                  label: '前往',
                   uri: item.link
                 },
-                style: "primary"
               }
             ]
           }
@@ -72,4 +75,60 @@ export async function handleAgefansList(event: MessageEvent, page = 1) {
       })
     }
   } as FlexMessage)
+}
+
+export async function handleAgefansEpisode(event: MessageEvent, id: string) {
+  const { title, episodeList } = await getAnimeDetails(id);
+
+  return client.replyMessage(event.replyToken, {
+    type: "flex",
+    altText: 'Anime1',
+    contents: {
+      "type": "bubble",
+      "size": "giga",
+      header: {
+        type: 'box',
+        layout: 'vertical',
+        contents: [
+          {
+            type: 'text',
+            weight: 'bold',
+            text: title,
+          }
+        ]
+      },
+      "body": {
+        "type": "box",
+        "layout": "vertical",
+        "paddingAll": "none",
+        alignItems: "flex-start",
+        "contents": episodeList.map(item => {
+          return {
+            "type": "button",
+            height: "sm",
+            "action": {
+              "type": "message",
+              "label": item.title,
+              "text": `@Agefans?videoId=${item.id},${item.pId},${item.eId}`
+            }
+          }
+        })
+      },
+    }
+  } as FlexMessage)
+}
+
+export async function handleAgefansVideo(event: MessageEvent, videoId: string) {
+  const [id, pId, eId] = videoId.split(',')
+  const url = await getAnimeVideo(id, pId, eId);
+  console.log(url)
+
+  return client.replyMessage(event.replyToken, [
+    {
+      type: "video",
+      originalContentUrl: url,
+      previewImageUrl: 'https://sta.anicdn.com/playerImg/9.jpg',
+      trackingId: id
+    } as VideoMessage
+  ])
 }

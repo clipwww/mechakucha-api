@@ -184,9 +184,10 @@ export const getMp4Url = async (url: string): Promise<{ url: string, setCookies:
     //   return;
     // });
 
-    await page.waitFor(1000 * 15);
 
-    reject('timeout.')
+    setTimeout(() => {
+      reject('timeout.')
+    }, 1000 * 15)
   })
 }
 

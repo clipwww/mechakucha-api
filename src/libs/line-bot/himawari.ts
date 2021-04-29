@@ -21,7 +21,7 @@ export async function handleHimawariDougaList(event: MessageEvent, page = 1) {
       contents: items.slice((page - 1) * 12, page * 12).map(item => {
         return {
           type: 'bubble',
-          size: 'kilo',
+          size: 'micro',
           hero: {
             type: "image",
             url: item.image.replace('http://', 'https://'),
@@ -57,12 +57,12 @@ export async function handleHimawariDougaList(event: MessageEvent, page = 1) {
             contents: [
               {
                 type: "button",
+                style: "link",
                 action: {
                   type: "uri",
                   label: "前往",
                   uri: item.link
                 },
-                style: "primary"
               }
             ]
           }

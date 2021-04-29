@@ -22,7 +22,7 @@ interface PostVM {
   url?: string;
 }
 
-const BASE_URL = `http://2cat.komica.org`;
+const BASE_URL = `https://2cat.komica.org`;
 
 const deCodeMailProtection = (href: string): string => {
   if (!href) return '';
@@ -169,7 +169,12 @@ export const getPostListResult = async (boardType: BoardType | string, page: num
     .map((_i, el) => $(el).attr('href') as string).get();
 
   return {
-    posts,
+    posts: posts.map(item => {
+      return {
+        ...item,
+        url: `${BASE_URL}/~tedc21thc/${boardType}/pixmicat.php?res=${item.id}`,
+      }
+    }),
     pages
   }
 };
