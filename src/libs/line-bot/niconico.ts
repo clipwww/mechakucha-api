@@ -4,10 +4,10 @@ import { FlexBubble, FlexMessage, MessageEvent } from '@line/bot-sdk';
 import { getRankingList } from '../niconico.lib';
 import { client } from './index';
 
-export async function handleNicoRankList(event: MessageEvent, page = 1) {
+export async function getRankingMessage(page = 1): Promise<FlexMessage> {
   const items = await getRankingList();
 
-  return client.replyMessage(event.replyToken, {
+  return {
     type: "flex",
     altText: 'Nico排行',
     contents: {
@@ -57,5 +57,11 @@ export async function handleNicoRankList(event: MessageEvent, page = 1) {
         }
       })
     }
-  } as FlexMessage)
+  };
+}
+
+export async function handleNicoRankList(event: MessageEvent, page = 1) {
+  const message = await getRankingMessage(page);
+
+  return client.replyMessage(event.replyToken, message);
 }

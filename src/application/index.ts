@@ -15,6 +15,7 @@ import { SignatureValidationFailed, JSONParseError } from '@line/bot-sdk';
 import { connectMongoDB } from '../nosql/mongodb-data-accessor';
 import { lineWebhookMiddlewares, errorHandlerMiddleware } from '../middlewares';
 import routes from '../routes';
+import { initSchedule } from '../agenda';
 
 moment.tz.setDefault('Asia/Taipei');
 
@@ -66,6 +67,7 @@ export class Application {
         const port = process.env.PORT;
         this.app.listen(port, () => {
             console.info(`${Application.applicationName}`, `port on ${port}`)
+            initSchedule();
         });
     }
 
