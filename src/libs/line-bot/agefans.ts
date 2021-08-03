@@ -31,7 +31,7 @@ export async function handleAgefansList(event: MessageEvent, page = 1) {
           },
           hero: {
             type: "image",
-            url: item.imgUrl,
+            url: item.imgUrl.includes('http') ? item.imgUrl.replace('http', 'https') : `https:${item.imgUrl}`,
             size: "full",
             aspectRatio: '150:100',
             aspectMode: 'cover',
