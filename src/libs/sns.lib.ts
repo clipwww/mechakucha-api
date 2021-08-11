@@ -12,9 +12,11 @@ export const crawlerFacebookFanPage = async (fbId: string) => {
   });
 
   const $ = cheerio.load(htmlString);
-
+  const id = $('[data-referrerid]').attr('data-referrerid');
+  console.log(id)
+  
   return {
-    id: $('[data-referrerid]').attr('data-referrerid'),
+    id,
     name: $('.fwb').first().text(),
     logo: $('.uiScaledImageContainer img').attr('src'),
     posts: $('.userContentWrapper').map((_i, el) => {
@@ -38,12 +40,18 @@ export const crawlerInstagramFanPage = async (igAccount: string): Promise<{ href
   let igId = igAccount;
 
   if (isNaN(+igAccount)) {
-    const { data } = await axiosInstance.get(`https://www.instagram.com/${igAccount}/?__a=1`);
+    const { data } = await axiosInstance.get(`https://www.instagram.com/${igAccount}/?__a=1`, {
+      withCredentials: true,
+      headers: {
+        Cookie: "ds_user_id=1268817115; Domain=.instagram.com; expires=Tue, 09-Nov-2021 04:12:52 GMT; Max-Age=7776000; Path=/;Secure"
+    }
+    });
+    // console.log(data)
     const id = data?.graphql?.user?.id ?? '';
     if (id) igId = id;
   }
 
-
+  console.log('igId', igId)
   const { data: ret } = await axiosInstance.get('https://www.instagram.com/graphql/query', {
     params: {
       query_hash: 'e769aa130647d2354c40ea6a439bfc08',
@@ -57,7 +65,7 @@ export const crawlerInstagramFanPage = async (igAccount: string): Promise<{ href
   if (!ret.status || ret.status.toLowerCase() !== 'ok') {
     throw Error(ret.message);
   }
-  console.log(igId)
+ 
   const edges = ret.data.user.edge_owner_to_timeline_media.edges;
   if (!edges.length) {
     throw Error('Empty');
