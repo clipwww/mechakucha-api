@@ -2,23 +2,23 @@ import * as mongoose from 'mongoose';
 
 
 export function connectMongoDB() {
-  let db: mongoose.Connection
+  console.log("MongoDb init");
+  
+  // let db: mongoose.Connection
 
   mongoose.connect(`${process.env.MONGODB_URI}?retryWrites=true&w=majority&poolSize=100`, {
-    useNewUrlParser: true,
     useUnifiedTopology: true,
+    useNewUrlParser: true,
+
+  })
+  .then(() => {
+    console.log('mongodb connected');
+  })
+  .catch(err => {
+    console.log('connection error: ', err);
   });
-  db = mongoose.connection;
-  bindEvents();
-  console.log("MongoDb init");
+  
 
-  function bindEvents() {
-    db.once('open', () => {
-      console.log('mongodb connected');
-    });
-
-    db.on('error', (err) => {
-      console.log('connection error: ', err);
-    })
-  }
+  // db = mongoose.connection;
+ 
 }

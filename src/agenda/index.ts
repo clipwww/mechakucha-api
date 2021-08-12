@@ -6,7 +6,14 @@ import { getRankingMessage } from '../libs/line-bot/niconico';
 const mongoConnectionString = `${process.env.MONGODB_URI}?retryWrites=true&w=majority&poolSize=100`;
 
 export const agenda = new Agenda({
-  db: { address: mongoConnectionString }
+  db: { address: mongoConnectionString },
+}, function (err, c) {
+  if (err) {
+    console.log(err);
+    throw err;
+  }
+  agenda.emit('ready');
+  agenda.cancel({ nextRunAt: null });
 });
 
 // agenda.define('send email report', { priority: JobPriority.high, concurrency: 10 }, async (job: Job<JobAttributesData>) => {
@@ -15,16 +22,18 @@ export const agenda = new Agenda({
 // });
 
 agenda.define('send nico ranking', {}, async (job: Job<JobAttributesData>) => {
+  console.log(`send nico ranking at ${job.attrs.failedAt}`)
   const message = await getRankingMessage();
-  client.pushMessage('U383c9cfcab2d0d16ded2f96ec4337962', message);
+  client.broadcast(message)
 });
 
 export async function initSchedule() {
+  console.log('init agenda')
   await agenda.start();
-  // await agenda.every("5 seconds", "send email report", {
-  //   to: "admin@example.com",
-  // });
-  agenda.schedule("9:00am", 'send nico ranking', {});
-  agenda.schedule("11:00pm", 'send nico ranking', {});
+
+
+  agenda.every("0 9,23 * * *", 'send nico ranking', {}, {
+    timezone: 'Asia/Taipei'
+  });
 }
 

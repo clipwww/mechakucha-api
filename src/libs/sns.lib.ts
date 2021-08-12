@@ -5,20 +5,20 @@ import { axiosInstance, puppeteerUtil } from '../utilities';
 
 export const crawlerFacebookFanPage = async (fbId: string) => {
   const url = `https://www.facebook.com/pg/${fbId}/posts`;
-  const page = await puppeteerUtil.newPage();
+  // const page = await puppeteerUtil.newPage();
 
-  await page.goto(url, {
-    waitUntil: 'networkidle0',
-  });
-  const htmlString = await page.evaluate(() => {
-    return document.body.innerHTML
-  });
-
-  // const { data: htmlString } = await axiosInstance.get<string>(url, {
-  //   headers: {
-  //     'Content-Language': 'zh-TW'
-  //   }
+  // await page.goto(url, {
+  //   waitUntil: 'networkidle0',
   // });
+  // const htmlString = await page.evaluate(() => {
+  //   return document.body.innerHTML
+  // });
+
+  const { data: htmlString } = await axiosInstance.get<string>(url, {
+    headers: {
+      'Content-Language': 'zh-TW'
+    }
+  });
 
   const $ = cheerio.load(htmlString);
   const id = $('[data-referrerid]').attr('data-referrerid');
