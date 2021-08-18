@@ -2,7 +2,8 @@ import * as moment from 'moment';
 import { axiosInstance } from '../utilities';
 
 export const fetchGoogleSheet = (key: string, workSheetId = 'od6') => {
-  return axiosInstance.get(`https://spreadsheets.google.com/feeds/list/${key}/${workSheetId}/public/values?alt=json`);
+  return axiosInstance.get(`https://sheets.googleapis.com/v4/spreadsheets/${key}/values/${workSheetId}?alt=json&key=${process.env.GOOGLE_SHEET_API_KEY}&range=A:AA`)
+  // return axiosInstance.get(`https://spreadsheets.google.com/feeds/list/${key}/${workSheetId}/public/values?alt=json`);
 }
 
 export const getMovieLog = async () => {
@@ -19,33 +20,38 @@ export const getMovieLog = async () => {
     'gsx$花費': 'cost',
     'gsx$備註': 'memo'
   }
+  const keyArr = Object.keys(COLUMN_MAPPING).map(key => COLUMN_MAPPING[key]);
 
   try {
     const { data } = await fetchGoogleSheet('1wUt7W8p7c-tlaUCZOI6OwGJODfO-TE7VwPMaBvlv9pQ');
 
-    return data.feed.entry.map((item: { 'gsx$日期': { $t: string }; }) => {
-      const newObj = {
-        id: '',
-        date: ''
-      }
-      for (const key in item) {
-        const value = item[key].$t;
-        switch (key) {
-          case 'id':
-            newObj.id = value.split('/')?.pop() ?? `${+new Date()}`;
-            break;
-          case 'gsx$日期':
-            newObj.date = moment(value, 'YYYY/MM/DD HH:mm').toISOString();
-            break;
-          default:
-            newObj[COLUMN_MAPPING[key]] = isNaN(value) || !value ? value : +value;
-            break;
-        }
+    return data.values.reduce((pre, cur, index) => {
+      if (index === 0) {
+        return pre;
       }
 
-      return newObj;
-    })
+      const newObj = {
+        id: Buffer.from(cur.join(',')).toString('base64'),
+        memo: '',
+      }
+
+      cur.forEach((value, index) => {
+        switch(keyArr[index]) {
+          case 'date':
+            newObj[keyArr[index]] = moment(value, 'YYYY/MM/DD HH:mm').toISOString();
+            break;
+          default:
+            newObj[keyArr[index]] = isNaN(value) || !value ? value : +value;
+            break;
+        }
+      })
+
+      pre.push(newObj);
+      return pre;
+    }, [])
+
   } catch (err) {
+    console.log(err)
     return [];
   }
 }
@@ -57,7 +63,8 @@ export const getMiLog = async (workSheetId: '1' | '2' | '3'): Promise<[]> => {
    * 3. sleep
    */
   try {
-    const { data } = await fetchGoogleSheet('1Ea0efiYHiwUJlR4LdUhPdOKbBmW4_FU4sqsCqtOyfCQ', workSheetId);
+    const { data } = await axiosInstance.get(`https://spreadsheets.google.com/feeds/list/1Ea0efiYHiwUJlR4LdUhPdOKbBmW4_FU4sqsCqtOyfCQ/${workSheetId}/public/values?alt=json`);
+  
 
     return data.feed.entry.map((item: { 'gsx$日期': { $t: string }; }) => {
       const newObj = {
@@ -90,6 +97,7 @@ export const getMiLog = async (workSheetId: '1' | '2' | '3'): Promise<[]> => {
       return newObj;
     })
   } catch (err) {
+    console.log(err)
     return [];
   }
 }
