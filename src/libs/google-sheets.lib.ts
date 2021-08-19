@@ -86,8 +86,8 @@ export const getMiLog = async (sheetName: string | 'sport' | 'sleep' | 'activity
           case 'date':
             newObj[key] = moment(value, 'YYYY/MM/DD HH:mm').toISOString();
             break;
-          case 'starttime':
-          case 'lastsynctime':
+          case 'startTime':
+          case 'lastSyncTime':
           case 'start':
           case 'stop':
             newObj[key] = moment(value * 1000).toISOString();
