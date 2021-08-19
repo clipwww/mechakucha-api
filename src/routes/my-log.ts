@@ -27,19 +27,7 @@ router.get('/mi/:type', async (req, res: ResponseExtension, next) => {
     const result = new ResultListGenericVM();
 
 
-    switch (type) {
-      case 'sport':
-        result.items = await getMiLog('1');
-        break;
-      case 'activity':
-        result.items = await getMiLog('2');
-        break;
-      case 'sleep':
-        result.items = await getMiLog('3');
-        break;
-      default:
-        throw Error('Type is required.')
-    }
+    result.items = await getMiLog(type);
 
     res.result = result.setResultValue(true, ResultCode.success)
 
