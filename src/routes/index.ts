@@ -15,7 +15,7 @@ import myMovieRecord from './my-movie-record';
 import anime1 from './anime1';
 import line from './line';
 import myLog from './my-log';
-// import umamusume from './umamusume';
+import umamusume from './umamusume';
 import sns from './sns';
 
 const router = Router();
@@ -35,7 +35,7 @@ router
 .use('/anime1', anime1, ...endMiddlewares)
 .use('/line', line, ...endMiddlewares)
 .use('/my-log', myLog, ...endMiddlewares)
-// .use('/umamusume', umamusume, ...endMiddlewares)
+.use('/umamusume', umamusume, ...endMiddlewares)
 .use('/sns', sns, ...endMiddlewares)
 
 export default router;

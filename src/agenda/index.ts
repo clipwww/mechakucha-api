@@ -32,7 +32,7 @@ export async function initSchedule() {
   await agenda.start();
 
 
-  agenda.every("0 9,23 * * *", 'send nico ranking', {}, {
+  agenda.every("0 9,18,23 * * *", 'send nico ranking', {}, {
     timezone: 'Asia/Taipei'
   });
 }

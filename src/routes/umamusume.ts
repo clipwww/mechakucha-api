@@ -2,7 +2,7 @@ import { Router } from 'express';
 
 import { ResultCode, ResultGenericVM } from '../view-models/result.vm';
 import { ResponseExtension } from '../view-models/extension.vm';
-import { lruCache, puppeteerUtil } from '../utilities';
+import { lruCache, puppeteerUtil, axiosInstance } from '../utilities';
 import * as moment from 'moment';
 
 
@@ -19,17 +19,8 @@ router.get('/', async (req, res: ResponseExtension, next) => {
     if (value && moment().isBefore(value.updateTime, 'day')) {
       result.item = value;
     } else {
-      const page = await puppeteerUtil.newPage();
-
-      await page.goto('http://urarawin.com', {
-        waitUntil: 'networkidle0',
-      });
-      const localStorage = await page.evaluate(() => Object.assign({}, window.localStorage));
-      page.close();
-  
-      const db = JSON.parse(localStorage.db);
+      const { data: db } = await axiosInstance.get(`https://raw.githubusercontent.com/wrrwrr111/pretty-derby/master/src/assert/db.json`);
       result.item = db;
-      lruCache.set(key, db);
     }
 
     res.result = result.setResultValue(true, ResultCode.success)
