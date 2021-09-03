@@ -1,7 +1,7 @@
 import { NextFunction } from 'express';
 
 import { RequestExtension, ResponseExtension } from '../view-models/extension.vm';
-import { ResultCode } from '../view-models/result.vm';
+import { AppError, ResultCode, ResultGenericVM } from '../view-models/result.vm';
 
 export const responseEndMiddleware = async (req: RequestExtension, res: ResponseExtension, next: NextFunction) => {
   if (res.result) {
@@ -11,10 +11,21 @@ export const responseEndMiddleware = async (req: RequestExtension, res: Response
   }
 };
 
-export const errorHandlerMiddleware = async (req: RequestExtension, res: ResponseExtension) => {
-  // console.log(res);
-  res.status(+ResultCode.error).send().end();
-};
+
+export async function errorHandlerMiddleware(error, req: RequestExtension, res: ResponseExtension, next) {
+  const ret = new ResultGenericVM();
+
+  if (error instanceof AppError) {
+    ret.setResultValue(false, ResultCode.error, error.message)
+  } else if (error instanceof Error) {
+    ret.setResultValue(false, ResultCode.error, error.message)
+  } else {
+    ret.setResultValue(false, ResultCode.unknownError, `${error}`)
+  }
+  
+  res.json(ret);
+  res.end();
+}
 
 
 export const endMiddlewares = [responseEndMiddleware, errorHandlerMiddleware]

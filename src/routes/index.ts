@@ -17,6 +17,7 @@ import line from './line';
 import myLog from './my-log';
 import umamusume from './umamusume';
 import sns from './sns';
+import blog from './blog';
 
 const router = Router();
 
@@ -37,5 +38,6 @@ router
 .use('/my-log', myLog, ...endMiddlewares)
 .use('/umamusume', umamusume, ...endMiddlewares)
 .use('/sns', sns, ...endMiddlewares)
+.use('/blog', blog, ...endMiddlewares)
 
 export default router;

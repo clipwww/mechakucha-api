@@ -49,16 +49,7 @@ export class Application {
             .use(routes)
             .use(express.static(path.join(__dirname, '../apidoc')))
 
-        this.app.use((err: Error, req, res, next) => {
-            if (err instanceof SignatureValidationFailed) {
-                res.status(401).send(err.signature)
-                return
-            } else if (err instanceof JSONParseError) {
-                res.status(400).send(err.raw)
-                return
-            }
-            next(err) // will throw default 500
-        }, errorHandlerMiddleware)
+        this.app.use(errorHandlerMiddleware);
 
         return
     }

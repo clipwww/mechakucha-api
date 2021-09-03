@@ -1,7 +1,23 @@
+export class AppError extends Error {
+  code: ResultCode
+  constructor(param: ErrorInitParameter) {
+      super(param.message)
+      this.code = param.code ?? ResultCode.unknownError;
+      this.name = param.name || 'AppError'
+  }
+}
+
+export interface ErrorInitParameter {
+  message: string
+  code?: ResultCode
+  name?: string
+}
+
 export enum ResultCode {
   success = '200',
   notModified = '304',
-  error = '500'
+  error = '500',
+  unknownError = '999'
 }
 
 export class ResultVM {
