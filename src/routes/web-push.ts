@@ -8,7 +8,7 @@ const router = Router();
 
 const tokens = [];
 webPush.setVapidDetails(
-  'clipwww@gmail.com',
+  'mailto:clipwww@gmail.com',
   process.env.WEB_PUSH_PUBLIC_KEY,
   process.env.WEB_PUSH_PRIVATE_KEY
 )
