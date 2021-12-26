@@ -13,7 +13,7 @@ webPush.setVapidDetails(
   process.env.WEB_PUSH_PRIVATE_KEY
 )
 
-router.post('/web-push', async (req, res: ResponseExtension, next) => {
+router.post('/', async (req, res: ResponseExtension, next) => {
   try {
     const result = new ResultGenericVM();
 
@@ -30,17 +30,17 @@ router.post('/web-push', async (req, res: ResponseExtension, next) => {
   }
 })
 
-router.get('/web-push', async (req, res: ResponseExtension, next) => {
+router.get('/', async (req, res: ResponseExtension, next) => {
   try {
     const result = new ResultGenericVM();
     const { title, body, url } = req.query;
-
 
     const sendData = {
       title: title || '安安你好幾歲住哪',
       body: body || '這只是條測試訊息。',
       url: url || 'https://clipwww.github.io/blog'
     }
+    console.log(tokens)
     const promiseArr = []
     for(let token of tokens) {
       promiseArr.push(
