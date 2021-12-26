@@ -38,7 +38,11 @@ router.get('/', async (req, res: ResponseExtension, next) => {
     const sendData = {
       title: title || '安安你好幾歲住哪',
       body: body || '這只是條測試訊息。',
-      url: url || 'https://clipwww.github.io/blog'
+      data: {
+        url: url || 'https://clipwww.github.io/blog'
+      },
+      icon: 'https://clipwww.github.io/blog/favicon.ico',
+      // badge: '',
     }
     console.log(tokens)
     const promiseArr = []
