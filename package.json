@@ -50,6 +50,7 @@
     "shortid": "^2.2.16",
     "typescript": "^4.1.5",
     "uuid": "^8.3.2",
+    "web-push": "^3.4.5",
     "xml2json": "^0.12.0",
     "youtube-dl": "^3.4.0"
   },
@@ -74,6 +75,7 @@
     "@types/lru-cache": "^5.1.0",
     "@types/mongoose": "^5.10.3",
     "@types/puppeteer": "^3.0.5",
+    "@types/web-push": "^3.3.2",
     "@types/youtube-dl": "^3.0.0",
     "grunt-apidoc": "^0.11.0"
   },

@@ -18,6 +18,7 @@ import myLog from './my-log';
 import umamusume from './umamusume';
 import sns from './sns';
 import blog from './blog';
+import webPush from './web-push';
 
 const router = Router();
 
@@ -39,5 +40,6 @@ router
 .use('/umamusume', umamusume, ...endMiddlewares)
 .use('/sns', sns, ...endMiddlewares)
 .use('/blog', blog, ...endMiddlewares)
+.use('/web-push', webPush, ...endMiddlewares)
 
 export default router;
