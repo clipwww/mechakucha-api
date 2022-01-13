@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import  fs from 'fs';
 import { toJson } from 'xml2json';
 
 export interface Alert {

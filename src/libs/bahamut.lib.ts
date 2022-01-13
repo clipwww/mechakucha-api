@@ -1,5 +1,5 @@
-import * as FormData from 'form-data';
-import * as moment from 'moment';
+import  FormData from 'form-data';
+import  moment from 'moment';
 
 import { axiosInstance } from '../utilities';
 

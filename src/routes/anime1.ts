@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import * as ytDL from 'youtube-dl';
+import  ytDL from 'youtube-dl';
 
 import { lruCache } from '../utilities/lru-cache';
 import { axiosInstance } from '../utilities';

@@ -1,5 +1,5 @@
-import * as cheerio from 'cheerio';
-import * as moment from 'moment';
+import  cheerio from 'cheerio';
+import  moment from 'moment';
 
 import { axiosInstance, puppeteerUtil } from '../utilities';
 

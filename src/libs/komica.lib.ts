@@ -1,5 +1,5 @@
-import * as cheerio from 'cheerio';
-import * as moment from 'moment';
+import  cheerio from 'cheerio';
+import  moment from 'moment';
 import { decode } from 'he';
 
 import { axiosInstance } from '../utilities/axios';

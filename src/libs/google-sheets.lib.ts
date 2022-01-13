@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+import  moment from 'moment';
 import { axiosInstance } from '../utilities';
 
 export const fetchGoogleSheet = (key: string, sheetName = '工作表1') => {

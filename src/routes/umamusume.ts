@@ -3,7 +3,7 @@ import { Router } from 'express';
 import { ResultCode, ResultGenericVM } from '../view-models/result.vm';
 import { ResponseExtension } from '../view-models/extension.vm';
 import { lruCache, puppeteerUtil, axiosInstance } from '../utilities';
-import * as moment from 'moment';
+import  moment from 'moment';
 
 
 const router = Router();

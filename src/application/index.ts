@@ -1,15 +1,15 @@
-import * as dotenv from 'dotenv';
+import  dotenv from 'dotenv';
 const result = dotenv.config();
 const env = result.parsed;
 console.log(env);
 
-import * as express from "express"
-import * as bodyParser from "body-parser";
-import * as helmet from "helmet";
-import * as cookieParser from 'cookie-parser';
-import * as xmlBodyparser from 'express-xml-bodyparser';
-import * as moment from 'moment-timezone';
-import * as path from 'path';
+import  express from "express"
+import  bodyParser from "body-parser";
+import  helmet from "helmet";
+import  cookieParser from 'cookie-parser';
+import  xmlBodyparser from 'express-xml-bodyparser';
+import  moment from 'moment-timezone';
+import  path from 'path';
 import { SignatureValidationFailed, JSONParseError } from '@line/bot-sdk';
 
 import { connectMongoDB } from '../nosql/mongodb-data-accessor';

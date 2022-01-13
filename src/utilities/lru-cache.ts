@@ -1,4 +1,4 @@
-import * as LRU from 'lru-cache';
+import  LRU from 'lru-cache';
 
 export const lruCache = new LRU({
   max: 10000,

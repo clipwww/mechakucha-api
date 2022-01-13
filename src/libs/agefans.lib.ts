@@ -1,5 +1,5 @@
 // import fetch from 'node-fetch';
-import * as cheerio from 'cheerio';
+import  cheerio from 'cheerio';
 import { tify as originTify } from 'chinese-conv';
 import { decode } from 'he';
 

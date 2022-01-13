@@ -1,7 +1,7 @@
 import { Router, RequestHandler } from 'express';
-import * as moment from 'moment-timezone';
+import  moment from 'moment-timezone';
 import fetch from 'node-fetch';
-import * as FormData from 'form-data';
+import  FormData from 'form-data';
 
 import { sendNotifyMessage, handleSubscribe } from '../libs/line.lib';
 import { parseXMLtoData } from '../libs/youtube.lib';

@@ -1,9 +1,9 @@
-import * as uuid from "uuid";
-import * as shortid from "shortid";
+import { v4 as uuidv4 } from "uuid";
+import  shortid from "shortid";
 
 class IdentityGenerate {
     generateV4UUID(): string {
-        return uuid.v4();
+        return uuidv4();
     }
 
     generateShortId(): string {

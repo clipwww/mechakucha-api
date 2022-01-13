@@ -1,4 +1,4 @@
-import * as line from '@line/bot-sdk';
+import { middleware, Client } from '@line/bot-sdk';
 import { MessageEvent, TextEventMessage, FlexBubble } from '@line/bot-sdk';
 
 import { handleMovieList } from './movie';
@@ -14,10 +14,10 @@ export const config = {
   channelSecret: process.env.LINE_CHANNEL_SECRET
 }
 
-export const lineBotMiddleware = line.middleware(config);
+export const lineBotMiddleware = middleware(config);
 
 
-export const client = new line.Client(config);
+export const client = new Client(config);
 
 export async function handleMessageEvent(event: MessageEvent) {
   const text = (event.message as TextEventMessage).text;

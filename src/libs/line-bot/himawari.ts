@@ -1,6 +1,6 @@
 
 import { FlexBubble, FlexMessage, MessageEvent } from '@line/bot-sdk';
-import * as moment from 'moment';
+import  moment from 'moment';
 
 import { getHimawariDougaList } from '../himawari.lib';
 import { client } from './index';

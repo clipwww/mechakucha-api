@@ -1,5 +1,5 @@
-import * as cheerio from 'cheerio';
-import * as moment from 'moment';
+import  cheerio from 'cheerio';
+import  moment from 'moment';
 import { groupBy as _groupBy } from 'lodash';
 
 import { axiosInstance, lruCache, puppeteerUtil } from '../utilities'

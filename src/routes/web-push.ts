@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import * as webPush from 'web-push';
+import  webPush from 'web-push';
 
 import { ResultCode, ResultGenericVM } from '../view-models/result.vm';
 import { ResponseExtension } from '../view-models/extension.vm';

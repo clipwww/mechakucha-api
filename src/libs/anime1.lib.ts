@@ -1,7 +1,7 @@
-import * as cheerio from 'cheerio';
+import  cheerio from 'cheerio';
 import fetch from 'node-fetch';
-import * as path from 'path';
-import * as fs from 'fs';
+import  path from 'path';
+import  fs from 'fs';
 
 import { m3u8toStream } from '../libs/convert.lib';
 import { puppeteerUtil, axiosInstance } from '../utilities'
@@ -10,6 +10,9 @@ export interface Anime1ListVM {
   id: string;
   name: string;
   description?: string;
+  year?: string;
+  season?: string;
+  fansub?: string;
 }
 
 export interface Anime1BangumiVM {
@@ -25,21 +28,21 @@ export interface Anime1BangumiVM {
 const BASE_URL = 'https://anime1.me/';
 
 export const getBangumiList = async (): Promise<Anime1ListVM[]> => {
-  const response = await fetch(BASE_URL);
-  const htmlString = await response.text();
+  const response = await fetch(`https://d1zquzjgwo9yb.cloudfront.net/?_=${+new Date()}`);
+  const animeList: Array<Array<string>> = await response.json();
 
-  const $ = cheerio.load(htmlString);
 
-  const names = $('#tablepress-1 .column-1 a');
-  const descriptions = $('#tablepress-1 td.column-2');
-  return names.map((i, el) => {
-    const $el = $(el);
+  return animeList.map((data, i) => {
+    const [id, name, description, year, season, fansub] = data;
     return {
-      id: ($el.attr('href') || '').replace('/?cat=', ''),
-      name: $el.text(),
-      description: $(descriptions[i]).text()
-    } as Anime1ListVM;
-  }).get();
+      id: `${id}`, 
+      name, 
+      description, 
+      year, 
+      season,
+      fansub
+    };
+  });
 }
 
 export const getBangumiEpisode = async (id: string) => {

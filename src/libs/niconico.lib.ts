@@ -1,7 +1,7 @@
-import * as moment from 'moment';
+import  moment from 'moment';
 import { toJson } from 'xml2json';
 import fetch from 'node-fetch';
-import * as cheerio from 'cheerio';
+import  cheerio from 'cheerio';
 import { decode } from 'he';
 
 import { puppeteerUtil } from '../utilities'

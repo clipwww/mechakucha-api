@@ -1,4 +1,4 @@
-import * as m3u8stream from 'm3u8stream';
+import  m3u8stream from 'm3u8stream';
 
 
 export const m3u8toStream = (m3u8Url: string): m3u8stream.Stream => {
