@@ -5,6 +5,12 @@ import { getMovieListGroupByDate } from '../movie.lib';
 import { client } from './index';
 
 export async function handleMovieList(event: MessageEvent, page = 1) {
+  const message = await getRecentMovieMessage(page)
+
+  return client.replyMessage(event.replyToken, message)
+}
+
+export async function getRecentMovieMessage(page = 1): Promise<FlexMessage> {
   const items = await getMovieListGroupByDate();
   const movies: FlexBubble[] = [];
 
@@ -17,7 +23,7 @@ export async function handleMovieList(event: MessageEvent, page = 1) {
           type: "image",
           url: movie.poster.replace('http', 'https'),
           size: "full",
-          backgroundColor: '#000000'
+          backgroundColor: '#dddddd'
         },
         body: {
           type: 'box',
@@ -40,12 +46,12 @@ export async function handleMovieList(event: MessageEvent, page = 1) {
     })
   })
 
-  return client.replyMessage(event.replyToken, {
+  return {
     type: "flex",
     altText: '近期上映電影',
     contents: {
       type: 'carousel',
       contents: movies.slice((page - 1) * 12, page * 12)
     }
-  } as FlexMessage)
+  }
 }
