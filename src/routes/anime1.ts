@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import  ytDL from 'youtube-dl';
+// import  ytDL from 'youtube-dl';
 
 import { lruCache } from '../utilities/lru-cache';
 import { axiosInstance } from '../utilities';
@@ -100,9 +100,10 @@ router.get('/video/:id/download', async (req, res: ResponseExtension) => {
       stream.pipe(res)
       break;
     case 'yt':
-      const video = ytDL(url, ['--format=18'], { cwd: __dirname });
+      console.log('youtube download')
+      // const video = ytDL(url, ['--format=18'], { cwd: __dirname });
 
-      video.pipe(res)
+      // video.pipe(res)
       break;
   }
 });
