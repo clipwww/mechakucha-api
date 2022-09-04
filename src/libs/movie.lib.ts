@@ -282,45 +282,32 @@ export async function getTheaterTimes(theaterId: string, cityId: string, date: s
   };
 }
 
-export const searchMovieRating = async (keyword: string) => {
-  const page = await puppeteerUtil.newPage();
-  await page.goto(`https://cinema.bamid.gov.tw:9443/TheaterMangSystem/Pages/MovieRating/page-search.aspx`, {
-    waitUntil: 'networkidle0',
+export const searchMovieRating = async (keyword: string, searchType = 'All') => {
+  const { data: ret } = await axiosInstance.get<{ data: { items: {
+    "movieId": number
+    "years": string
+    "certificateNumber": string
+    "name": string
+    "length": string
+    "rating": string
+  }[] } }>(`https://cinema.bamid.gov.tw/Search/RetrieveResult`, {
+    params: {
+      name: keyword,
+      searchType,
+    }
   });
-
-  await page.evaluate(keyword => {
-    const $input = document.getElementById('Keywords') as HTMLInputElement;
-
-    $input.value = keyword;
-    document.getElementById('ImageButton1').click();
-    return;
-  }, keyword);
-  
-  await page.waitForNavigation();
-  const items = await page.evaluate(() => {
-    const nodes = document.querySelectorAll('#GridView1 tbody tr')
-    
-    return Array.from(nodes)
-      .map(el => {
-        const tds = el.querySelectorAll('td')
-        return Array.from(tds).map(tdEl => tdEl.innerText);
-      })
-      .filter(arr => arr.length)
-      .map(arr => {
-        const id = arr[1].replace(/[^\d]/g, '');
-        return {
-          id,
-          no: id,
-          officialDoc: arr[1],
-          year: arr[0],
-          title: arr[2],
-          country: arr[3],
-          runtime: arr[4],
-          rating: arr[5],
-        }
-      });
-  });
-  // await page.screenshot({ path: 'screenshot/example.png' });
+ 
+  const items = ret.data.items.map(item => {
+    return {
+      ...item,
+      id: item.movieId,
+      no: `${item.movieId}`,
+      officialDoc: '',
+      year: item.years,
+      title: item.name,
+      runtime: item.length,
+    }
+  })
 
   return items;
 }
