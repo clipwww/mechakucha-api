@@ -9,9 +9,13 @@ processes = []
   builder = "heroku/buildpacks:20"
   # image = "zenika/alpine-chrome:102-with-puppeteer-xvfb"
 
+# [processes]
+#  worker = "python KexoBOT.py"
+#  web = "python KexoBOTNews.py"
+
 [env]
   PORT = "8080"
-  PUPPETEER_EXECUTABLE_PATH = "/usr/bin/chromium-browser"
+  # PUPPETEER_EXECUTABLE_PATH = "/usr/bin/chromium-browser"
 
 [experimental]
   allowed_public_ports = []
