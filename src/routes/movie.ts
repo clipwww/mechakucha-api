@@ -1,8 +1,8 @@
 import { Router } from 'express';
 
 import { lruCache } from '../utilities/lru-cache';
-import { searchMovieRating, getCityList, getMovieList, getMovieListGroupByDate, getTheaterList, getMovieTimes, getTheaterTimes } from '../libs/movie.lib';
-import { ResultCode, ResultListGenericVM } from '../view-models/result.vm';
+import { searchMovieRating, getCityList, getMovieList, getMovieListGroupByDate, getTheaterList, getMovieTimes, getTheaterTimes, searchMovieRatingDetails } from '../libs/movie.lib';
+import { ResultCode, ResultGenericVM, ResultListGenericVM } from '../view-models/result.vm';
 import { ResponseExtension } from '../view-models/extension.vm';
 import { MovieRatingModel } from '../nosql/models/movie.model'
 import { sendNotifyMessage } from '../libs/line.lib';
@@ -72,6 +72,33 @@ router.get('/rating', async (req, res: ResponseExtension, next) => {
       lruCache.set(key, items, 1000 * 60 * 60 * 24 * 30)
     }
 
+    next();
+  } catch (err) {
+    next(err);
+  }
+})
+
+router.get('/rating/:certificateNumber', async (req, res: ResponseExtension, next) => {
+  try {
+    let { certificateNumber } = req.params;
+    if (!certificateNumber) {
+      throw Error('parameters is empty')
+    }
+    const key = `movie-rating-details-${certificateNumber}`;
+
+    const result = new ResultGenericVM();
+    const cacheValue =  lruCache.get(key)
+
+    if (cacheValue) {
+      result.item = cacheValue
+    } else {
+      result.item = await searchMovieRatingDetails(certificateNumber); 
+    }
+
+    res.result = result.setResultValue(true, ResultCode.success);
+
+    lruCache.set(key, result.item, 1000 * 60 * 60 * 24 * 30)
+    
     next();
   } catch (err) {
     next(err);

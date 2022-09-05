@@ -284,12 +284,12 @@ export async function getTheaterTimes(theaterId: string, cityId: string, date: s
 
 export const searchMovieRating = async (keyword: string, searchType = 'All') => {
   const { data: ret } = await axiosInstance.get<{ data: { items: {
-    "movieId": number
-    "years": string
-    "certificateNumber": string
-    "name": string
-    "length": string
-    "rating": string
+    movieId: number
+    years: string
+    certificateNumber: string
+    name: string
+    length: string
+    rating: string
   }[] } }>(`https://cinema.bamid.gov.tw/Search/RetrieveResult`, {
     params: {
       name: keyword,
@@ -302,12 +302,39 @@ export const searchMovieRating = async (keyword: string, searchType = 'All') => 
       ...item,
       id: item.movieId,
       no: `${item.movieId}`,
-      officialDoc: '',
+      officialDoc: item.certificateNumber,
       year: item.years,
       title: item.name,
       runtime: item.length,
+      country: ''
     }
   })
 
   return items;
+}
+
+export const searchMovieRatingDetails = async (certificateNumber: string) => {
+  const { data: ret } = await axiosInstance.get<{ data: {
+    certificateDate: string
+    certificateNumber: string
+    certificatePeriodEnd: string
+    certificatePeriodStart: string
+    certificateType: string
+    distributor: string
+    format: string
+    lang: string
+    length: string
+    name: string
+    originalName: string
+    presentType: string
+    publishReviewComment: boolean
+    rating: string
+reviewComment: ""
+  } }>(`https://cinema.bamid.gov.tw/Search/RetrieveDetail`, {
+    params: {
+      certificateNumber
+    }
+  });
+
+  return ret.data;
 }
