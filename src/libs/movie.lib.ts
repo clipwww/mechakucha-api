@@ -1,6 +1,7 @@
 import  cheerio from 'cheerio';
 import  moment from 'moment';
 import { groupBy as _groupBy } from 'lodash';
+import path from 'path';
 
 import { axiosInstance, lruCache, puppeteerUtil } from '../utilities'
 
@@ -337,4 +338,53 @@ reviewComment: ""
   });
 
   return ret.data;
+}
+
+export async function getVieShowComingMovieList(p = 1): Promise<{
+  id: string
+  title: string
+  titleEN: string
+  imgSrc: string
+  url: string
+  time: string
+  theaterMark: string
+}[]> {
+  const baseURL = `https://www.vscinemas.com.tw/vsweb/film`
+  const { data: htmlString } = await axiosInstance.get(`${baseURL}/coming.aspx`, {
+    params: {
+      p
+    }
+  });
+
+  const $ = cheerio.load(htmlString);
+  const $liList = $('.movieList li')
+
+  if (!$liList.length) {
+    return []
+  }
+
+  const list =  $liList.map((i, el) => {
+    const $li = $(el);
+    
+    const id = $li.find('a').attr('href').replace('detail.aspx?id=', '');
+    const title = $li.find('h2').text()
+    const titleEN = $li.find('h3').text()
+    const url = $li.find('a').attr('href')
+    const imgSrc = $li.find('img').attr('src')
+    const time = $li.find('time').text()
+    const theaterMark = $li.find('.theaterMark').text()
+
+    return {
+      id,
+      title,
+      titleEN,
+      url: path.join(baseURL, url),
+      imgSrc: path.join(baseURL, imgSrc),
+      time,
+      theaterMark
+    };
+  }).get();
+
+
+  return list.concat(await getVieShowComingMovieList(p + 1))
 }

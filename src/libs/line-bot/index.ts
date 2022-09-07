@@ -1,7 +1,7 @@
 import { middleware, Client } from '@line/bot-sdk';
 import { MessageEvent, TextEventMessage, FlexBubble } from '@line/bot-sdk';
 
-import { handleMovieList } from './movie';
+import { handleMovieList, handleVieShowComingMovieList } from './movie';
 import { handleNicoRankList } from './niconico';
 import { handleHimawariDougaList } from './himawari';
 import { handleAnime1List, handleAnime1BangumiEpisode, handleAnime1Video } from './anime1';
@@ -28,9 +28,12 @@ export async function handleMessageEvent(event: MessageEvent) {
 
   switch (true) {
     case text.includes('@hey'):
+    case text.includes('@heybot'):
       return replyActionList(event);
     case text.includes('@近期上映電影'):
       return handleMovieList(event, page);
+    case text.includes('@威秀影城近期上映'):
+      return handleVieShowComingMovieList(event, page)
     case text.includes('@Nico排行'):
       return handleNicoRankList(event, page);
     case text.includes('@向日葵動畫'):
