@@ -1,7 +1,7 @@
 import { Router } from 'express';
 
 import { lruCache } from '../utilities/lru-cache';
-import { searchMovieRating, getCityList, getMovieList, getMovieListGroupByDate, getTheaterList, getMovieTimes, getTheaterTimes, searchMovieRatingDetails, getVieShowComingMovieList } from '../libs/movie.lib';
+import { searchMovieRating, getCityList, getMovieList, getMovieListGroupByDate, getTheaterList, getMovieTimes, getTheaterTimes, searchMovieRatingDetails, getVieShowComingMovieList, getVieShowNowMovieList } from '../libs/movie.lib';
 import { ResultCode, ResultGenericVM, ResultListGenericVM } from '../view-models/result.vm';
 import { ResponseExtension } from '../view-models/extension.vm';
 import { MovieRatingModel } from '../nosql/models/movie.model'
@@ -189,6 +189,31 @@ router.get('/theater/:theaterId', async (req, res: ResponseExtension, next) => {
     result.item = item;
     result.items = items;
 
+    res.result = result.setResultValue(true, ResultCode.success);
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/vieshow/now', async (req, res: ResponseExtension, next) => {
+
+  try {
+    const result = new ResultListGenericVM();
+    
+    const key = `movie-vieshow-now`;
+
+    const cacheValue =  lruCache.get(key) as any[]
+
+    if (cacheValue) {
+      result.items = cacheValue
+    } else {
+      const movieList = await getVieShowNowMovieList();
+      result.items = movieList;
+
+      lruCache.set(key, movieList, 1000 * 60 * 60 * 2)
+    }
+    
     res.result = result.setResultValue(true, ResultCode.success);
     next();
   } catch (err) {

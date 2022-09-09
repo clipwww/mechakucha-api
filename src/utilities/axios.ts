@@ -8,13 +8,16 @@ export const axiosInstance = axios.create({
 })
 
 axiosInstance.interceptors.request.use(config => {
-  console.log(`[${config.method?.toUpperCase()}] ${config.url}`)
-  // console.log(`[Query] ${JSON.stringify(config?.params ?? {}, null, 2)}`)
-  // console.log(`[Param] ${JSON.stringify(config?.data ?? {}, null, 2)}`)
+  console.log(`[${config.method?.toUpperCase()}] ${config.url} | query: ${JSON.stringify(config?.params || {})} | data: ${JSON.stringify(config?.data || {})}`)
   return config;
+}, error => {
+  console.error(`[Request Error] ${error}`)
+  return Promise.reject(error)
 })
 
-// axiosInstance.interceptors.response.use(response => {
-//   console.log(response.data);
-//   return response;
-// })
+axiosInstance.interceptors.response.use(response => {
+  return response;
+}, error => {
+  console.error(`[Response Error] ${error}`)
+  return Promise.reject(error)
+})

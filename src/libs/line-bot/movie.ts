@@ -1,5 +1,6 @@
 
 import { FlexBubble, FlexMessage, MessageEvent } from '@line/bot-sdk';
+import { lruCache } from '../../utilities';
 
 import { getMovieListGroupByDate, getVieShowComingMovieList } from '../movie.lib';
 import { client } from './index';
@@ -63,14 +64,27 @@ export async function handleVieShowComingMovieList(event: MessageEvent, page = 1
 }
 
 export async function getVieShowComingMovieListMessage(page = 1): Promise<FlexMessage> {
-  const movieList = await getVieShowComingMovieList();
+
+  const key = `movie-vieshow-coming`;
+
+  const cacheValue =  lruCache.get(key) as {
+    id: string;
+    title: string;
+    titleEN: string;
+    imgSrc: string;
+    url: string;
+    time: string;
+    theaterMarks: string[];
+  }[]
+
+  const movieList = cacheValue ? cacheValue : await getVieShowComingMovieList(page);
 
   return {
     type: "flex",
     altText: '威秀影城近期上映電影',
     contents: {
       type: 'carousel',
-      contents: movieList.slice((page - 1) * 12, page * 12).map(movie => {
+      contents: movieList.slice(0, 12).map(movie => {
 
         return {
           "type": "bubble",
@@ -98,10 +112,11 @@ export async function getVieShowComingMovieListMessage(page = 1): Promise<FlexMe
                     "offsetStart": "none",
                     "offsetEnd": "none",
                     "align": "start"
+                    
                   },
                   {
                     "type": "text",
-                    "text": movie.theaterMark,
+                    "text": movie.theaterMarks.join(', '),
                     "size": "xxs",
                     "align": "end",
                     "margin": "sm"
@@ -145,7 +160,7 @@ export async function getVieShowComingMovieListMessage(page = 1): Promise<FlexMe
               }
             ]
           }
-        }
+        } as FlexBubble
       })
     }
   }

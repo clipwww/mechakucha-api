@@ -340,17 +340,21 @@ reviewComment: ""
   return ret.data;
 }
 
-export async function getVieShowComingMovieList(p = 1): Promise<{
+export async function getVieShowNowMovieList(p = 1, maxPage = 0): Promise<{
   id: string
   title: string
   titleEN: string
   imgSrc: string
   url: string
   time: string
-  theaterMark: string
+  theaterMarks: string[]
 }[]> {
+  if (maxPage > 0 && p > maxPage) {
+    return []
+  }
+
   const baseURL = `https://www.vscinemas.com.tw/vsweb/film`
-  const { data: htmlString } = await axiosInstance.get(`${baseURL}/coming.aspx`, {
+  const { data: htmlString } = await axiosInstance.get(baseURL, {
     params: {
       p
     }
@@ -358,6 +362,7 @@ export async function getVieShowComingMovieList(p = 1): Promise<{
 
   const $ = cheerio.load(htmlString);
   const $liList = $('.movieList li')
+  maxPage = Math.max(...$('.pagebar li').map((_, el) => +$(el).text()).get())
 
   if (!$liList.length) {
     return []
@@ -372,7 +377,7 @@ export async function getVieShowComingMovieList(p = 1): Promise<{
     const url = $li.find('a').attr('href')
     const imgSrc = $li.find('img').attr('src')
     const time = $li.find('time').text()
-    const theaterMark = $li.find('.theaterMark').text()
+    const theaterMarks = $li.find('.theaterMark').map((_, el) => $(el).text()).get()
 
     return {
       id,
@@ -381,10 +386,62 @@ export async function getVieShowComingMovieList(p = 1): Promise<{
       url: path.join(baseURL, url),
       imgSrc: path.join(baseURL, imgSrc),
       time,
-      theaterMark
+      theaterMarks
     };
   }).get();
 
+  return list.concat(await getVieShowNowMovieList(p + 1, maxPage))
+}
 
-  return list.concat(await getVieShowComingMovieList(p + 1))
+export async function getVieShowComingMovieList(p = 1, maxPage = 0): Promise<{
+  id: string
+  title: string
+  titleEN: string
+  imgSrc: string
+  url: string
+  time: string
+  theaterMarks: string[]
+}[]> {
+  if (maxPage > 0 && p > maxPage) {
+    return []
+  }
+
+  const baseURL = `https://www.vscinemas.com.tw/vsweb/film`
+  const { data: htmlString } = await axiosInstance.get(`${baseURL}/coming.aspx`, {
+    params: {
+      p
+    }
+  });
+
+  const $ = cheerio.load(htmlString);
+  const $liList = $('.movieList li')
+  maxPage = Math.max(...$('.pagebar li').map((_, el) => +$(el).text()).get())
+
+  if (!$liList.length) {
+    return []
+  }
+
+  const list = $liList.map((i, el) => {
+    const $li = $(el);
+    
+    const id = $li.find('a').attr('href').replace('detail.aspx?id=', '');
+    const title = $li.find('h2').text()
+    const titleEN = $li.find('h3').text()
+    const url = $li.find('a').attr('href')
+    const imgSrc = $li.find('img').attr('src')
+    const time = $li.find('time').text()
+    const theaterMarks = $li.find('.theaterMark').map((_, el) => $(el).text()).get()
+
+    return {
+      id,
+      title,
+      titleEN,
+      url: path.join(baseURL, url),
+      imgSrc: path.join(baseURL, imgSrc),
+      time,
+      theaterMarks
+    };
+  }).get();
+
+  return list.concat(await getVieShowComingMovieList(p + 1, maxPage))
 }

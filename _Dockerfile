@@ -1,0 +1,15 @@
+# FROM zenika/alpine-chrome:89-with-node-14
+
+# COPY . .
+
+# RUN rm -rf node_modules
+# RUN npm ci
+# RUN npm run build
+# RUN npm run build:apidoc
+
+# COPY . .
+
+# ENV PUPPETEER_EXECUTABLE_PATH='/usr/bin/chromium-browser'
+
+# EXPOSE 8080
+# CMD [ "node", "dist/index.js" ]

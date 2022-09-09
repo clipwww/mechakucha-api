@@ -6,7 +6,7 @@ export function connectMongoDB() {
   
   // let db: mongoose.Connection
 
-  mongoose.connect(`${process.env.MONGODB_URI}?retryWrites=true&w=majority&poolSize=100`, {
+  mongoose.connect(`${process.env.MONGODB_URI}?retryWrites=true&w=majority`, {
     useUnifiedTopology: true,
     useNewUrlParser: true,
 
