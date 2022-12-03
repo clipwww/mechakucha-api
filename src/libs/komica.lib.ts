@@ -22,7 +22,10 @@ interface PostVM {
   url?: string;
 }
 
-const BASE_URL = `https://2cat.komica.org`;
+const urlMap = {
+  new: 'https://sora.komica.org/79/',
+  live: 'https://sora.komica.org/78/',
+}
 
 const deCodeMailProtection = (href: string): string => {
   if (!href) return '';
@@ -48,23 +51,16 @@ const deCodeMailProtection = (href: string): string => {
 };
 
 const getPostData = ($el: cheerio.Cheerio): PostVM => {
-  const id = $el.attr('id')?.replace('r', '') ?? '';
-  const title = $el.find('.title')?.text() ?? '';
-  const text = $el.find('.quote')?.html() ?? '';
+  const id = $el.attr('id')?.replace('r', '') || '';
+  const title = $el.find('.title')?.text() || '';
+  const text = $el.find('.quote')?.html() || '';
   const email = deCodeMailProtection($el.find('a[href*="email"]')?.attr('href') as string);
-  let oImg = $el.find('a[href*=\'src\']')?.attr('href') ?? '';
-  let sImg = $el.find('img.img')?.attr('src') ?? '';
+  let oImg = $el.find('a.file-thumb')?.attr('href') || '';
+  let sImg = $el.find('a.file-thumb img')?.attr('src') || oImg;
 
-  if (oImg) oImg = `${BASE_URL}${oImg}`;
-  if (sImg) sImg = sImg?.includes('nothumb') ? oImg : `${BASE_URL}${sImg}`;
-
-  const name = $el.find('.name')?.text() ?? '';;
-  const label = $el
-    .find(`label[for="${id}"]`)
-    ?.text()
-    ?.replace(title, '');
-  const dateTime = label?.slice(label?.indexOf('[') + 1, label?.indexOf('ID') - 1) ?? '';;
-  const userId = label?.slice(label?.indexOf('ID') + 3, label?.indexOf(']')) ?? '';
+  const name = $el.find('.name')?.text() || '';;
+  const dateTime = `${$el.find('.now')?.text() || ''} ${$el.find('.now')?.next().text() || ''}`;
+  const userId = $el.find('.id')?.text() || '';
   const warnText = $el.find('.warn_txt2')?.text() ?? '';
 
   const date = dateTime?.slice(0, dateTime?.indexOf('(')) ?? '';
@@ -88,59 +84,36 @@ const getPostData = ($el: cheerio.Cheerio): PostVM => {
 };
 
 export const getAllPostList = async (boardType: BoardType | string, page = 1): Promise<{ title: string, url: string, posts: any[] }> => {
-  const { data: htmlString, config } = await axiosInstance.get<string>(`${BASE_URL}/~tedc21thc/${boardType}/pixmicat.php`, {
-    params: {
-      mode: 'module',
-      load: 'mod_threadlist',
-      sort: 'date',
-      page: page - 1,
-    }
-  });
+  const url = urlMap[boardType]
+  const { data: htmlString, config } = await axiosInstance.get<string>(`${url}`);
 
   const $ = cheerio.load(htmlString);
 
-  const title = $('h1')?.text() ?? '';
-  const url = config.url;
+  const title = $('h1')?.text() || '';
 
-  const $tr = $('form table tr:not(:nth-child(1))');
+  const $tr = $('#topiclist tr');
   let posts = $tr.map((i, el) => {
     const $el = $(el);
-    const label = $el.find('td:nth-child(6)')?.text() ?? '';
-    const dateTime = label?.slice(0, label?.indexOf('ID') - 1) ?? '';
-
-    const date = dateTime?.slice(0, dateTime?.indexOf('(')) ?? '';
-    const time = dateTime?.slice(dateTime?.indexOf(')') + 1) ?? '';
-    const dateCreated = moment(`20${date.replace(/\//g, '-')}T${time}`).toISOString();
 
     return {
-      id: $el.find('input')?.attr('name') ?? '',
-      title: $el.find('a')?.text() ?? '',
-      replyCount: $el.find('td:nth-child(5)')?.text() ?? '',
-      dateTime,
-      dateCreated,
+      id: $el.find('td')?.text() || '',
+      title: $el.find('a')?.text() || '',
+      replyCount: '', // TODO: 解析出 replyCount
+      dateTime: '',
+      dateCreated: '',
     }
   }).get();
 
-  const $next = $('#page_switch table tr td:last-child a');
-  if ($next?.length) {
-    page += 1;
-    const ret = await getAllPostList(boardType, page);
-    posts = posts.concat(ret.posts);
-  }
-
   return {
     title,
-    url,
+    url:config.url,
     posts,
   }
 };
 
 export const getPostListResult = async (boardType: BoardType | string, page: number = 1): Promise<{ posts: PostVM[], pages: string[] }> => {
-  const { data: htmlString } = await axiosInstance.get<string>(`${BASE_URL}/~tedc21thc/${boardType}/pixmicat.php`, {
-    params: {
-      page_num: page - 1,
-    }
-  });
+  const url = urlMap[boardType]
+  const { data: htmlString } = await axiosInstance.get<string>(`${url}${page > 1 ? `/${page}.html` : ''}`);
 
   const posts: PostVM[] = [];
   const $ = cheerio.load(htmlString);
@@ -172,7 +145,7 @@ export const getPostListResult = async (boardType: BoardType | string, page: num
     posts: posts.map(item => {
       return {
         ...item,
-        url: `${BASE_URL}/~tedc21thc/${boardType}/pixmicat.php?res=${item.id}`,
+        url: `${url}/pixmicat.php?res=${item.id}`,
       }
     }),
     pages
@@ -180,7 +153,8 @@ export const getPostListResult = async (boardType: BoardType | string, page: num
 };
 
 export const getPostDetails = async (boardType: BoardType | string, resId: string): Promise<{ post: PostVM, url: string }> => {
-  const { data: htmlString, config } = await axiosInstance.get<string>(`${BASE_URL}/~tedc21thc/${boardType}/pixmicat.php`, {
+  const url = urlMap[boardType]
+  const { data: htmlString, config } = await axiosInstance.get<string>( `${url}/pixmicat.php`, {
     params: {
       res: resId,
     }
