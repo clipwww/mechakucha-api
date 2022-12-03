@@ -2,6 +2,7 @@ import  cheerio from 'cheerio';
 import fetch from 'node-fetch';
 import  path from 'path';
 import  fs from 'fs';
+import  FormData from 'form-data';
 
 import { m3u8toStream } from '../libs/convert.lib';
 import { puppeteerUtil, axiosInstance } from '../utilities'
@@ -80,8 +81,24 @@ export const getBangumiEpisode = async (id: string) => {
           case !!$el.find('.youtubePlayer').attr('data-vid'):
             iframeSrc = `https://www.youtube-nocookie.com/embed/${$el.find('.youtubePlayer').attr('data-vid')}?rel=0&autoplay=1&modestbranding=1`;
             type = 'yt';
-            break;
+          case !!$el.find('video').length:
+            try {
+              const formData = new FormData()
+              formData.append('d', decodeURIComponent($el.find('video').attr('data-apireq')))
 
+               const { data } = await axiosInstance.post('https://v.anime1.me/api', formData, {
+                headers: {
+                  ...formData.getHeaders()
+                },
+              })
+              iframeSrc = data.s[0].src
+              type = 'mp4';
+              console.log(iframeSrc)
+            } catch(error) {
+              iframeSrc = `${error}`
+            }
+            
+            break;
         }
 
         bangumiItems.push({

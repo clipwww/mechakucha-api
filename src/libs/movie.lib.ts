@@ -1,6 +1,7 @@
 import  cheerio from 'cheerio';
 import  moment from 'moment';
 import { groupBy as _groupBy } from 'lodash';
+import path from 'path';
 
 import { axiosInstance, lruCache, puppeteerUtil } from '../utilities'
 
@@ -284,12 +285,12 @@ export async function getTheaterTimes(theaterId: string, cityId: string, date: s
 
 export const searchMovieRating = async (keyword: string, searchType = 'All') => {
   const { data: ret } = await axiosInstance.get<{ data: { items: {
-    "movieId": number
-    "years": string
-    "certificateNumber": string
-    "name": string
-    "length": string
-    "rating": string
+    movieId: number
+    years: string
+    certificateNumber: string
+    name: string
+    length: string
+    rating: string
   }[] } }>(`https://cinema.bamid.gov.tw/Search/RetrieveResult`, {
     params: {
       name: keyword,
@@ -302,12 +303,145 @@ export const searchMovieRating = async (keyword: string, searchType = 'All') => 
       ...item,
       id: item.movieId,
       no: `${item.movieId}`,
-      officialDoc: '',
+      officialDoc: item.certificateNumber,
       year: item.years,
       title: item.name,
       runtime: item.length,
+      country: ''
     }
   })
 
   return items;
+}
+
+export const searchMovieRatingDetails = async (certificateNumber: string) => {
+  const { data: ret } = await axiosInstance.get<{ data: {
+    certificateDate: string
+    certificateNumber: string
+    certificatePeriodEnd: string
+    certificatePeriodStart: string
+    certificateType: string
+    distributor: string
+    format: string
+    lang: string
+    length: string
+    name: string
+    originalName: string
+    presentType: string
+    publishReviewComment: boolean
+    rating: string
+reviewComment: ""
+  } }>(`https://cinema.bamid.gov.tw/Search/RetrieveDetail`, {
+    params: {
+      certificateNumber
+    }
+  });
+
+  return ret.data;
+}
+
+export async function getVieShowNowMovieList(p = 1, maxPage = 0): Promise<{
+  id: string
+  title: string
+  titleEN: string
+  imgSrc: string
+  url: string
+  time: string
+  theaterMarks: string[]
+}[]> {
+  if (maxPage > 0 && p > maxPage) {
+    return []
+  }
+
+  const baseURL = `https://www.vscinemas.com.tw/vsweb/film`
+  const { data: htmlString } = await axiosInstance.get(baseURL, {
+    params: {
+      p
+    }
+  });
+
+  const $ = cheerio.load(htmlString);
+  const $liList = $('.movieList li')
+  maxPage = Math.max(...$('.pagebar li').map((_, el) => +$(el).text()).get())
+
+  if (!$liList.length) {
+    return []
+  }
+
+  const list =  $liList.map((i, el) => {
+    const $li = $(el);
+    
+    const id = $li.find('a').attr('href').replace('detail.aspx?id=', '');
+    const title = $li.find('h2').text()
+    const titleEN = $li.find('h3').text()
+    const url = $li.find('a').attr('href')
+    const imgSrc = $li.find('img').attr('src')
+    const time = $li.find('time').text()
+    const theaterMarks = $li.find('.theaterMark').map((_, el) => $(el).text()).get()
+
+    return {
+      id,
+      title,
+      titleEN,
+      url: path.join(baseURL, url),
+      imgSrc: path.join(baseURL, imgSrc),
+      time,
+      theaterMarks
+    };
+  }).get();
+
+  return list.concat(await getVieShowNowMovieList(p + 1, maxPage))
+}
+
+export async function getVieShowComingMovieList(p = 1, maxPage = 0): Promise<{
+  id: string
+  title: string
+  titleEN: string
+  imgSrc: string
+  url: string
+  time: string
+  theaterMarks: string[]
+}[]> {
+  if (maxPage > 0 && p > maxPage) {
+    return []
+  }
+
+  const baseURL = `https://www.vscinemas.com.tw/vsweb/film`
+  const { data: htmlString } = await axiosInstance.get(`${baseURL}/coming.aspx`, {
+    params: {
+      p
+    }
+  });
+
+  const $ = cheerio.load(htmlString);
+  const $liList = $('.movieList li')
+  maxPage = Math.max(...$('.pagebar li').map((_, el) => +$(el).text()).get())
+
+  if (!$liList.length) {
+    return []
+  }
+
+  const list = $liList.map((i, el) => {
+    const $li = $(el);
+    
+    const id = $li.find('a').attr('href').replace('detail.aspx?id=', '');
+    const title = $li.find('h2').text()
+    const titleEN = $li.find('h3').text()
+    const url = $li.find('a').attr('href')
+    const imgSrc = $li.find('img').attr('src')
+    const time = $li.find('time').text()
+    const theaterMarks = $li.find('.theaterMark').map((_, el) => $(el).text()).get()
+
+    return {
+      id,
+      title,
+      titleEN,
+      url: path.join(baseURL, url),
+      imgSrc: path.join(baseURL, imgSrc),
+      time,
+      theaterMarks
+    };
+  }).get();
+
+  return list.concat(await getVieShowComingMovieList(p + 1, maxPage))
 }

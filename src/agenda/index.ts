@@ -2,7 +2,7 @@ import { Agenda, JobAttributesData, JobPriority, Job } from 'agenda/dist';
 
 import { client } from '../libs/line-bot';
 import { getRankingMessage } from '../libs/line-bot/niconico';
-import { getRecentMovieMessage } from '../libs/line-bot/movie';
+import { getVieShowComingMovieListMessage } from '../libs/line-bot/movie';
 
 const mongoConnectionString = `${process.env.MONGODB_URI}?retryWrites=true&w=majority&poolSize=100`;
 
@@ -28,9 +28,9 @@ agenda.define('send nico ranking', {}, async (job: Job<JobAttributesData>) => {
   client.broadcast(message)
 });
 
-agenda.define('test fly.io', {}, async (job: Job<JobAttributesData>) => {
-  console.log(`test fly.io at ${job.attrs.failedAt}`)
-  const message = await getRecentMovieMessage();
+agenda.define('send vieshow coming', {}, async (job: Job<JobAttributesData>) => {
+  console.log(`send vieshow coming at ${job.attrs.failedAt}`)
+  const message = await getVieShowComingMovieListMessage();
   client.broadcast(message)
 });
 
@@ -38,12 +38,13 @@ export async function initSchedule() {
   console.log('init agenda')
   await agenda.start();
 
+  // ref. cron time
 
   agenda.every("0 9,18,23 * * *", 'send nico ranking', {}, {
     timezone: 'Asia/Taipei'
   });
 
-  agenda.every("0 8 * * *", 'test fly.io', {}, {
+  agenda.every("0 16 * * *", 'send vieshow coming', {}, {
     timezone: 'Asia/Taipei'
   });
 }
