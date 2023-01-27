@@ -3,7 +3,7 @@ import  moment from 'moment';
 import { groupBy as _groupBy } from 'lodash';
 import path from 'path';
 
-import { axiosInstance, lruCache, puppeteerUtil } from '../utilities'
+import { axiosInstance, lruCache } from '../utilities'
 
 const BASE_URL = 'http://www.atmovies.com.tw';
 

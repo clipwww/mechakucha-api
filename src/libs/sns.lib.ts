@@ -1,7 +1,7 @@
 import  cheerio from 'cheerio';
 import  moment from 'moment';
 
-import { axiosInstance, puppeteerUtil } from '../utilities';
+import { axiosInstance } from '../utilities';
 
 export const crawlerFacebookFanPage = async (fbId: string) => {
   const url = `https://www.facebook.com/pg/${fbId}/posts`;

@@ -49,14 +49,14 @@ export const getBangumiList = async (): Promise<Anime1ListVM[]> => {
 export const getBangumiEpisode = async (id: string) => {
   async function getEpisode(url: string): Promise<{ title: string, items: Anime1BangumiVM[] }> {
     try {
-      const response = await fetch(url, {
+      const { data: htmlString } = await axiosInstance.get(url, {
         // @ts-ignore
         credentials: 'include',
         headers: {
           Cookie: "videopassword=1",
         },
       });
-      const htmlString = await response.text();
+      console.log(htmlString)
 
       const bangumiItems: Anime1BangumiVM[] = [];
       const $ = cheerio.load(htmlString);
@@ -126,7 +126,7 @@ export const getBangumiEpisode = async (id: string) => {
     } catch (err) {
       console.log(err);
       return {
-        title: '',
+        title: `${err}`,
         items: [],
       };
     }

@@ -3,13 +3,13 @@ import  cheerio from 'cheerio';
 import { tify as originTify } from 'chinese-conv';
 import { decode } from 'he';
 
-import { axiosInstance, puppeteerUtil } from '../utilities';
+import { axiosInstance } from '../utilities';
 
 function tify(value: string = '') {
   return originTify(value || '');
 }
 
-const BASE_URL = 'https://www.agefans.net';
+const BASE_URL = 'https://www.agemys.net';
 
 interface SimpleAnimeVM {
   id: string;
@@ -37,21 +37,11 @@ declare global {
 }
 
 export const getAnimeList = async () => {
-  const page = await puppeteerUtil.newPage();
-  // page.on('console', msg => console.log('PAGE LOG:', msg.text()));
+  const { data: htmlString } = await axiosInstance.get(BASE_URL) 
+  const arrayString = `${htmlString}`.match(/var new_anime_list =[\s\S]*?}];/gi)?.[0]?.replace('var new_anime_list =', '').replace(';', '') || ''
+  const newAnimeList: SimpleAnimeVM[] = JSON.parse(arrayString)
 
-  // await page.setJavaScriptEnabled(true)
-  await page.goto(BASE_URL, {
-    waitUntil: 'networkidle0',
-  });
-  const list: Array<SimpleAnimeVM> = await page.evaluate(function () {
-    // console.log('[evaluate]')
-    // console.log(`url is ${location.href}`)
-    // console.log(window, typeof window, window.new_anime_list)
-    return window.new_anime_list
-  });
-
-  return list.map(item => {
+  return newAnimeList.map(item => {
     return {
       ...item,
       name: tify(item.name),
@@ -169,58 +159,15 @@ export const getAnimeDetails = async (id: string) => {
   };
 }
 
-export const getAnimeVideo = (id: string, pId: string, eId: string): Promise<string> => {
-  return new Promise(async (reslove, reject) => {
+export const getAnimeVideo = async (id: string, pId: string, eId: string): Promise<string> => {
+  const { status, data, headers } = await axiosInstance.get(`${BASE_URL}/_getplay?aid=${id}&playindex=${pId}&epindex=${eId}&r=${Math.random()}`, {
+    headers: {
+      referer: `${BASE_URL}/play/${id}?playid=${pId}_${eId}`
+    },
+    maxRedirects: 0
+  }) 
 
-    const page = await puppeteerUtil.newPage();
-    await page.setCookie({
-      name: 'username',
-      value: 'admin',
-      path: '/',
-      domain: 'www.agefans.net'
-    });
-
-    // await page.setJavaScriptEnabled(true)
-    page.on('response', async response => {
-      const url = response.url();
-      if (!url.includes('_getplay2')) {
-        return;
-      }
-      // console.lokg(response.request().postData())
-
-      const ret = await response.json() as any;
-      console.log(url, response.status(), ret);
-
-      reslove(decodeURIComponent(ret.vurl));
-    });
-    await page.goto(`${BASE_URL}/play/${id}?playid=${pId}_${eId}`, {
-      waitUntil: 'networkidle0',
-    });
-
-    setTimeout(() => {
-      reject('timeout.')
-    }, 1000 * 15)
-  })
-
-  // const path = await page.evaluate(async function () {
-  //   const $iframe = document.getElementById('age_playfram');
-
-  //   function getIframeSrc(): Promise<string> {
-  //     return new Promise(reslove => {
-  //       $iframe.onload = () => {
-  //         const src = $iframe.getAttribute('src');
-  //         reslove(src);
-  //       }
-  //     })
-  //   }
-  //   window.__yx_SetMainPlayIFrameSRC("age_playfram", window.__age_cb_getplay_url);
-  //   const src = await getIframeSrc();
-  //   return src;
-  // }) as string;
-
-  // await browser.close();
-  // // await page.screenshot({ path: 'screenshot/example.png' });
-  // return decodeURIComponent(path.match(/(https|http):\/\/([\w-]+\.)+[\w-]+([\w-./?%&=]*)?/)[0]);
+  return data?.vurl || `${BASE_URL}/play/${id}?playid=${pId}_${eId}`
 }
 
 export const queryAnimeList = async (keyword: string, page = 1) => {

@@ -2,7 +2,7 @@ import  cheerio from 'cheerio';
 import  moment from 'moment';
 import { decode } from 'he';
 
-import { axiosInstance } from '../utilities/axios';
+import { axiosInstance, sleep, puppeteerUtil } from '../utilities';
 
 type BoardType = 'live' | 'new';
 
@@ -85,7 +85,7 @@ const getPostData = ($el: cheerio.Cheerio): PostVM => {
 
 export const getAllPostList = async (boardType: BoardType | string, page = 1): Promise<{ title: string, url: string, posts: any[] }> => {
   const url = urlMap[boardType]
-  const { data: htmlString, config } = await axiosInstance.get<string>(`${url}`);
+  const { data: htmlString, config } = await axiosInstance.get<string>(`${url}?mode=module&load=mod_threadlist`);
 
   const $ = cheerio.load(htmlString);
 
@@ -113,7 +113,12 @@ export const getAllPostList = async (boardType: BoardType | string, page = 1): P
 
 export const getPostListResult = async (boardType: BoardType | string, page: number = 1): Promise<{ posts: PostVM[], pages: string[] }> => {
   const url = urlMap[boardType]
-  const { data: htmlString } = await axiosInstance.get<string>(`${url}${page > 1 ? `/${page}.html` : ''}`);
+  const { data: htmlString } = await axiosInstance.get<string>(`${url}${page > 1 ? `/${page}.html` : ''}`, {
+    headers: {
+      Cookie: 'PHPSESSID=8r99s6v7iuomkadm6agk5gkgj0; cf_chl_2=325cd2a559bf14a; cf_chl_rc_m=2; theme=dark.css; _gat_gtag_UA_114117_2=1; _gat=1; __cf_bm=ffUn3GjByM2iuP06GYa5wIosmCovhLKrTEkbVKh9d_8-1674800948-0-AUPGiAD5V7Pka7DNjzmxhMRa375azBFRsVB9E9x/ft4b7EHIgbHV3HHIIT+rwmH3iVjkmXhlXDYuKNaUtHATi6N2u0pHeHPg6cpjf4VCzSyg1Hmrf++zKezYsI8bZn23i4ObIQajZrZ/oj7hgwyEHP8=',
+      withCredentials: true,
+    }
+  }).catch(err => err.response);
 
   const posts: PostVM[] = [];
   const $ = cheerio.load(htmlString);
