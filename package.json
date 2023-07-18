@@ -43,7 +43,7 @@
     "m3u8stream": "^0.7.1",
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.37",
-    "mongoose": "^6.5.5",
+    "mongoose": "^6.11.3",
     "node-fetch": "^2.6.7",
     "nodemon": "^2.0.19",
     "puppeteer": "^5.5.0",
