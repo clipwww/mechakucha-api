@@ -23,8 +23,8 @@ interface PostVM {
 }
 
 const urlMap = {
-  new: 'https://sora.komica.org/79/',
-  live: 'https://sora.komica.org/78/',
+  new: 'https://sora.komica1.org/79/',
+  live: 'https://sora.komica1.org/78/',
 }
 
 const deCodeMailProtection = (href: string): string => {
