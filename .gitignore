@@ -11,8 +11,8 @@ logs
 npm-debug.log*x
 
 # Build
-dist/
-client-dist/js
+# dist/
+# client-dist/js
 
 # Development
 typings/
