@@ -9,7 +9,7 @@ function tify(value: string = '') {
   return originTify(value || '');
 }
 
-const BASE_URL = 'https://www.agemys.net';
+const BASE_URL = 'https://www.agemys.org';
 
 interface SimpleAnimeVM {
   id: string;
@@ -38,16 +38,35 @@ declare global {
 
 export const getAnimeList = async () => {
   const { data: htmlString } = await axiosInstance.get(BASE_URL) 
-  const arrayString = `${htmlString}`.match(/var new_anime_list =[\s\S]*?}];/gi)?.[0]?.replace('var new_anime_list =', '').replace(';', '') || ''
-  const newAnimeList: SimpleAnimeVM[] = JSON.parse(arrayString)
+  const $ = cheerio.load(htmlString);
 
-  return newAnimeList.map(item => {
-    return {
-      ...item,
-      name: tify(item.name),
-      namefornew: tify(item.namefornew)
-    }
-  });
+  let animeList = []
+
+  $('.tab-pane').each((i, pel) => {
+    const $pel = $(pel)
+    const id = $pel.attr('id')
+
+    const tempList = $pel.find('li').map((i, el) => {
+      const $el = $(el)
+    
+      const $link = $el.find('a')
+      const href = $link.attr('href')
+      const isnew = !!$el.find('.title_new').text()
+      
+      return {
+        id: +href.match(/\d+/g)[0],
+        name: tify($link.text()),
+        wd: parseInt(id) || 7,
+        isnew,
+        mttime: undefined,
+        namefornew: tify($el.find('.title_sub').text())
+      }
+    }).get()
+
+    animeList = animeList.concat(tempList)
+  })
+
+  return animeList
 }
 
 export const getAnimeUpdate = async (): Promise<{
@@ -62,17 +81,17 @@ export const getAnimeUpdate = async (): Promise<{
 
   const $ = cheerio.load(htmlString);
 
-  const $ul = $('ul');
-
-  const items = $ul.find('li').map((_, li) => {
+  const items = $('.video_item').map((_, li) => {
     const $li = $(li);
-    const href = $li.find('a')?.attr('href') ?? '';
+    const $link = $li.find('a')
+    const href = $link.attr('href')
+
     return {
-      id: href.replace('/detail/', ''),
-      link: `${BASE_URL}${href}`,
-      name: tify($li.find('h4')?.text()?.trim() ?? ''),
+      id: +href.match(/\d+/g)[0],
+      link: href,
+      name: tify($link.text()),
       imgUrl: $li.find('img').attr('src') || '',
-      description: tify($li.find('span')?.text()?.trim() ?? '')
+      description: tify($li.find('.video_item--info')?.text()?.trim())
     }
   }).get();
 

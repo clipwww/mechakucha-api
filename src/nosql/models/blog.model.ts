@@ -20,4 +20,4 @@ export interface BlogPostViewDocumentDef extends Document {
 }
 
 
-export const BlogPostViewModel: Model<BlogPostViewDocumentDef> = model('blog-post-view', BlogPostView);
+export const BlogPostViewModel = model('blog-post-view', BlogPostView);

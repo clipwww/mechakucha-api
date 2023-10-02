@@ -69,5 +69,5 @@ const LineProfile = new Schema({
   },
 })
 
-export const LineProfileModel: Model<LineProfileDocumentDef> = model('line-profile', LineProfile);
-export const LineChatTokenModel: Model<LineChatTokenDocumentDef> = model('line-chat-token', LineChatToken);
+export const LineProfileModel = model('line-profile', LineProfile);
+export const LineChatTokenModel = model('line-chat-token', LineChatToken);

@@ -1,12 +1,12 @@
-import  puppeteer from 'puppeteer';
+import puppeteer, { type Browser } from 'puppeteer';
 
 const IDLE_TIME = 1000 * 20;
 
 const createPuppeteerUtil = () => {
-  let browser: puppeteer.Browser;
+  let browser: Browser;
 
   async function getBrowser() {
-    if (browser?.isConnected()) {
+    if (browser.connected) {
       return browser;
     }
     browser = await puppeteer.launch({

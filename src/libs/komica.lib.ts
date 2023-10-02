@@ -63,9 +63,7 @@ const getPostData = ($el: cheerio.Cheerio): PostVM => {
   const userId = $el.find('.id')?.text() || '';
   const warnText = $el.find('.warn_txt2')?.text() ?? '';
 
-  const date = dateTime?.slice(0, dateTime?.indexOf('(')) ?? '';
-  const time = dateTime?.slice(dateTime?.indexOf(')') + 1) ?? '';
-  const dateCreated = moment(`20${date?.replace(/\//g, '-')}T${time}`).toISOString();
+  const dateCreated = moment(dateTime, 'YYYY/MM/DD HH:mm:ss').toISOString();
 
   return {
     id,

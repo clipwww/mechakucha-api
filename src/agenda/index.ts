@@ -4,7 +4,7 @@ import { client } from '../libs/line-bot';
 import { getRankingMessage } from '../libs/line-bot/niconico';
 import { getVieShowComingMovieListMessage } from '../libs/line-bot/movie';
 
-const mongoConnectionString = `${process.env.MONGODB_URI}?retryWrites=true&w=majority&poolSize=100`;
+const mongoConnectionString = `${process.env.MONGODB_URI}?retryWrites=true&w=majority`;
 
 export const agenda = new Agenda({
   db: { address: mongoConnectionString },

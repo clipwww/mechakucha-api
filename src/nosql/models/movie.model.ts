@@ -53,4 +53,4 @@ const MovieRating = new Schema({
   },
 })
 
-export const MovieRatingModel: Model<MovieRatingDocumentDef> = model('movie-rating', MovieRating);
+export const MovieRatingModel = model('movie-rating', MovieRating);
