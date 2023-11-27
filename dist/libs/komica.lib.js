@@ -60,29 +60,52 @@ const getPostData = ($el) => {
         reply: []
     };
 };
-const getAllPostList = async (boardType, page = 1) => {
-    var _a;
-    const url = urlMap[boardType];
-    const { data: htmlString, config } = await utilities_1.axiosInstance.get(`${url}?mode=module&load=mod_threadlist`);
-    const $ = cheerio_1.default.load(htmlString);
-    const title = ((_a = $('h1')) === null || _a === void 0 ? void 0 : _a.text()) || '';
-    const $tr = $('#topiclist tr');
-    let posts = $tr.map((i, el) => {
-        var _a, _b;
-        const $el = $(el);
+const getAllPostList = async (boardType, page = 0, maxPage = 5) => {
+    var _a, _b;
+    try {
+        const url = urlMap[boardType];
+        if (page >= maxPage) {
+            return {
+                posts: [],
+                title: '',
+                url: ''
+            };
+        }
+        if (page > 0) {
+            await (0, utilities_1.sleep)(.5);
+        }
+        const { data: htmlString, config } = await utilities_1.axiosInstance.get(`${url}/pixmicat.php?mode=module&load=mod_threadlist&page=${page}`);
+        const $ = cheerio_1.default.load(htmlString);
+        const title = ((_a = $('h1')) === null || _a === void 0 ? void 0 : _a.text()) || '';
+        maxPage = ((_b = $('#page_switch tr td:nth-child(2) a')) === null || _b === void 0 ? void 0 : _b.length) || maxPage;
+        const $tr = $('#contents tr');
+        let posts = $tr.map((i, el) => {
+            var _a, _b, _c, _d;
+            const $el = $(el);
+            return {
+                id: ((_a = $el.find('td:nth-child(1)')) === null || _a === void 0 ? void 0 : _a.text()) || '',
+                title: ((_b = $el.find('a')) === null || _b === void 0 ? void 0 : _b.text()) || '',
+                replyCount: +((_c = $el.find('td:nth-child(4)')) === null || _c === void 0 ? void 0 : _c.text()),
+                dateTime: '',
+                dateCreated: '',
+                dateUpdated: (0, moment_1.default)($el.find('td:nth-child(5)').text(), 'YYYY/MM/DD HH:mm:ss').toISOString(),
+                url: url + '/' + ((_d = $el.find('a')) === null || _d === void 0 ? void 0 : _d.attr('href')) || '',
+            };
+        }).get().filter(item => !!(item === null || item === void 0 ? void 0 : item.id));
         return {
-            id: ((_a = $el.find('td')) === null || _a === void 0 ? void 0 : _a.text()) || '',
-            title: ((_b = $el.find('a')) === null || _b === void 0 ? void 0 : _b.text()) || '',
-            replyCount: '',
-            dateTime: '',
-            dateCreated: '',
+            title,
+            url: config.url,
+            posts: posts.concat((await (0, exports.getAllPostList)(boardType, page + 1, maxPage)).posts),
         };
-    }).get();
-    return {
-        title,
-        url: config.url,
-        posts,
-    };
+    }
+    catch (err) {
+        console.error(err);
+        return {
+            posts: [],
+            title: '',
+            url: ''
+        };
+    }
 };
 exports.getAllPostList = getAllPostList;
 const getPostListResult = async (boardType, page = 1) => {

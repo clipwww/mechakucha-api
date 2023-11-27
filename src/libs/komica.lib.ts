@@ -1,5 +1,5 @@
-import  cheerio from 'cheerio';
-import  moment from 'moment';
+import cheerio from 'cheerio';
+import moment from 'moment';
 import { decode } from 'he';
 
 import { axiosInstance, sleep, puppeteerUtil } from '../utilities';
@@ -81,31 +81,56 @@ const getPostData = ($el: cheerio.Cheerio): PostVM => {
   };
 };
 
-export const getAllPostList = async (boardType: BoardType | string, page = 1): Promise<{ title: string, url: string, posts: any[] }> => {
-  const url = urlMap[boardType]
-  const { data: htmlString, config } = await axiosInstance.get<string>(`${url}?mode=module&load=mod_threadlist`);
+export const getAllPostList = async (boardType: BoardType | string, page = 0, maxPage = 5): Promise<{ title: string, url: string, posts: any[] }> => {
+  try {
+    const url = urlMap[boardType]
+    if (page >= maxPage) {
+      return {
+        posts: [],
+        title: '',
+        url: ''
+      }
+    }
+    if (page > 0) {
+      await sleep(.5)
+    }
+    const { data: htmlString, config } = await axiosInstance.get<string>(`${url}/pixmicat.php?mode=module&load=mod_threadlist&page=${page}`);
 
-  const $ = cheerio.load(htmlString);
+    const $ = cheerio.load(htmlString);
 
-  const title = $('h1')?.text() || '';
+    const title = $('h1')?.text() || '';
 
-  const $tr = $('#topiclist tr');
-  let posts = $tr.map((i, el) => {
-    const $el = $(el);
+    maxPage = $('#page_switch tr td:nth-child(2) a')?.length || maxPage;
+
+    const $tr = $('#contents tr');
+
+    let posts = $tr.map((i, el) => {
+      const $el = $(el);
+
+      return {
+        id: $el.find('td:nth-child(1)')?.text() || '',
+        title: $el.find('a')?.text() || '',
+        replyCount: +$el.find('td:nth-child(4)')?.text(),
+        dateTime: '',
+        dateCreated: '',
+        dateUpdated: moment($el.find('td:nth-child(5)').text(), 'YYYY/MM/DD HH:mm:ss').toISOString(),
+        url: url + '/' + $el.find('a')?.attr('href') || '',
+      }
+    }).get().filter(item => !!item?.id);
+
 
     return {
-      id: $el.find('td')?.text() || '',
-      title: $el.find('a')?.text() || '',
-      replyCount: '', // TODO: 解析出 replyCount
-      dateTime: '',
-      dateCreated: '',
+      title,
+      url: config.url,
+      posts: posts.concat((await getAllPostList(boardType, page + 1, maxPage)).posts),
     }
-  }).get();
-
-  return {
-    title,
-    url:config.url,
-    posts,
+  } catch (err) {
+    console.error(err)
+    return {
+      posts: [],
+      title: '',
+      url: ''
+    }
   }
 };
 
@@ -157,7 +182,7 @@ export const getPostListResult = async (boardType: BoardType | string, page: num
 
 export const getPostDetails = async (boardType: BoardType | string, resId: string): Promise<{ post: PostVM, url: string }> => {
   const url = urlMap[boardType]
-  const { data: htmlString, config } = await axiosInstance.get<string>( `${url}/pixmicat.php`, {
+  const { data: htmlString, config } = await axiosInstance.get<string>(`${url}/pixmicat.php`, {
     params: {
       res: resId,
     }
