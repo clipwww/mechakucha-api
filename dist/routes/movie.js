@@ -229,5 +229,29 @@ router.get('/vieshow/coming', async (req, res, next) => {
         next(err);
     }
 });
+router.get('/vieshow/show-times', async (req, res, next) => {
+    try {
+        const { 'cinema-code': cinemaCode } = req.query;
+        const result = new result_vm_1.ResultListGenericVM();
+        if (!cinemaCode) {
+            throw new Error('cinema-code is empty.');
+        }
+        const key = `movie-vieshow-show-times-${cinemaCode}`;
+        const cacheValue = lru_cache_1.lruCache.get(key);
+        if (cacheValue) {
+            result.items = cacheValue;
+        }
+        else {
+            const movieList = await (0, movie_lib_1.getVieShowMovieShowTimes)(cinemaCode);
+            result.items = movieList;
+            lru_cache_1.lruCache.set(key, movieList, 1000 * 60 * 5);
+        }
+        res.result = result.setResultValue(true, result_vm_1.ResultCode.success);
+        next();
+    }
+    catch (err) {
+        next(err);
+    }
+});
 exports.default = router;
 //# sourceMappingURL=movie.js.map

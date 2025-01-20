@@ -1,7 +1,7 @@
 import { Router } from 'express';
 
 import { lruCache } from '../utilities/lru-cache';
-import { searchMovieRating, getCityList, getMovieList, getMovieListGroupByDate, getTheaterList, getMovieTimes, getTheaterTimes, searchMovieRatingDetails, getVieShowComingMovieList, getVieShowNowMovieList } from '../libs/movie.lib';
+import { searchMovieRating, getCityList, getMovieList, getMovieListGroupByDate, getTheaterList, getMovieTimes, getTheaterTimes, searchMovieRatingDetails, getVieShowComingMovieList, getVieShowNowMovieList, getVieShowMovieShowTimes } from '../libs/movie.lib';
 import { ResultCode, ResultGenericVM, ResultListGenericVM } from '../view-models/result.vm';
 import { ResponseExtension } from '../view-models/extension.vm';
 import { MovieRatingModel } from '../nosql/models/movie.model'
@@ -238,6 +238,36 @@ router.get('/vieshow/coming', async (req, res: ResponseExtension, next) => {
       result.items = movieList;
 
       lruCache.set(key, movieList, 1000 * 60 * 60 * 2)
+    }
+    
+    res.result = result.setResultValue(true, ResultCode.success);
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/vieshow/show-times', async (req, res: ResponseExtension, next) => {
+
+  try {
+    const { 'cinema-code': cinemaCode } = req.query
+    const result = new ResultListGenericVM();
+
+    if (!cinemaCode) {
+      throw new Error('cinema-code is empty.')
+    }
+    
+    const key = `movie-vieshow-show-times-${cinemaCode}`;
+
+    const cacheValue =  lruCache.get(key) as any[]
+
+    if (cacheValue) {
+      result.items = cacheValue
+    } else {
+      const movieList = await getVieShowMovieShowTimes(cinemaCode as string);
+      result.items = movieList;
+
+      lruCache.set(key, movieList, 1000 * 60 * 5)
     }
     
     res.result = result.setResultValue(true, ResultCode.success);

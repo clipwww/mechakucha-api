@@ -445,3 +445,90 @@ export async function getVieShowComingMovieList(p = 1, maxPage = 0): Promise<{
 
   return list.concat(await getVieShowComingMovieList(p + 1, maxPage))
 }
+
+const CinemaCodeMapping = {
+  TP: "台北信義威秀影城",
+  MU: "MUVIE CINEMAS 台北松仁",
+  MUC: "MUVIE CINEMAS 台北松仁 (MUCROWN)",
+  QS: "台北京站威秀影城",
+  TX: "台北西門威秀影城",
+  BQ: "板橋大遠百威秀影城",
+  GM: "中和環球威秀影城",
+  HU: "新店裕隆城威秀影城",
+  LK: "林口MITSUI OUTLET PARK威秀影城",
+  LKMP: "林口MITSUI OUTLET PARK威秀影城 (Mappa)",
+  TY: "桃園統領威秀影城",
+  TG: "桃園桃知道威秀影城",
+  HS: "新竹大遠百威秀影城",
+  HSGC: "新竹大遠百威秀影城 (GC)",
+  BC: "新竹巨城威秀影城",
+  TF: "頭份尚順威秀影城",
+  TZ: "台中大遠百威秀影城",
+  TT01: "MUVIE CINEMAS 台中TIGER CITY",
+  TT02: "MUVIE CINEMAS 台中TIGER CITY (GC)",
+  MM: "台中大魯閣新時代威秀影城",
+  TN: "台南大遠百威秀影城",
+  FC: "台南FOCUS威秀影城",
+  NF: "台南南紡威秀影城",
+  NFGC: "台南南紡威秀影城 (GC)",
+  KS: "高雄大遠百威秀影城",
+  KSGC: "高雄大遠百威秀影城 (GC)",
+  HL: "花蓮新天堂樂園威秀影城"
+}
+
+export async function getVieShowMovieShowTimes(cinemaCode: string): Promise<{
+  id: string
+  cinema: string
+  name: string
+  nameEN: string
+  showTimes: {
+    date: string
+    times: string[]
+  }
+}[]> {
+  cinemaCode = cinemaCode.toUpperCase()
+
+  if (!CinemaCodeMapping[cinemaCode]) {
+    return []
+  }
+
+  const baseURL = `https://www.vscinemas.com.tw/ShowTimes/ShowTimes/GetShowTimes`
+  const { data: htmlString } = await axiosInstance.post(baseURL, {
+    CinemaCode: cinemaCode,
+  });
+
+
+  const $ = cheerio.load(`<div id="wrap">${htmlString}</div>`);
+  const $liList = $('#wrap > .col-xs-12')
+
+  if (!$liList.length) {
+    return []
+  }
+
+  const list = $liList.map((i, el) => {
+    const $li = $(el);
+    
+    const name = $li.find('.LangTW.MovieName').text().trim()
+    const nameEN = $li.find('.LangEN.MovieName').text().trim()
+    const id = btoa(nameEN)
+    const dates = $li.find('.LangEN.RealShowDate').map((_, el) => $(el).text().trim()).toArray()
+    const times = $li.find('.SessionTimeInfo').map((_, el) => {
+      return [$(el).find('div').map((_, el2) => $(el2).text().trim()).toArray()]
+    }).get()
+
+    return {
+      id,
+      cinema: CinemaCodeMapping[cinemaCode],
+      name,
+      nameEN,
+      showTimes: times.map((arr, idx) => {
+        return {
+          date: dates[idx],
+          times: arr
+        }
+      })
+    };
+  }).get();
+
+  return list
+}
