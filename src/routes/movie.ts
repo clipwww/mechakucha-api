@@ -1,13 +1,12 @@
-import { Router } from 'express';
+import { Hono } from 'hono';
 
 import { lruCache } from '../utilities/lru-cache';
 import { searchMovieRating, getCityList, getMovieList, getMovieListGroupByDate, getTheaterList, getMovieTimes, getTheaterTimes, searchMovieRatingDetails, getVieShowComingMovieList, getVieShowNowMovieList, getVieShowMovieShowTimes } from '../libs/movie.lib';
 import { ResultCode, ResultGenericVM, ResultListGenericVM } from '../view-models/result.vm';
-import { ResponseExtension } from '../view-models/extension.vm';
 import { MovieRatingModel } from '../nosql/models/movie.model'
 import { sendNotifyMessage } from '../libs/line.lib';
 
-const router = Router();
+const app = new Hono();
 /**
  * @api {get} /movie/rating?keyword= 取得分級證字號搜尋
  * @apiName GetMovieRating
@@ -37,17 +36,17 @@ const router = Router();
 }
  * 
  */
-router.get('/rating', async (req, res: ResponseExtension, next) => {
+app.get('/rating', async (c) => {
   try {
-    let { keyword } = req.query;
+    let { keyword } = c.req.query();
     keyword = keyword ? `${keyword}` : ''
 
     const result = new ResultListGenericVM();
 
     const items = await searchMovieRating(keyword);
     result.items = items;
-    res.result = result.setResultValue(true, ResultCode.success);
-    
+    result.setResultValue(true, ResultCode.success);
+
     const key = `movie-rating-${keyword}`;
     const cacheValue =  lruCache.get(key) as any[];
     if (cacheValue?.[0]?.no !== items?.[0]?.no && keyword.includes('戰車')) {
@@ -67,15 +66,15 @@ router.get('/rating', async (req, res: ResponseExtension, next) => {
       lruCache.set(key, items, 1000 * 60 * 60 * 24 * 30)
     }
 
-    next();
+    return c.json(result);
   } catch (err) {
-    next(err);
+    throw err;
   }
 })
 
-router.get('/rating/:certificateNumber', async (req, res: ResponseExtension, next) => {
+app.get('/rating/:certificateNumber', async (c) => {
   try {
-    let { certificateNumber } = req.params;
+    let { certificateNumber } = c.req.param();
     if (!certificateNumber) {
       throw Error('parameters is empty')
     }
@@ -90,113 +89,113 @@ router.get('/rating/:certificateNumber', async (req, res: ResponseExtension, nex
       result.item = await searchMovieRatingDetails(certificateNumber); 
     }
 
-    res.result = result.setResultValue(true, ResultCode.success);
+    result.setResultValue(true, ResultCode.success);
 
     lruCache.set(key, result.item, 1000 * 60 * 60 * 24 * 30)
     
-    next();
+    return c.json(result);
   } catch (err) {
-    next(err);
+    throw err;
   }
 })
 
-router.get('/city', async (req, res: ResponseExtension, next) => {
+app.get('/city', async (c) => {
   try {
     const result = new ResultListGenericVM();
     result.items = await getCityList();
 
-    res.result = result.setResultValue(true, ResultCode.success);
-    next();
+    result.setResultValue(true, ResultCode.success);
+    return c.json(result);
   } catch (err) {
-    next(err);
+    throw err;
   }
 });
 
-router.get('/list', async (req, res: ResponseExtension, next) => {
+app.get('/list', async (c) => {
   try {
     const result = new ResultListGenericVM();
     result.items = await getMovieList();
 
-    res.result = result.setResultValue(true, ResultCode.success);
-    next();
+    result.setResultValue(true, ResultCode.success);
+    return c.json(result);
   } catch (err) {
-    next(err);
+    throw err;
   }
 });
 
-router.get('/list-group-by-date', async (req, res: ResponseExtension, next) => {
+app.get('/list-group-by-date', async (c) => {
   try {
     const result = new ResultListGenericVM();
     result.items = await getMovieListGroupByDate();
 
-    res.result = result.setResultValue(true, ResultCode.success);
-    next();
+    result.setResultValue(true, ResultCode.success);
+    return c.json(result);
   } catch (err) {
-    next(err);
+    throw err;
   }
 });
 
-router.get('/next', async (req, res: ResponseExtension, next) => {
+app.get('/next', async (c) => {
   try {
     const result = new ResultListGenericVM();
     result.items = await getMovieListGroupByDate('next');
 
-    res.result = result.setResultValue(true, ResultCode.success);
-    next();
+    result.setResultValue(true, ResultCode.success);
+    return c.json(result);
   } catch (err) {
-    next(err);
+    throw err;
   }
 });
 
-router.get('/theater', async (req, res: ResponseExtension, next) => {
+app.get('/theater', async (c) => {
   try {
-    const { cityId } = req.query;
+    const { cityId } = c.req.query();
     const result = new ResultListGenericVM();
     result.items = await getTheaterList(cityId as string);
 
-    res.result = result.setResultValue(true, ResultCode.success);
-    next();
+    result.setResultValue(true, ResultCode.success);
+    return c.json(result);
   } catch (err) {
-    next(err);
+    throw err;
   }
 });
 
-router.get('/times/:movieId', async (req, res: ResponseExtension, next) => {
+app.get('/times/:movieId', async (c) => {
   try {
-    const { movieId } = req.params
-    const { cityId } = req.query;
+    const { movieId } = c.req.param()
+    const { cityId } = c.req.query();
     const result = new ResultListGenericVM();
     const { item, items } = await getMovieTimes(movieId, cityId as string);
 
     result.item = item;
     result.items = items;
 
-    res.result = result.setResultValue(true, ResultCode.success);
-    next();
+    result.setResultValue(true, ResultCode.success);
+    return c.json(result);
   } catch (err) {
-    next(err);
+    throw err;
   }
 });
 
-router.get('/theater/:theaterId', async (req, res: ResponseExtension, next) => {
+app.get('/theater/:theaterId', async (c) => {
 
   try {
-    const { theaterId } = req.params;
-    const { date, cityId } = req.query;
+    const { theaterId } = c.req.param();
+    const { date, cityId } = c.req.query();
     const result = new ResultListGenericVM();
     const { item, items } = await getTheaterTimes(theaterId, cityId as string, date as string);
 
     result.item = item;
     result.items = items;
 
-    res.result = result.setResultValue(true, ResultCode.success);
-    next();
+    result.setResultValue(true, ResultCode.success);
+    return c.json(result);
   } catch (err) {
-    next(err);
+    throw err;
   }
 });
 
-router.get('/vieshow/now', async (req, res: ResponseExtension, next) => {
+app.get('/vieshow/now', async (c) => {
 
   try {
     const result = new ResultListGenericVM();
@@ -214,15 +213,15 @@ router.get('/vieshow/now', async (req, res: ResponseExtension, next) => {
       lruCache.set(key, movieList, 1000 * 60 * 60 * 2)
     }
     
-    res.result = result.setResultValue(true, ResultCode.success);
-    next();
+    result.setResultValue(true, ResultCode.success);
+    return c.json(result);
   } catch (err) {
-    next(err);
+    throw err;
   }
 });
 
 
-router.get('/vieshow/coming', async (req, res: ResponseExtension, next) => {
+app.get('/vieshow/coming', async (c) => {
 
   try {
     const result = new ResultListGenericVM();
@@ -240,17 +239,17 @@ router.get('/vieshow/coming', async (req, res: ResponseExtension, next) => {
       lruCache.set(key, movieList, 1000 * 60 * 60 * 2)
     }
     
-    res.result = result.setResultValue(true, ResultCode.success);
-    next();
+    result.setResultValue(true, ResultCode.success);
+    return c.json(result);
   } catch (err) {
-    next(err);
+    throw err;
   }
 });
 
-router.get('/vieshow/show-times', async (req, res: ResponseExtension, next) => {
+app.get('/vieshow/show-times', async (c) => {
 
   try {
-    const { 'cinema-code': cinemaCode } = req.query
+    const { 'cinema-code': cinemaCode } = c.req.query()
     const result = new ResultListGenericVM();
 
     if (!cinemaCode) {
@@ -270,11 +269,11 @@ router.get('/vieshow/show-times', async (req, res: ResponseExtension, next) => {
       lruCache.set(key, movieList, 1000 * 60 * 5)
     }
     
-    res.result = result.setResultValue(true, ResultCode.success);
-    next();
+    result.setResultValue(true, ResultCode.success);
+    return c.json(result);
   } catch (err) {
-    next(err);
+    throw err;
   }
 });
 
-export default router;
+export default app;

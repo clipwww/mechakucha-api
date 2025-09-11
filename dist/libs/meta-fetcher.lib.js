@@ -76,10 +76,13 @@ const fetchMetaData = async (url) => {
         const href = $(el).attr('href');
         return createValidUri(urlString, href);
     }).get();
-    return Object.assign(Object.assign({}, basic), { opengraph,
+    return {
+        ...basic,
+        opengraph,
         opengraph_social,
         itemprop,
-        favicons });
+        favicons,
+    };
 };
 exports.fetchMetaData = fetchMetaData;
 //# sourceMappingURL=meta-fetcher.lib.js.map

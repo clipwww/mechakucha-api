@@ -1,14 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
+const hono_1 = require("hono");
 const lru_cache_1 = require("../utilities/lru-cache");
 const bilibili_lib_1 = require("../libs/bilibili.lib");
 const result_vm_1 = require("../view-models/result.vm");
-const router = (0, express_1.Router)();
-router.get('/:id/danmaku', async (req, res, next) => {
+const app = new hono_1.Hono();
+app.get('/:id/danmaku', async (c) => {
     try {
-        const { id } = req.params;
-        const { mode } = req.query;
+        const { id } = c.req.param();
+        const { mode } = c.req.query();
         const result = new result_vm_1.ResultListGenericVM();
         const key = `bilibili-danmaku-${id}`;
         const cacheItems = lru_cache_1.lruCache.get(key);
@@ -23,23 +23,16 @@ router.get('/:id/danmaku', async (req, res, next) => {
             }
         }
         if (mode === 'download') {
-            res.setHeader('Content-disposition', `attachment; filename=bilibili-${id}.json`);
-            res.setHeader('Content-type', 'application/json');
-            res.write(JSON.stringify(result.items, null, 4), (err) => {
-                if (err) {
-                    next(err);
-                }
-                res.status(+result_vm_1.ResultCode.success).end();
-                return;
-            });
-            return;
+            c.header('Content-disposition', `attachment; filename=bilibili-${id}.json`);
+            c.header('Content-type', 'application/json');
+            return c.json(result.items, 200);
         }
-        res.result = result.setResultValue(true, result_vm_1.ResultCode.success);
-        next();
+        result.setResultValue(true, result_vm_1.ResultCode.success);
+        return c.json(result);
     }
     catch (err) {
-        next(err);
+        throw err;
     }
 });
-exports.default = router;
+exports.default = app;
 //# sourceMappingURL=bilibili.js.map

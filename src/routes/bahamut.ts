@@ -1,21 +1,20 @@
-import { Router } from 'express';
+import { Hono } from 'hono';
 
 import { lruCache } from '../utilities/lru-cache';
 import { getBahumutDanmaku } from '../libs/bahamut.lib';
 import { ResultCode, ResultListGenericVM, ResultGenericVM } from '../view-models/result.vm';
-import { ResponseExtension } from '../view-models/extension.vm';
 
-const router = Router();
+const app = new Hono();
 
-router.get('/:sn/danmaku', async (req, res: ResponseExtension, next) => {
+app.get('/:sn/danmaku', async (c) => {
   try {
-    const { sn } = req.params;
-    const { mode } = req.query;
+    const { sn } = c.req.param();
+    const { mode } = c.req.query();
 
     const result = new ResultListGenericVM();
     const key = `bahamut-danmaku-${sn}`;
     const cacheItems = lruCache.get(key) as any[];
-    
+
     if (cacheItems) {
       result.items = cacheItems
     } else {
@@ -27,25 +26,16 @@ router.get('/:sn/danmaku', async (req, res: ResponseExtension, next) => {
     }
 
     if (mode === 'download') {
-      res.setHeader('Content-disposition', `attachment; filename=bahamut-${sn}.json`);
-      res.setHeader('Content-type', 'application/json');
-      res.write(JSON.stringify(result.items, null, 4),  (err) => {
-        if (err) {
-          next(err);
-        }
-        res.status(+ResultCode.success).end();
-        return;
-      })
-      return;
+      c.header('Content-disposition', `attachment; filename=bahamut-${sn}.json`);
+      c.header('Content-type', 'application/json');
+      return c.json(result.items, 200);
     }
 
-    res.result = result.setResultValue(true, ResultCode.success)
-
-    next();
+    result.setResultValue(true, ResultCode.success);
+    return c.json(result);
   } catch (err) {
-    next(err);
+    throw err;
   }
 })
 
-
-export default router;
+export default app;

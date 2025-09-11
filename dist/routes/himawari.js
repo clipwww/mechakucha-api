@@ -1,13 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
+const hono_1 = require("hono");
 const lru_cache_1 = require("../utilities/lru-cache");
 const himawari_lib_1 = require("../libs/himawari.lib");
 const result_vm_1 = require("../view-models/result.vm");
-const router = (0, express_1.Router)();
-router.get('/', async (req, res, next) => {
+const app = new hono_1.Hono();
+app.get('/', async (c) => {
     try {
-        const { sort, keyword, cat, page, mode, sortby } = req.query;
+        const { sort, keyword, cat, page, mode, sortby } = c.req.query();
         const result = new result_vm_1.ResultListGenericVM();
         if (mode === 'commentgroup') {
             const { items, pageInfo } = await (0, himawari_lib_1.getHimawariDanmakuList)(keyword, +page, sort, sortby);
@@ -24,24 +24,24 @@ router.get('/', async (req, res, next) => {
             result.item = channel;
             result.items = items;
         }
-        res.result = result.setResultValue(true, result_vm_1.ResultCode.success);
-        next();
+        result.setResultValue(true, result_vm_1.ResultCode.success);
+        return c.json(result);
     }
     catch (err) {
-        next(err);
+        throw err;
     }
 });
-router.get('/:id', async (req, res, next) => {
+app.get('/:id', async (c) => {
     try {
-        const { id } = req.params;
+        const { id } = c.req.param();
         const result = new result_vm_1.ResultGenericVM();
         const movieInfo = await (0, himawari_lib_1.getHimawariDougaDetails)(id);
         result.item = movieInfo;
-        res.result = result.setResultValue(true, result_vm_1.ResultCode.success);
-        next();
+        result.setResultValue(true, result_vm_1.ResultCode.success);
+        return c.json(result);
     }
     catch (err) {
-        next(err);
+        throw err;
     }
 });
 /**
@@ -77,10 +77,10 @@ router.get('/:id', async (req, res, next) => {
 }
  *
  */
-router.get('/:id/danmaku', async (req, res, next) => {
+app.get('/:id/danmaku', async (c) => {
     try {
-        const { id } = req.params;
-        const { mode, group } = req.query;
+        const { id } = c.req.param();
+        const { mode, group } = c.req.query();
         const result = new result_vm_1.ResultListGenericVM();
         const key = `himawari-danmaku-${id}`;
         const cacheItems = lru_cache_1.lruCache.get(key);
@@ -95,23 +95,16 @@ router.get('/:id/danmaku', async (req, res, next) => {
             }
         }
         if (mode === 'download') {
-            res.setHeader('Content-disposition', `attachment; filename=himawari-${id}.json`);
-            res.setHeader('Content-type', 'application/json');
-            res.write(JSON.stringify(result.items, null, 4), (err) => {
-                if (err) {
-                    next(err);
-                }
-                res.status(+result_vm_1.ResultCode.success).end();
-                return;
-            });
-            return;
+            c.header('Content-disposition', `attachment; filename=himawari-${id}.json`);
+            c.header('Content-type', 'application/json');
+            return c.json(result.items);
         }
-        res.result = result.setResultValue(true, result_vm_1.ResultCode.success);
-        next();
+        result.setResultValue(true, result_vm_1.ResultCode.success);
+        return c.json(result);
     }
     catch (err) {
-        next(err);
+        throw err;
     }
 });
-exports.default = router;
+exports.default = app;
 //# sourceMappingURL=himawari.js.map

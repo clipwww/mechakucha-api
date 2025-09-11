@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Hono } from 'hono';
 
 import { endMiddlewares } from '../middlewares';
 import notifications from './notifications';
@@ -20,26 +20,29 @@ import sns from './sns';
 import blog from './blog';
 import webPush from './web-push';
 
-const router = Router();
+const app = new Hono();
 
-router
-.use('/notifications', notifications)
-.use('/agefans', agefans, ...endMiddlewares)
-.use('/movie', movie, ...endMiddlewares)
-.use('/komica', komica, ...endMiddlewares)
-.use('/himawari', himawari, ...endMiddlewares)
-.use('/niconico', niconico, ...endMiddlewares)
-.use('/convert', convert, ...endMiddlewares)
-.use('/bahamut', bahamut, ...endMiddlewares)
-.use('/bilibili', bilibili, ...endMiddlewares)
-.use('/meta-fetcher', metaFetcher, ...endMiddlewares)
-.use('/my-movie-record', myMovieRecord, ...endMiddlewares)
-.use('/anime1', anime1, ...endMiddlewares)
-.use('/line', line, ...endMiddlewares)
-.use('/my-log', myLog, ...endMiddlewares)
-.use('/umamusume', umamusume, ...endMiddlewares)
-.use('/sns', sns, ...endMiddlewares)
-.use('/blog', blog, ...endMiddlewares)
-.use('/web-push', webPush, ...endMiddlewares)
+app
+.route('/notifications', notifications)
+.route('/agefans', agefans)
+.route('/movie', movie)
+.route('/komica', komica)
+.route('/himawari', himawari)
+.route('/niconico', niconico)
+.route('/convert', convert)
+.route('/bahamut', bahamut)
+.route('/bilibili', bilibili)
+.route('/meta-fetcher', metaFetcher)
+.route('/my-movie-record', myMovieRecord)
+.route('/anime1', anime1)
+.route('/line', line)
+.route('/my-log', myLog)
+.route('/umamusume', umamusume)
+.route('/sns', sns)
+.route('/blog', blog)
+.route('/web-push', webPush)
 
-export default router;
+// Apply end middlewares to all routes
+app.use('*', ...endMiddlewares);
+
+export default app;

@@ -1,11 +1,25 @@
-import { Router } from 'express';
+import { Hono } from 'hono';
+import { z } from 'zod';
+import { zValidator } from '@hono/zod-validator';
+import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
 
 import { lruCache } from '../utilities/lru-cache';
 import { getAnimeList, getAnimeDetails, getAnimeVideo, queryAnimeList, getAnimeUpdate } from '../libs/agefans.lib';
 import { ResultCode, ResultListGenericVM, ResultGenericVM } from '../view-models/result.vm';
-import { ResponseExtension } from '../view-models/extension.vm';
 
-const router = Router();
+const app = new OpenAPIHono();
+
+// Zod schemas
+const querySchema = z.object({
+  keyword: z.string().optional(),
+  mode: z.string().optional(),
+});
+
+const paramSchema = z.object({
+  id: z.string(),
+  pId: z.string().optional(),
+  eId: z.string().optional(),
+});
 
 /**
  * @api {get} /agefans?keyword 取得番劇列表
@@ -59,9 +73,33 @@ const router = Router();
 }
  * 
  */
-router.get('/', async (req, res: ResponseExtension, next) => {
+// OpenAPI route
+const route = createRoute({
+  method: 'get',
+  path: '/',
+  request: {
+    query: querySchema,
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            success: z.boolean(),
+            resultCode: z.string(),
+            resultMessage: z.string(),
+            items: z.array(z.any()),
+          }),
+        },
+      },
+      description: '取得番劇列表',
+    },
+  },
+});
+
+app.openapi(route, async (c) => {
   try {
-    const { keyword, mode = '' } = req.query;
+    const { keyword, mode = '' } = c.req.valid('query');
 
     const result = new ResultListGenericVM();
 
@@ -79,18 +117,16 @@ router.get('/', async (req, res: ResponseExtension, next) => {
       lruCache.set(key, result.items)
     }
 
-
-    res.result = result.setResultValue(true, ResultCode.success);
-
-    next();
+    result.setResultValue(true, ResultCode.success);
+    return c.json(result);
   } catch (err) {
-    next(err)
+    throw err;
   }
 })
 
-router.get('/:id', async (req, res: ResponseExtension, next) => {
+app.get('/:id', async (c) => {
   try {
-    const { id } = req.params;
+    const { id } = c.req.param();
     const result = new ResultGenericVM();
 
     const key = `agefans-details-${id}`;
@@ -103,16 +139,15 @@ router.get('/:id', async (req, res: ResponseExtension, next) => {
       lruCache.set(key, result.item)
     }
 
-    res.result = result.setResultValue(true, ResultCode.success);
-
-    next();
+    result.setResultValue(true, ResultCode.success);
+    return c.json(result);
   } catch (err) {
-    next(err);
+    throw err;
   }
 })
 
-router.get('/:id/:pId/:eId', async (req, res: ResponseExtension) => {
-  const { id, pId, eId } = req.params;
+app.get('/:id/:pId/:eId', async (c) => {
+  const { id, pId, eId } = c.req.param();
 
   const key = `agefans-video-${id}-${pId}-${eId}`;
   const cacheVideoUrl = lruCache.get(key) as string;
@@ -122,7 +157,7 @@ router.get('/:id/:pId/:eId', async (req, res: ResponseExtension) => {
     lruCache.set(key, videoUrl)
   }
 
-  res.redirect(videoUrl);
+  return c.redirect(videoUrl);
 })
 
-export default router;
+export default app;

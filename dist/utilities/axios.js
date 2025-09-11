@@ -12,8 +12,7 @@ exports.axiosInstance = axios_1.default.create({
     },
 });
 exports.axiosInstance.interceptors.request.use(config => {
-    var _a;
-    console.log(`[${(_a = config.method) === null || _a === void 0 ? void 0 : _a.toUpperCase()}] ${config.url} | query: ${JSON.stringify((config === null || config === void 0 ? void 0 : config.params) || {})} | data: ${JSON.stringify((config === null || config === void 0 ? void 0 : config.data) || {})}`);
+    console.log(`[${config.method?.toUpperCase()}] ${config.url} | query: ${JSON.stringify(config?.params || {})} | data: ${JSON.stringify(config?.data || {})}`);
     return config;
 }, error => {
     console.error(`[Request Error] ${error}`);

@@ -9,13 +9,12 @@ const xml2json_1 = require("xml2json");
 const parseNcdrXMLtoData = (path) => {
     return new Promise(reslove => {
         fs_1.default.readFile(path, 'utf8', (err, data) => {
-            var _a, _b;
             if (err) {
                 return reslove();
             }
             try {
                 const alert = JSON.parse((0, xml2json_1.toJson)(data));
-                const entry = (_b = (_a = alert === null || alert === void 0 ? void 0 : alert.feed) === null || _a === void 0 ? void 0 : _a.entry) !== null && _b !== void 0 ? _b : [];
+                const entry = alert?.feed?.entry ?? [];
                 const newEnrty = entry[entry.length - 1];
                 return reslove({
                     id: newEnrty.id,

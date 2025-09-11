@@ -1,19 +1,19 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
+const hono_1 = require("hono");
 const result_vm_1 = require("../view-models/result.vm");
 const google_sheets_lib_1 = require("../libs/google-sheets.lib");
-const router = (0, express_1.Router)();
-router.get('/', async (req, res, next) => {
+const app = new hono_1.Hono();
+app.get('/', async (c) => {
     try {
         const result = new result_vm_1.ResultListGenericVM();
         result.items = await (0, google_sheets_lib_1.getMovieLog)();
-        res.result = result.setResultValue(true, result_vm_1.ResultCode.success);
-        next();
+        result.setResultValue(true, result_vm_1.ResultCode.success);
+        return c.json(result);
     }
     catch (err) {
-        next(err);
+        throw err;
     }
 });
-exports.default = router;
+exports.default = app;
 //# sourceMappingURL=my-movie-record.js.map

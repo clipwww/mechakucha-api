@@ -32,23 +32,22 @@ const deCodeMailProtection = (href) => {
     return 'mailto: ' + n(href, url.length);
 };
 const getPostData = ($el) => {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
-    const id = ((_a = $el.attr('id')) === null || _a === void 0 ? void 0 : _a.replace('r', '')) || '';
-    const title = ((_b = $el.find('.title')) === null || _b === void 0 ? void 0 : _b.text()) || '';
-    const text = ((_c = $el.find('.quote')) === null || _c === void 0 ? void 0 : _c.html()) || '';
-    const email = deCodeMailProtection((_d = $el.find('a[href*="email"]')) === null || _d === void 0 ? void 0 : _d.attr('href'));
-    let oImg = ((_e = $el.find('a.file-thumb')) === null || _e === void 0 ? void 0 : _e.attr('href')) || '';
-    let sImg = ((_f = $el.find('a.file-thumb img')) === null || _f === void 0 ? void 0 : _f.attr('src')) || oImg;
-    const name = ((_g = $el.find('.name')) === null || _g === void 0 ? void 0 : _g.text()) || '';
+    const id = $el.attr('id')?.replace('r', '') || '';
+    const title = $el.find('.title')?.text() || '';
+    const text = $el.find('.quote')?.html() || '';
+    const email = deCodeMailProtection($el.find('a[href*="email"]')?.attr('href'));
+    let oImg = $el.find('a.file-thumb')?.attr('href') || '';
+    let sImg = $el.find('a.file-thumb img')?.attr('src') || oImg;
+    const name = $el.find('.name')?.text() || '';
     ;
-    const dateTime = `${((_h = $el.find('.now')) === null || _h === void 0 ? void 0 : _h.text()) || ''} ${((_j = $el.find('.now')) === null || _j === void 0 ? void 0 : _j.next().text()) || ''}`;
-    const userId = ((_k = $el.find('.id')) === null || _k === void 0 ? void 0 : _k.text()) || '';
-    const warnText = (_m = (_l = $el.find('.warn_txt2')) === null || _l === void 0 ? void 0 : _l.text()) !== null && _m !== void 0 ? _m : '';
+    const dateTime = `${$el.find('.now')?.text() || ''} ${$el.find('.now')?.next().text() || ''}`;
+    const userId = $el.find('.id')?.text() || '';
+    const warnText = $el.find('.warn_txt2')?.text() ?? '';
     const dateCreated = (0, moment_1.default)(dateTime, 'YYYY/MM/DD HH:mm:ss').toISOString();
     return {
         id,
         title,
-        text: (0, he_1.decode)(text === null || text === void 0 ? void 0 : text.replace(/onclick/g, str => `__${str}`)),
+        text: (0, he_1.decode)(text?.replace(/onclick/g, str => `__${str}`)),
         email,
         oImg,
         sImg,
@@ -61,7 +60,6 @@ const getPostData = ($el) => {
     };
 };
 const getAllPostList = async (boardType, page = 0, maxPage = 5) => {
-    var _a, _b;
     try {
         const url = urlMap[boardType];
         if (page >= maxPage) {
@@ -76,22 +74,21 @@ const getAllPostList = async (boardType, page = 0, maxPage = 5) => {
         }
         const { data: htmlString, config } = await utilities_1.axiosInstance.get(`${url}/pixmicat.php?mode=module&load=mod_threadlist&page=${page}`);
         const $ = cheerio_1.default.load(htmlString);
-        const title = ((_a = $('h1')) === null || _a === void 0 ? void 0 : _a.text()) || '';
-        maxPage = ((_b = $('#page_switch tr td:nth-child(2) a')) === null || _b === void 0 ? void 0 : _b.length) || maxPage;
+        const title = $('h1')?.text() || '';
+        maxPage = $('#page_switch tr td:nth-child(2) a')?.length || maxPage;
         const $tr = $('#contents tr');
         let posts = $tr.map((i, el) => {
-            var _a, _b, _c, _d;
             const $el = $(el);
             return {
-                id: ((_a = $el.find('td:nth-child(1)')) === null || _a === void 0 ? void 0 : _a.text()) || '',
-                title: ((_b = $el.find('a')) === null || _b === void 0 ? void 0 : _b.text()) || '',
-                replyCount: +((_c = $el.find('td:nth-child(4)')) === null || _c === void 0 ? void 0 : _c.text()),
+                id: $el.find('td:nth-child(1)')?.text() || '',
+                title: $el.find('a')?.text() || '',
+                replyCount: +$el.find('td:nth-child(4)')?.text(),
                 dateTime: '',
                 dateCreated: '',
                 dateUpdated: (0, moment_1.default)($el.find('td:nth-child(5)').text(), 'YYYY/MM/DD HH:mm:ss').toISOString(),
-                url: url + '/' + ((_d = $el.find('a')) === null || _d === void 0 ? void 0 : _d.attr('href')) || '',
+                url: url + '/' + $el.find('a')?.attr('href') || '',
             };
-        }).get().filter(item => !!(item === null || item === void 0 ? void 0 : item.id));
+        }).get().filter(item => !!item?.id);
         return {
             title,
             url: config.url,
@@ -123,9 +120,8 @@ const getPostListResult = async (boardType, page = 1) => {
         const temp = getPostData($el);
         const reply = [];
         $('.reply').each((_i, rEl) => {
-            var _a;
             const $rEl = $(rEl);
-            if (((_a = $rEl.find(`.qlink[href*="res=${temp.id}"]`)) === null || _a === void 0 ? void 0 : _a.length) > 0) {
+            if ($rEl.find(`.qlink[href*="res=${temp.id}"]`)?.length > 0) {
                 const temp2 = getPostData($rEl);
                 reply.push(temp2);
             }
@@ -138,7 +134,10 @@ const getPostListResult = async (boardType, page = 1) => {
         .map((_i, el) => $(el).attr('href')).get();
     return {
         posts: posts.map(item => {
-            return Object.assign(Object.assign({}, item), { url: `${url}/pixmicat.php?res=${item.id}` });
+            return {
+                ...item,
+                url: `${url}/pixmicat.php?res=${item.id}`,
+            };
         }),
         pages
     };

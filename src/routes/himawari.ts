@@ -1,15 +1,14 @@
-import { Router } from 'express';
+import { Hono } from 'hono';
 
 import { lruCache } from '../utilities/lru-cache';
 import { getHimawariDougaList, getHimawariDougaDetails, getHimawariDougaDanmaku, getHimawariDanmakuList } from '../libs/himawari.lib';
 import { ResultCode, ResultListGenericVM, ResultGenericVM } from '../view-models/result.vm';
-import { ResponseExtension } from '../view-models/extension.vm';
 
-const router = Router();
+const app = new Hono();
 
-router.get('/', async (req, res: ResponseExtension, next) => {
+app.get('/', async (c) => {
   try {
-    const { sort, keyword, cat, page, mode, sortby } = req.query;
+    const { sort, keyword, cat, page, mode, sortby } = c.req.query();
 
     const result = new ResultListGenericVM();
     if (mode === 'commentgroup') {
@@ -31,28 +30,28 @@ router.get('/', async (req, res: ResponseExtension, next) => {
 
     
 
-    res.result = result.setResultValue(true, ResultCode.success)
+    result.setResultValue(true, ResultCode.success)
 
-    next();
+    return c.json(result);
   } catch (err) {
-    next(err);
+    throw err;
   }
 })
 
-router.get('/:id', async (req, res: ResponseExtension, next) => {
+app.get('/:id', async (c) => {
   try {
-    const { id } = req.params;
+    const { id } = c.req.param();
 
     const result = new ResultGenericVM();
     const movieInfo = await getHimawariDougaDetails(id);
 
     result.item = movieInfo;
 
-    res.result = result.setResultValue(true, ResultCode.success)
+    result.setResultValue(true, ResultCode.success)
 
-    next();
+    return c.json(result);
   } catch (err) {
-    next(err);
+    throw err;
   }
 })
 
@@ -90,10 +89,10 @@ router.get('/:id', async (req, res: ResponseExtension, next) => {
 }
  * 
  */
-router.get('/:id/danmaku', async (req, res: ResponseExtension, next) => {
+app.get('/:id/danmaku', async (c) => {
   try {
-    const { id } = req.params;
-    const { mode, group } = req.query;
+    const { id } = c.req.param();
+    const { mode, group } = c.req.query();
 
     const result = new ResultListGenericVM();
     const key = `himawari-danmaku-${id}`;
@@ -110,25 +109,18 @@ router.get('/:id/danmaku', async (req, res: ResponseExtension, next) => {
     }
 
     if (mode === 'download') {
-      res.setHeader('Content-disposition', `attachment; filename=himawari-${id}.json`);
-      res.setHeader('Content-type', 'application/json');
-      res.write(JSON.stringify(result.items, null, 4),  (err) => {
-        if (err) {
-          next(err);
-        }
-        res.status(+ResultCode.success).end();
-        return;
-      })
-      return;
+      c.header('Content-disposition', `attachment; filename=himawari-${id}.json`);
+      c.header('Content-type', 'application/json');
+      return c.json(result.items);
     }
 
-    res.result = result.setResultValue(true, ResultCode.success)
+    result.setResultValue(true, ResultCode.success)
 
-    next();
+    return c.json(result);
   } catch (err) {
-    next(err);
+    throw err;
   }
 })
 
 
-export default router;
+export default app;

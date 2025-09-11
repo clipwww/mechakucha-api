@@ -46,7 +46,6 @@ const crawlerFacebookFanPage = async (fbId) => {
 };
 exports.crawlerFacebookFanPage = crawlerFacebookFanPage;
 const crawlerInstagramFanPage = async (igAccount) => {
-    var _a, _b, _c, _d, _e, _f;
     let igId = igAccount;
     if (isNaN(+igAccount)) {
         const { data } = await utilities_1.axiosInstance.get(`https://www.instagram.com/${igAccount}/?__a=1`, {
@@ -56,7 +55,7 @@ const crawlerInstagramFanPage = async (igAccount) => {
             }
         });
         // console.log(data)
-        const id = (_c = (_b = (_a = data === null || data === void 0 ? void 0 : data.graphql) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.id) !== null && _c !== void 0 ? _c : '';
+        const id = data?.graphql?.user?.id ?? '';
         if (id)
             igId = id;
     }
@@ -77,9 +76,12 @@ const crawlerInstagramFanPage = async (igAccount) => {
     if (!edges.length) {
         throw Error('Empty');
     }
-    return (_f = (_e = (_d = ret === null || ret === void 0 ? void 0 : ret.data) === null || _d === void 0 ? void 0 : _d.user) === null || _e === void 0 ? void 0 : _e.edge_owner_to_timeline_media) === null || _f === void 0 ? void 0 : _f.edges.map(item => {
-        var _a, _b;
-        return Object.assign({ href: `https://www.instagram.com/p/${(_a = item.node) === null || _a === void 0 ? void 0 : _a.shortcode}`, src: (_b = item.node) === null || _b === void 0 ? void 0 : _b.display_url }, item.node);
+    return ret?.data?.user?.edge_owner_to_timeline_media?.edges.map(item => {
+        return {
+            href: `https://www.instagram.com/p/${item.node?.shortcode}`,
+            src: item.node?.display_url,
+            ...item.node
+        };
     });
 };
 exports.crawlerInstagramFanPage = crawlerInstagramFanPage;

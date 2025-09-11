@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
+const hono_1 = require("hono");
 const middlewares_1 = require("../middlewares");
 const notifications_1 = __importDefault(require("./notifications"));
 const agefans_1 = __importDefault(require("./agefans"));
@@ -23,25 +23,27 @@ const umamusume_1 = __importDefault(require("./umamusume"));
 const sns_1 = __importDefault(require("./sns"));
 const blog_1 = __importDefault(require("./blog"));
 const web_push_1 = __importDefault(require("./web-push"));
-const router = (0, express_1.Router)();
-router
-    .use('/notifications', notifications_1.default)
-    .use('/agefans', agefans_1.default, ...middlewares_1.endMiddlewares)
-    .use('/movie', movie_1.default, ...middlewares_1.endMiddlewares)
-    .use('/komica', komica_1.default, ...middlewares_1.endMiddlewares)
-    .use('/himawari', himawari_1.default, ...middlewares_1.endMiddlewares)
-    .use('/niconico', niconico_1.default, ...middlewares_1.endMiddlewares)
-    .use('/convert', convert_1.default, ...middlewares_1.endMiddlewares)
-    .use('/bahamut', bahamut_1.default, ...middlewares_1.endMiddlewares)
-    .use('/bilibili', bilibili_1.default, ...middlewares_1.endMiddlewares)
-    .use('/meta-fetcher', meta_fetcher_1.default, ...middlewares_1.endMiddlewares)
-    .use('/my-movie-record', my_movie_record_1.default, ...middlewares_1.endMiddlewares)
-    .use('/anime1', anime1_1.default, ...middlewares_1.endMiddlewares)
-    .use('/line', line_1.default, ...middlewares_1.endMiddlewares)
-    .use('/my-log', my_log_1.default, ...middlewares_1.endMiddlewares)
-    .use('/umamusume', umamusume_1.default, ...middlewares_1.endMiddlewares)
-    .use('/sns', sns_1.default, ...middlewares_1.endMiddlewares)
-    .use('/blog', blog_1.default, ...middlewares_1.endMiddlewares)
-    .use('/web-push', web_push_1.default, ...middlewares_1.endMiddlewares);
-exports.default = router;
+const app = new hono_1.Hono();
+app
+    .route('/notifications', notifications_1.default)
+    .route('/agefans', agefans_1.default)
+    .route('/movie', movie_1.default)
+    .route('/komica', komica_1.default)
+    .route('/himawari', himawari_1.default)
+    .route('/niconico', niconico_1.default)
+    .route('/convert', convert_1.default)
+    .route('/bahamut', bahamut_1.default)
+    .route('/bilibili', bilibili_1.default)
+    .route('/meta-fetcher', meta_fetcher_1.default)
+    .route('/my-movie-record', my_movie_record_1.default)
+    .route('/anime1', anime1_1.default)
+    .route('/line', line_1.default)
+    .route('/my-log', my_log_1.default)
+    .route('/umamusume', umamusume_1.default)
+    .route('/sns', sns_1.default)
+    .route('/blog', blog_1.default)
+    .route('/web-push', web_push_1.default);
+// Apply end middlewares to all routes
+app.use('*', ...middlewares_1.endMiddlewares);
+exports.default = app;
 //# sourceMappingURL=index.js.map

@@ -3,13 +3,9 @@ const result = dotenv.config();
 const env = result.parsed;
 console.log(env);
 
-import  express from "express"
-import  bodyParser from "body-parser";
-import  helmet from "helmet";
-import  cookieParser from 'cookie-parser';
-import  xmlBodyparser from 'express-xml-bodyparser';
+import  { Hono } from "hono"
+import  { serve } from '@hono/node-server'
 import  moment from 'moment-timezone';
-import  path from 'path';
 import { SignatureValidationFailed, JSONParseError } from '@line/bot-sdk';
 
 import { connectMongoDB } from '../nosql/mongodb-data-accessor';
@@ -20,7 +16,7 @@ import { initSchedule } from '../agenda';
 moment.tz.setDefault('Asia/Taipei');
 
 export class Application {
-    private app: express.Application = null
+    private app: Hono = null
     static readonly applicationName: string = "my-api";
 
     async start(): Promise<void> {
@@ -33,33 +29,29 @@ export class Application {
 
 
     private async setRouters(): Promise<void> {
-        this.app = express();
+        this.app = new Hono();
         this.app
             .use('/webhook', ...lineWebhookMiddlewares)
-            .use((req, res, next) => {
-                res.header('Access-Control-Allow-Origin', '*');
-                res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-                next();
+            .use('*', async (c, next) => {
+                c.header('Access-Control-Allow-Origin', '*');
+                c.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+                await next();
             })
-            .use(helmet())
-            .use(bodyParser.urlencoded({ extended: true }))
-            .use(bodyParser.json())
-            .use(xmlBodyparser())
-            .use(cookieParser())
-            .use(routes)
-            .use(express.static(path.join(__dirname, '../apidoc')))
+            .route('/', routes)
 
-        this.app.use(errorHandlerMiddleware);
+        this.app.onError(errorHandlerMiddleware);
 
         return
     }
 
     private async startListenPort() {
-        const port = process.env.PORT;
-        this.app.listen(port, () => {
-            console.info(`${Application.applicationName}`, `port on ${port}`)
-            initSchedule();
+        const port = process.env.PORT || '3000';
+        serve({
+            fetch: this.app.fetch,
+            port: parseInt(port),
         });
+        console.info(`${Application.applicationName}`, `port on ${port}`)
+        initSchedule();
     }
 
 }

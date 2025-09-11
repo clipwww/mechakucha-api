@@ -1,18 +1,16 @@
-import { Router } from 'express';
+import { Hono } from 'hono';
 
 import { ResultCode, ResultGenericVM } from '../view-models/result.vm';
-import { ResponseExtension } from '../view-models/extension.vm';
 import { lruCache, axiosInstance } from '../utilities';
 import  moment from 'moment';
 
+const app = new Hono();
 
-const router = Router();
-
-router.get('/', async (req, res: ResponseExtension, next) => {
+app.get('/', async (c) => {
   try {
 
     const result = new ResultGenericVM();
-    
+
     const key = 'umamusume';
     const value = lruCache.get(key) as { updateTime: string };
 
@@ -23,13 +21,11 @@ router.get('/', async (req, res: ResponseExtension, next) => {
       result.item = db;
     }
 
-    res.result = result.setResultValue(true, ResultCode.success)
-
-    next();
+    result.setResultValue(true, ResultCode.success);
+    return c.json(result);
   } catch (err) {
-    next(err);
+    throw err;
   }
 })
 
-
-export default router;
+export default app;

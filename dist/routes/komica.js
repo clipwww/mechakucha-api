@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
+const hono_1 = require("hono");
 const komica_lib_1 = require("../libs/komica.lib");
 const result_vm_1 = require("../view-models/result.vm");
-const router = (0, express_1.Router)();
+const app = new hono_1.Hono();
 /**
  * @api {get} /komica/:board/?p=1&mode= 取得看板文章列表
  * @apiName GetKomicaPosts
@@ -66,10 +66,10 @@ const router = (0, express_1.Router)();
   }
 }
  */
-router.get('/:board', async (req, res, next) => {
+app.get('/:board', async (c) => {
     try {
-        const { board } = req.params;
-        const { p = 1, mode = '' } = req.query;
+        const { board } = c.req.param();
+        const { p = 1, mode = '' } = c.req.query();
         const result = new result_vm_1.ResultListGenericVM();
         switch (mode) {
             case 'all':
@@ -87,25 +87,28 @@ router.get('/:board', async (req, res, next) => {
                 result.items = posts;
                 result['pages'] = pages;
         }
-        res.result = result.setResultValue(true, result_vm_1.ResultCode.success);
-        next();
+        result.setResultValue(true, result_vm_1.ResultCode.success);
+        return c.json(result);
     }
     catch (err) {
-        next(err);
+        throw err;
     }
 });
-router.get('/:board/:id', async (req, res, next) => {
+app.get('/:board/:id', async (c) => {
     try {
-        const { board, id } = req.params;
+        const { board, id } = c.req.param();
         const result = new result_vm_1.ResultGenericVM();
         const { post, url } = await (0, komica_lib_1.getPostDetails)(board, id);
-        result.item = Object.assign(Object.assign({}, post), { url });
-        res.result = result.setResultValue(true, result_vm_1.ResultCode.success);
-        next();
+        result.item = {
+            ...post,
+            url
+        };
+        result.setResultValue(true, result_vm_1.ResultCode.success);
+        return c.json(result);
     }
     catch (err) {
-        next(err);
+        throw err;
     }
 });
-exports.default = router;
+exports.default = app;
 //# sourceMappingURL=komica.js.map

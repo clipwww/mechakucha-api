@@ -1,11 +1,12 @@
 import  moment from 'moment';
-import { toJson } from 'xml2json';
+import { XMLParser } from 'fast-xml-parser';
 import fetch from 'node-fetch';
 import  cheerio from 'cheerio';
 import { decode } from 'he';
 
 import { puppeteerUtil } from '../utilities'
 
+const xmlParser = new XMLParser();
 const BASE_URL = `https://www.nicovideo.jp/watch`;
 
 function componentToHex(c: number) {
@@ -129,7 +130,7 @@ export async function getRankingList(type = 'all', term = '24h'): Promise<{
   const response = await fetch(`https://www.nicovideo.jp/ranking/genre/${type}?term=${term}&rss=2.0&lang=ja-jp`);
   const xmlString = await response.text();
 
-  const { rss } = JSON.parse(toJson(xmlString));
+  const { rss } = xmlParser.parse(xmlString);
 
   rss.channel.pubDate = moment(rss.channel.pubDate);
   rss.channel.lastBuildDate = moment(rss.channel.lastBuildDate);

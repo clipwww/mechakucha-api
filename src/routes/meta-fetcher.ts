@@ -1,15 +1,14 @@
-import { Router } from 'express';
+import { Hono } from 'hono';
 
 import { lruCache } from '../utilities/lru-cache';
 import { fetchMetaData } from '../libs/meta-fetcher.lib';
 import { ResultCode, ResultGenericVM } from '../view-models/result.vm';
-import { ResponseExtension } from '../view-models/extension.vm';
 
-const router = Router();
+const app = new Hono();
 
-router.get('/', async (req, res: ResponseExtension, next) => {
+app.get('/', async (c) => {
   try {
-    const { url } = req.query;
+    const { url } = c.req.query();
 
     const result = new ResultGenericVM();
 
@@ -22,13 +21,11 @@ router.get('/', async (req, res: ResponseExtension, next) => {
       lruCache.set(key, result.item)
     }
 
-    res.result = result.setResultValue(true, ResultCode.success);
-
-    next();
+    result.setResultValue(true, ResultCode.success);
+    return c.json(result);
   } catch (err) {
-    next(err)
+    throw err;
   }
 })
 
-
-export default router;
+export default app;

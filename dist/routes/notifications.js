@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
+const hono_1 = require("hono");
 const moment_timezone_1 = __importDefault(require("moment-timezone"));
 const node_fetch_1 = __importDefault(require("node-fetch"));
 const form_data_1 = __importDefault(require("form-data"));
@@ -11,7 +11,7 @@ const line_lib_1 = require("../libs/line.lib");
 const youtube_lib_1 = require("../libs/youtube.lib");
 const cwb_lib_1 = require("../libs/cwb.lib");
 const result_vm_1 = require("../view-models/result.vm");
-const router = (0, express_1.Router)();
+const app = new hono_1.Hono();
 const subscribe = async (callback, topic) => {
     try {
         const formData = new form_data_1.default();
@@ -38,15 +38,15 @@ const subscribe = async (callback, topic) => {
         return false;
     }
 };
-const handleGooglePubsubhubbubChallenge = (req, res) => {
-    const query = req.query;
+const handleGooglePubsubhubbubChallenge = async (c) => {
+    const query = c.req.query();
     console.log(query);
-    res.status(+result_vm_1.ResultCode.success).send(query['hub.challenge']);
+    return c.text(query['hub.challenge'], +result_vm_1.ResultCode.success);
 };
-router.get('/yt', handleGooglePubsubhubbubChallenge);
-router.get('/cwb', handleGooglePubsubhubbubChallenge);
-router.post('/yt', async (req, res) => {
-    const xmlString = req['rawBody'];
+app.get('/yt', handleGooglePubsubhubbubChallenge);
+app.get('/cwb', handleGooglePubsubhubbubChallenge);
+app.post('/yt', async (c) => {
+    const xmlString = await c.req.text();
     const { entry, self } = (0, youtube_lib_1.parseXMLtoData)(xmlString);
     console.log('entry', entry);
     if (entry) {
@@ -60,12 +60,13 @@ router.post('/yt', async (req, res) => {
             // imageFullsize: `https://img.youtube.com/vi/${entry["yt:videoId"]}/maxresdefault.jpg`,
             // imageThumbnail: `https://img.youtube.com/vi/${entry["yt:videoId"]}/default.jpg`
         });
-        subscribe(`${req.protocol}://${req.hostname}${req.originalUrl}`, self);
+        const url = new URL(c.req.url);
+        subscribe(`${url.protocol}//${url.hostname}/notifications/yt`, self);
     }
-    res.status(+result_vm_1.ResultCode.success).send(entry ? 'ok' : '不ok');
+    return c.text(entry ? 'ok' : '不ok', 200);
 });
-router.post('/cwb', async (req, res) => {
-    const xmlString = req['rawBody'];
+app.post('/cwb', async (c) => {
+    const xmlString = await c.req.text();
     const items = (0, cwb_lib_1.parseCwbXMLtoItems)(xmlString);
     if (items.length) {
         items.forEach(item => {
@@ -78,15 +79,16 @@ ${item.link}
         `,
             });
         });
-        // console.log(req.hostname);
-        subscribe(`${req.protocol}://${req.hostname}${req.originalUrl}`, 'https://www.cwb.gov.tw/rss/Data/cwb_warning.xml');
+        const url = new URL(c.req.url);
+        subscribe(`${url.protocol}//${url.hostname}/notifications/cwb`, 'https://www.cwb.gov.tw/rss/Data/cwb_warning.xml');
     }
-    res.status(+result_vm_1.ResultCode.success).send(items.length ? 'ok' : '不ok');
+    return c.text(items.length ? 'ok' : '不ok', 200);
 });
-router.post('/line-notify', async (req, res) => {
-    const { code } = req.body;
-    const isOk = await (0, line_lib_1.handleSubscribe)(code, `https://${req.hostname}${req.originalUrl}`);
-    res.status(+result_vm_1.ResultCode.success).send(isOk ? '訂閱成功' : '訂閱失敗');
+app.post('/line-notify', async (c) => {
+    const { code } = await c.req.json();
+    const url = new URL(c.req.url);
+    const isOk = await (0, line_lib_1.handleSubscribe)(code, `${url.protocol}//${url.hostname}/notifications/line-notify`);
+    return c.text(isOk ? '訂閱成功' : '訂閱失敗', 200);
 });
-exports.default = router;
+exports.default = app;
 //# sourceMappingURL=notifications.js.map

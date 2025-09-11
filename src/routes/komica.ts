@@ -1,10 +1,9 @@
-import { Router } from 'express';
+import { Hono } from 'hono';
 
 import { getAllPostList, getPostDetails, getPostListResult } from '../libs/komica.lib';
 import { ResultCode, ResultListGenericVM, ResultGenericVM } from '../view-models/result.vm';
-import { ResponseExtension } from '../view-models/extension.vm';
 
-const router = Router();
+const app = new Hono();
 
 /**
  * @api {get} /komica/:board/?p=1&mode= 取得看板文章列表
@@ -68,10 +67,10 @@ const router = Router();
   }
 }
  */
-router.get('/:board', async (req, res: ResponseExtension, next) => {
+app.get('/:board', async (c) => {
   try {
-    const { board } = req.params;
-    const { p = 1, mode = '' } = req.query
+    const { board } = c.req.param();
+    const { p = 1, mode = '' } = c.req.query()
 
     const result = new ResultListGenericVM();
 
@@ -92,17 +91,17 @@ router.get('/:board', async (req, res: ResponseExtension, next) => {
         result['pages'] = pages;
     }
 
-    res.result = result.setResultValue(true, ResultCode.success)
+    result.setResultValue(true, ResultCode.success)
 
-    next();
+    return c.json(result);
   } catch (err) {
-    next(err);
+    throw err;
   }
 })
 
-router.get('/:board/:id', async (req, res: ResponseExtension, next) => {
+app.get('/:board/:id', async (c) => {
   try {
-    const { board, id } = req.params;
+    const { board, id } = c.req.param();
 
     const result = new ResultGenericVM();
     const { post, url } = await getPostDetails(board, id);
@@ -111,12 +110,12 @@ router.get('/:board/:id', async (req, res: ResponseExtension, next) => {
       url
     }
 
-    res.result = result.setResultValue(true, ResultCode.success)
+    result.setResultValue(true, ResultCode.success)
 
-    next();
+    return c.json(result);
   } catch (err) {
-    next(err)
+    throw err;
   }
 });
 
-export default router;
+export default app;

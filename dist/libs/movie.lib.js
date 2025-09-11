@@ -223,7 +223,16 @@ const searchMovieRating = async (keyword, searchType = 'All') => {
         }
     });
     const items = ret.data.items.map(item => {
-        return Object.assign(Object.assign({}, item), { id: item.movieId, no: `${item.movieId}`, officialDoc: item.certificateNumber, year: item.years, title: item.name, runtime: item.length, country: '' });
+        return {
+            ...item,
+            id: item.movieId,
+            no: `${item.movieId}`,
+            officialDoc: item.certificateNumber,
+            year: item.years,
+            title: item.name,
+            runtime: item.length,
+            country: ''
+        };
     });
     return items;
 };

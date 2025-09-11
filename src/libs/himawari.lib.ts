@@ -1,9 +1,11 @@
 import  cheerio from 'cheerio';
 import  moment from 'moment';
-import { toJson } from 'xml2json';
+import { XMLParser } from 'fast-xml-parser';
 import { decode } from 'he';
 
 import { axiosInstance } from '../utilities';
+
+const xmlParser = new XMLParser();
 
 const BASE_URL = 'http://himado.in/';
 
@@ -28,7 +30,7 @@ export const getHimawariDougaList = async ({ sort = 'today_view_cnt', keyword = 
     }
   })
 
-  const xml = JSON.parse(toJson(xmlString));
+  const xml = xmlParser.parse(xmlString);
   const { item: items, ...channel } = xml.rss.channel;
 
   return {
@@ -60,7 +62,7 @@ export const getHimawariDougaDetails = async (id: string) => {
     xmlMode: true,
   });
 
-  const xml = JSON.parse(toJson($xml.xml()));
+  const xml = xmlParser.parse($xml.xml());
   return xml.movie;
 }
 

@@ -1,10 +1,21 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
+const zod_1 = require("zod");
+const zod_openapi_1 = require("@hono/zod-openapi");
 const lru_cache_1 = require("../utilities/lru-cache");
 const agefans_lib_1 = require("../libs/agefans.lib");
 const result_vm_1 = require("../view-models/result.vm");
-const router = (0, express_1.Router)();
+const app = new zod_openapi_1.OpenAPIHono();
+// Zod schemas
+const querySchema = zod_1.z.object({
+    keyword: zod_1.z.string().optional(),
+    mode: zod_1.z.string().optional(),
+});
+const paramSchema = zod_1.z.object({
+    id: zod_1.z.string(),
+    pId: zod_1.z.string().optional(),
+    eId: zod_1.z.string().optional(),
+});
 /**
  * @api {get} /agefans?keyword 取得番劇列表
  * @apiName GetAnimeList
@@ -57,9 +68,32 @@ const router = (0, express_1.Router)();
 }
  *
  */
-router.get('/', async (req, res, next) => {
+// OpenAPI route
+const route = (0, zod_openapi_1.createRoute)({
+    method: 'get',
+    path: '/',
+    request: {
+        query: querySchema,
+    },
+    responses: {
+        200: {
+            content: {
+                'application/json': {
+                    schema: zod_1.z.object({
+                        success: zod_1.z.boolean(),
+                        resultCode: zod_1.z.string(),
+                        resultMessage: zod_1.z.string(),
+                        items: zod_1.z.array(zod_1.z.any()),
+                    }),
+                },
+            },
+            description: '取得番劇列表',
+        },
+    },
+});
+app.openapi(route, async (c) => {
     try {
-        const { keyword, mode = '' } = req.query;
+        const { keyword, mode = '' } = c.req.valid('query');
         const result = new result_vm_1.ResultListGenericVM();
         const key = `agefans-list-${keyword}-${mode}`;
         const cacheItems = lru_cache_1.lruCache.get(key);
@@ -75,16 +109,16 @@ router.get('/', async (req, res, next) => {
             }
             lru_cache_1.lruCache.set(key, result.items);
         }
-        res.result = result.setResultValue(true, result_vm_1.ResultCode.success);
-        next();
+        result.setResultValue(true, result_vm_1.ResultCode.success);
+        return c.json(result);
     }
     catch (err) {
-        next(err);
+        throw err;
     }
 });
-router.get('/:id', async (req, res, next) => {
+app.get('/:id', async (c) => {
     try {
-        const { id } = req.params;
+        const { id } = c.req.param();
         const result = new result_vm_1.ResultGenericVM();
         const key = `agefans-details-${id}`;
         const cacheItem = lru_cache_1.lruCache.get(key);
@@ -95,22 +129,22 @@ router.get('/:id', async (req, res, next) => {
             result.item = await (0, agefans_lib_1.getAnimeDetails)(id);
             lru_cache_1.lruCache.set(key, result.item);
         }
-        res.result = result.setResultValue(true, result_vm_1.ResultCode.success);
-        next();
+        result.setResultValue(true, result_vm_1.ResultCode.success);
+        return c.json(result);
     }
     catch (err) {
-        next(err);
+        throw err;
     }
 });
-router.get('/:id/:pId/:eId', async (req, res) => {
-    const { id, pId, eId } = req.params;
+app.get('/:id/:pId/:eId', async (c) => {
+    const { id, pId, eId } = c.req.param();
     const key = `agefans-video-${id}-${pId}-${eId}`;
     const cacheVideoUrl = lru_cache_1.lruCache.get(key);
     const videoUrl = cacheVideoUrl || await (0, agefans_lib_1.getAnimeVideo)(id, pId, eId);
     if (videoUrl) {
         lru_cache_1.lruCache.set(key, videoUrl);
     }
-    res.redirect(videoUrl);
+    return c.redirect(videoUrl);
 });
-exports.default = router;
+exports.default = app;
 //# sourceMappingURL=agefans.js.map

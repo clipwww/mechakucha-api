@@ -1,46 +1,40 @@
-import { Router } from 'express';
+import { Hono } from 'hono';
 
 import { ResultCode, ResultGenericVM } from '../view-models/result.vm';
-import { ResponseExtension } from '../view-models/extension.vm';
 import { createUserProfile, getUserProfile } from '../libs/line.lib';
 
-const router = Router();
+const app = new Hono();
 
-
-router.get('/user/:id', async (req, res: ResponseExtension, next) => {
+app.get('/user/:id', async (c) => {
   try {
-    const { id } = req.params;
+    const { id } = c.req.param();
     const result = new ResultGenericVM();
 
     const user = await getUserProfile(id);
 
     result.item = user;
 
-    res.result = result.setResultValue(true, ResultCode.success)
-
-    next();
+    result.setResultValue(true, ResultCode.success);
+    return c.json(result);
   } catch (err) {
-    next(err);
+    throw err;
   }
 })
 
-
-router.post('/user', async (req, res: ResponseExtension, next) => {
+app.post('/user', async (c) => {
   try {
-    const { profile } = req.body;
+    const { profile } = await c.req.json();
     const result = new ResultGenericVM();
 
     const user = await createUserProfile(profile);
 
     result.item = user;
 
-    res.result = result.setResultValue(true, ResultCode.success)
-
-    next();
+    result.setResultValue(true, ResultCode.success);
+    return c.json(result);
   } catch (err) {
-    next(err);
+    throw err;
   }
 })
 
-
-export default router;
+export default app;
