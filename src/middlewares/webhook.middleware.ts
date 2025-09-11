@@ -1,5 +1,6 @@
-import { WebhookEvent } from '@line/bot-sdk';
+import type { WebhookEvent } from '@line/bot-sdk';
 import { Hono } from 'hono';
+import type { Context } from 'hono';
 import crypto from 'crypto';
 
 import { handleMessageEvent } from '../libs/line-bot';
@@ -8,7 +9,7 @@ const CHANNEL_SECRET = process.env.LINE_CHANNEL_SECRET;
 
 export const lineWebhookMiddlewares = [
   // Custom LINE webhook signature validation middleware
-  async (c, next) => {
+  async (c: Context, next: () => Promise<void>) => {
     const signature = c.req.header('X-Line-Signature');
     const body = await c.req.text();
 
@@ -17,7 +18,7 @@ export const lineWebhookMiddlewares = [
     }
 
     const hash = crypto
-      .createHmac('SHA256', CHANNEL_SECRET)
+      .createHmac('SHA256', CHANNEL_SECRET!)
       .update(body)
       .digest('base64');
 
@@ -29,7 +30,7 @@ export const lineWebhookMiddlewares = [
     c.set('lineEvents', JSON.parse(body).events);
     await next();
   },
-  async (c) => {
+  async (c: Context) => {
     const events = c.get('lineEvents') as WebhookEvent[];
 
     const handleEventPromise = events.map(event => {

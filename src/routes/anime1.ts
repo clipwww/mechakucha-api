@@ -3,7 +3,6 @@ import { createRoute } from '@hono/zod-openapi';
 import { z } from 'zod';
 
 import { lruCache } from '../utilities/lru-cache';
-import { axiosInstance } from '../utilities';
 import { m3u8toStream } from '../libs/convert.lib';
 import { getBangumiList, getBangumiEpisode, getBangumiPlayerById } from '../libs/anime1.lib';
 import { ResultCode, ResultListGenericVM } from '../view-models/result.vm';
@@ -26,7 +25,7 @@ const BangumiEpisodeResponseSchema = z.object({
   item: z.object({
     id: z.string(),
     title: z.string(),
-  }),
+  }).optional(),
 }).openapi('BangumiEpisodeResponse');
 
 const DownloadQuerySchema = z.object({
@@ -143,7 +142,7 @@ app.openapi(episodeRoute, async (c) => {
       result.item = {
         id,
         title
-      }
+      } as any;
       lruCache.set(key, {
         items: result.items,
         item: result.item

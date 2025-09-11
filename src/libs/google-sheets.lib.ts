@@ -1,8 +1,9 @@
 import  moment from 'moment';
-import { axiosInstance } from '../utilities';
+import { httpClient } from '../utilities';
 
-export const fetchGoogleSheet = (key: string, sheetName = '工作表1') => {
-  return axiosInstance.get(`https://sheets.googleapis.com/v4/spreadsheets/${key}/values/${encodeURIComponent(sheetName)}!A:AA?key=${process.env.GOOGLE_SHEET_API_KEY}`)
+export const fetchGoogleSheet = async (key: string, sheetName = '工作表1') => {
+  const response = await httpClient.get(`https://sheets.googleapis.com/v4/spreadsheets/${key}/values/${encodeURIComponent(sheetName)}!A:AA?key=${process.env.GOOGLE_SHEET_API_KEY}`)
+  return response;
   // return axiosInstance.get(`https://spreadsheets.google.com/feeds/list/${key}/${workSheetId}/public/values?alt=json`);
 }
 
@@ -23,7 +24,8 @@ export const getMovieLog = async () => {
   // const keyArr = Object.keys(COLUMN_MAPPING).map(key => COLUMN_MAPPING[key]);
 
   try {
-    const { data } = await fetchGoogleSheet('1wUt7W8p7c-tlaUCZOI6OwGJODfO-TE7VwPMaBvlv9pQ');
+    const response = await fetchGoogleSheet('1wUt7W8p7c-tlaUCZOI6OwGJODfO-TE7VwPMaBvlv9pQ');
+    const data = JSON.parse(response.body);
 
     let keyArr: Array<string | number> = [];
     return (data.values as Array<Array<string | number>>).reduce((pre: any[], cur, index: number) => {
@@ -32,18 +34,19 @@ export const getMovieLog = async () => {
         return pre;
       }
 
-      const newObj = {
+      const newObj: Record<string, any> = {
         id: Buffer.from(cur.join(',')).toString('base64'),
         memo: '',
       }
 
       cur.forEach((value, index) => {
-        const key = COLUMN_MAPPING[keyArr[index]];
+        const key = COLUMN_MAPPING[keyArr[index]! as keyof typeof COLUMN_MAPPING] || keyArr[index];
         switch(key) {
           case 'date':
             newObj[key] = moment(value, 'YYYY/MM/DD HH:mm').toISOString();
             break;
           default:
+            // @ts-ignore
             newObj[key] = isNaN(+value) || !value ? value : +value;
             break;
         }
@@ -59,24 +62,25 @@ export const getMovieLog = async () => {
   }
 }
 
-export const getMiLog = async (sheetName: string | 'sport' | 'sleep' | 'activity'): Promise<[]> => {
+export const getMiLog = async (sheetName: string | 'sport' | 'sleep' | 'activity') => {
   /**
    * 1. sport
    * 2. activity
    * 3. sleep
    */
   try {
-    const { data } = await fetchGoogleSheet('1Ea0efiYHiwUJlR4LdUhPdOKbBmW4_FU4sqsCqtOyfCQ', sheetName);
+    const response = await fetchGoogleSheet('1Ea0efiYHiwUJlR4LdUhPdOKbBmW4_FU4sqsCqtOyfCQ', sheetName);
+    const data = JSON.parse(response.body);
 
-    let keyArr = [];
-    return data.values.reduce((pre, cur, index) => {
+    let keyArr: Array<string | number> = [];
+    return (data.values as Array<Array<string | number>>).reduce((pre: any[], cur, index: number) => {
       if (index === 0) {
         keyArr = cur;
         return pre;
       }
       
      
-      const newObj = {
+      const newObj: Record<string, any> = {
         id: Buffer.from(cur.join(',')).toString('base64'),
       }
 
@@ -90,9 +94,10 @@ export const getMiLog = async (sheetName: string | 'sport' | 'sleep' | 'activity
           case 'lastSyncTime':
           case 'start':
           case 'stop':
-            newObj[key] = moment(value * 1000).toISOString();
+            newObj[key] = moment(+value * 1000).toISOString();
             break;
           default:
+            // @ts-ignore
             newObj[key] = isNaN(value) || !value ? value : +value;
             break;
         }

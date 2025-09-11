@@ -17,7 +17,7 @@ const MovieLogSchema = z.object({
 
 const MiLogSchema = z.object({
   date: z.string().openapi({ example: '2024-01-15' }),
-  type: z.string().openapi({ example: 'exercise' }),
+  type: z.string().openapi({ example: 'sport' }),
   value: z.string().openapi({ example: '跑步 5km' }),
   notes: z.string().optional().openapi({ example: '晨跑' }),
 }).openapi('MiLog');
@@ -58,7 +58,7 @@ const getMiLogRoute = createRoute({
     params: z.object({
       type: z.string().min(1).openapi({
         description: '日誌類型',
-        example: 'exercise'
+        example: 'sport'
       }),
     }),
   },

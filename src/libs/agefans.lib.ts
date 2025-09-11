@@ -3,7 +3,7 @@ import  cheerio from 'cheerio';
 import { tify as originTify } from 'chinese-conv';
 import { decode } from 'he';
 
-import { axiosInstance } from '../utilities';
+import { httpClient } from '../utilities';
 
 function tify(value: string = '') {
   return originTify(value || '');
@@ -37,10 +37,10 @@ declare global {
 }
 
 export const getAnimeList = async () => {
-  const { data: htmlString } = await axiosInstance.get(BASE_URL) 
+  const { body: htmlString } = await httpClient.get(BASE_URL)
   const $ = cheerio.load(htmlString);
 
-  let animeList = []
+  let animeList: any[] = []
 
   $('.tab-pane').each((i, pel) => {
     const $pel = $(pel)
@@ -54,9 +54,9 @@ export const getAnimeList = async () => {
       const isnew = !!$el.find('.title_new').text()
       
       return {
-        id: +href.match(/\d+/g)[0],
+        id: +(href?.match(/\d+/g)?.[0] || '0'),
         name: tify($link.text()),
-        wd: parseInt(id) || 7,
+        wd: parseInt(id || '7') || 7,
         isnew,
         mttime: undefined,
         namefornew: tify($el.find('.title_sub').text())
@@ -77,7 +77,7 @@ export const getAnimeUpdate = async (): Promise<{
   description: string;
 }[]> => {
   // 取得最近更新的列表
-  const { data: htmlString } = await axiosInstance.get(`${BASE_URL}/update`)
+  const { body: htmlString } = await httpClient.get(`${BASE_URL}/update`)
 
   const $ = cheerio.load(htmlString);
 
@@ -87,8 +87,8 @@ export const getAnimeUpdate = async (): Promise<{
     const href = $link.attr('href')
 
     return {
-      id: +href.match(/\d+/g)[0],
-      link: href,
+      id: (href?.match(/\d+/g)?.[0] || '0'),
+      link: href || '',
       name: tify($link.text()),
       imgUrl: $li.find('img').attr('src') || '',
       description: tify($li.find('.video_item--info')?.text()?.trim())
@@ -99,7 +99,7 @@ export const getAnimeUpdate = async (): Promise<{
 }
 
 export const getAnimeDetails = async (id: string) => {
-  const { data: htmlString } = await axiosInstance.get(`${BASE_URL}/detail/${id}`)
+  const { body: htmlString } = await httpClient.get(`${BASE_URL}/detail/${id}`)
 
   const $ = cheerio.load(htmlString);
 
@@ -112,7 +112,7 @@ export const getAnimeDetails = async (id: string) => {
     studio: '',
     dateAired: '',
     status: '',
-    tags: [],
+    tags: [] as string[],
     officialWebsite: '',
   };
   $('.detail_imform_kv').each((i, kv) => {
@@ -147,19 +147,19 @@ export const getAnimeDetails = async (id: string) => {
   })
   // https://apd-vliveachy.apdcdn.tc.qq.com/vmtt.tc.qq.com/1098_7d490da8190677a7ac4584160c4f8c09.f0.mp4?vkey=87C66692CC6BD228350E34FA8C334CC490B04E87F33679AA070DBDC20CD758B80364E351A46773CD35770D1A46C8D83B68C33EDE0A72317AE0084BA1F87771E3F61B952C3F85CD13F1924C3E932E1CF005E0F59581B9A0EA
 
-  let episodeList: EpisodeVM[];
+  let episodeList: EpisodeVM[] = [];
   $('.movurl').each((i, movurl) => {
     const $movurl = $(movurl);
     if ($movurl.css('display') !== 'none') {
       episodeList = $movurl.find('li').map((i, li) => {
         const $li = $(li);
-        const href = $li.find('a').attr('href');
-        const playid = href.match(/(playid=)+([\w-]*)?/)?.[0]?.replace('playid=', '');
+        const href = $li.find('a').attr('href') || '';
+        const playid = href.match(/(playid=)+([\w-]*)?/)?.[0]?.replace('playid=', '') || '';
 
         return {
           id: playid,
-          pId: playid.split('_')[0],
-          eId: playid.split('_')[1],
+          pId: playid ? playid.split('_')[0] : '',
+          eId: playid ? playid.split('_')[1] : '',
           href: `${BASE_URL}${href}`,
           title: tify($li.text().trim())
         } as EpisodeVM;
@@ -179,19 +179,20 @@ export const getAnimeDetails = async (id: string) => {
 }
 
 export const getAnimeVideo = async (id: string, pId: string, eId: string): Promise<string> => {
-  const { status, data, headers } = await axiosInstance.get(`${BASE_URL}/_getplay?aid=${id}&playindex=${pId}&epindex=${eId}&r=${Math.random()}`, {
+  const { body: data } = await httpClient.get(`${BASE_URL}/_getplay?aid=${id}&playindex=${pId}&epindex=${eId}&r=${Math.random()}`, {
     headers: {
       referer: `${BASE_URL}/play/${id}?playid=${pId}_${eId}`
     },
-    maxRedirects: 0
-  }) 
+    followRedirect: false
+  })
 
-  return data?.vurl || `${BASE_URL}/play/${id}?playid=${pId}_${eId}`
+  const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
+  return parsedData?.vurl || `${BASE_URL}/play/${id}?playid=${pId}_${eId}`
 }
 
 export const queryAnimeList = async (keyword: string, page = 1) => {
-  const { data: htmlString } = await axiosInstance.get(`${BASE_URL}/search`, {
-    params: {
+  const { body: htmlString } = await httpClient.get(`${BASE_URL}/search`, {
+    searchParams: {
       query: decodeURIComponent(keyword),
       page,
     }
@@ -201,7 +202,7 @@ export const queryAnimeList = async (keyword: string, page = 1) => {
 
   const list = $('.blockcontent1 .cell').map((i, cell) => {
     const $cell = $(cell);
-    let type: string, originName: string, studio: string, dateAired: string, status: string, tags: string[], description: string;
+    let type: string = '', originName: string = '', studio: string = '', dateAired: string = '', status: string = '', tags: string[] = [], description: string = '';
     $cell.find('.cell_imform_kv').each((i, kv) => {
       const tag = $(kv).find('span:nth-child(1)').text()
       const value = $(kv).find('span:nth-child(2)').text()

@@ -96,11 +96,11 @@ const sendNotificationRoute = createRoute({
   }
 });
 
-const tokens = [];
+const tokens: webPush.PushSubscription[] = [];
 webPush.setVapidDetails(
   'mailto:clipwww@gmail.com',
-  process.env.WEB_PUSH_PUBLIC_KEY,
-  process.env.WEB_PUSH_PRIVATE_KEY
+  `${process.env.WEB_PUSH_PUBLIC_KEY}`,
+  `${process.env.WEB_PUSH_PRIVATE_KEY}`
 )
 
 app.openapi(registerTokenRoute, async (c) => {

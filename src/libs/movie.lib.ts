@@ -3,7 +3,7 @@ import  moment from 'moment';
 import { groupBy as _groupBy } from 'lodash';
 import path from 'path';
 
-import { axiosInstance, lruCache } from '../utilities'
+import { httpClient, lruCache } from '../utilities'
 
 const BASE_URL = 'http://www.atmovies.com.tw';
 
@@ -50,7 +50,7 @@ interface TheaterMovie {
 
 export async function getMovieList() {
  
-  const { data: htmlString } = await axiosInstance.get(`${BASE_URL}/movie/now`);
+  const { body: htmlString } = await httpClient.get(`${BASE_URL}/movie/now`);
 
   const $ = cheerio.load(htmlString);
 
@@ -70,7 +70,7 @@ export async function getMovieList() {
 }
 
 export async function getMovieListGroupByDate(type: 'now' | 'next' = 'now') {
-  const { data: htmlString } = await axiosInstance.get(`${BASE_URL}/movie/${type}/0/`);
+  const { body: htmlString } = await httpClient.get(`${BASE_URL}/movie/${type}/0/`);
 
     const $ = cheerio.load(htmlString);
     const $majorList = $('.major');
@@ -95,7 +95,7 @@ export async function getMovieListGroupByDate(type: 'now' | 'next' = 'now') {
 }
 
 export async function getCityList(): Promise<{ id: string, name: string }[]> {
-  const { data: htmlString } = await axiosInstance.get(`${BASE_URL}/home/quickSelect.html`);
+  const { body: htmlString } = await httpClient.get(`${BASE_URL}/home/quickSelect.html`);
 
     const $ = cheerio.load(htmlString);
 
@@ -108,7 +108,7 @@ export async function getCityList(): Promise<{ id: string, name: string }[]> {
       const id = $(el).val();
       if (!citys.find(c => c.id === id)) {
         citys.push({
-          id: $(el).val(),
+          id: $(el).val() as string,
           name: $(el).text().trim(),
         })
       }
@@ -119,20 +119,20 @@ export async function getCityList(): Promise<{ id: string, name: string }[]> {
 
 export async function getTheaterList(cityId: string): Promise<{ id: string, name: string }[]> {
 
-  const { data: htmlString } = await axiosInstance.get(`${BASE_URL}/showtime/${cityId}`);
+  const { body: htmlString } = await httpClient.get(`${BASE_URL}/showtime/${cityId}`);
 
     const $ = cheerio.load(htmlString);
 
     return $(`#theaterList a[href*="/showtime/"]`).map((_i, el) => {
       return {
-        id: ($(el).attr('href') || '').split('/')[2],
+        id: ($(el).attr('href') || '').split('/')[2] || '',
         name: $(el).text().trim(),
       };
     }).get(); 
 }
 
 export async function getMovieTimes(movieId: string, cityId?: string): Promise<{ item: MovieInfo, items: Theater[] }> {
-  const { data: htmlString } = await axiosInstance.get(`${BASE_URL}/movie/${movieId}`);
+  const { body: htmlString } = await httpClient.get(`${BASE_URL}/movie/${movieId}`);
 
   const $ = cheerio.load(htmlString);
 
@@ -153,15 +153,15 @@ export async function getMovieTimes(movieId: string, cityId?: string): Promise<{
       .map((i, el) => {
         const $option = $(el)
         return {
-          id: ($option.attr('value') || '').split('/')[3],
+          id: ($option.attr('value') || '').split('/')[3] || '',
           name: $option.text().trim()
         }
       }).get().filter((item) => item.id),
   };
-  let items = [];
+  let items: Theater[] = [];
 
   if (cityId) {
-    const { data: htmlString } = await axiosInstance.get(`${BASE_URL}/showtime/${movieId}/${cityId}/`);
+    const { body: htmlString } = await httpClient.get(`${BASE_URL}/showtime/${movieId}/${cityId}/`);
     const $ = cheerio.load(htmlString);
     const tempArr = $('#filmShowtimeBlock > ul').map((i, el) => {
       const $theater = $(el).find('.theaterTitle');
@@ -177,8 +177,8 @@ export async function getMovieTimes(movieId: string, cityId?: string): Promise<{
     const tempObject = _groupBy(tempArr, 'theaterId');
 
     items = Object.keys(tempObject).map<Theater>(key => {
-      const versionObj = {};
-      tempObject[key].forEach((obj: { versionName: string, time: string[] }) => {
+      const versionObj: Record<string, string[]> = {};
+      (tempObject[key] || []).forEach((obj: { versionName: string, time: string[] }) => {
         const name = obj.versionName || '一般';
         if (versionObj[name]) {
           versionObj[name] = [...versionObj[name], ...obj.time];
@@ -189,11 +189,11 @@ export async function getMovieTimes(movieId: string, cityId?: string): Promise<{
 
       return {
         id: key,
-        name: tempObject[key][0].theaterName,
+        name: (tempObject[key] || [])[0]?.theaterName || '',
         versions: Object.keys(versionObj).map(vKey => {
           return {
             name: vKey,
-            times: versionObj[vKey]
+            times: versionObj[vKey] || []
           };
         })
       };
@@ -210,7 +210,7 @@ export async function getTheaterTimes(theaterId: string, cityId: string, date: s
   const isToday = moment(date).isSame(moment(), 'day');
 
   const dateString = isToday ? '' : moment(date).format('YYYYMMDD');
-  const { data: htmlString } = await axiosInstance.get(`${BASE_URL}/showtime/${theaterId}/${cityId}/${dateString}`);
+  const { body: htmlString } = await httpClient.get(`${BASE_URL}/showtime/${theaterId}/${cityId}/${dateString}`);
 
   const $ = cheerio.load(htmlString);
 
@@ -219,7 +219,7 @@ export async function getTheaterTimes(theaterId: string, cityId: string, date: s
     if (isToday) {
       ldJson = JSON.parse($('[type=\'application/ld+json\']').html() || '{}');
     } else {
-      const { data: hs } = await axiosInstance.get(`${BASE_URL}/showtime/${theaterId}/${cityId}/`);
+      const { body: hs } = await httpClient.get(`${BASE_URL}/showtime/${theaterId}/${cityId}/`);
       ldJson = JSON.parse($(hs).find('[type=\'application/ld+json\']').html() || '{}');
     }
 
@@ -247,11 +247,11 @@ export async function getTheaterTimes(theaterId: string, cityId: string, date: s
     const $info = $el.find('ul:nth-child(1)');
 
     return {
-      id: ($title.attr('href') || '//').split('/')[2],
+      id: ($title.attr('href') || '//').split('/')[2] || '',
       title: $title.text(),
-      image: $el.find('img[width]').attr('src'),
-      runtime: +$info.text().replace(/片長：|分/g, '').trim(),
-      cerImg: `${BASE_URL}/${$info.find('li:nth-child(2) img').attr('src')}`,
+      image: $el.find('img[width]').attr('src') || '',
+      runtime: $info.text().replace(/片長：|分/g, '').trim(),
+      cerImg: `${BASE_URL}/${$info.find('li:nth-child(2) img').attr('src') || ''}`,
       versions: $version.map((i, vel) => {
         const $vel = $(vel);
 
@@ -284,21 +284,14 @@ export async function getTheaterTimes(theaterId: string, cityId: string, date: s
 }
 
 export const searchMovieRating = async (keyword: string, searchType = 'All') => {
-  const { data: ret } = await axiosInstance.get<{ data: { items: {
-    movieId: number
-    years: string
-    certificateNumber: string
-    name: string
-    length: string
-    rating: string
-  }[] } }>(`https://cinema.bamid.gov.tw/Search/RetrieveResult`, {
-    params: {
+  const { body: ret } = await httpClient.get(`https://cinema.bamid.gov.tw/Search/RetrieveResult`, {
+    searchParams: {
       name: keyword,
       searchType,
     }
   });
- 
-  const items = ret.data.items.map(item => {
+  const data = JSON.parse(ret);
+  const items = data.data.items.map((item: any) => {
     return {
       ...item,
       id: item.movieId,
@@ -315,29 +308,13 @@ export const searchMovieRating = async (keyword: string, searchType = 'All') => 
 }
 
 export const searchMovieRatingDetails = async (certificateNumber: string) => {
-  const { data: ret } = await axiosInstance.get<{ data: {
-    certificateDate: string
-    certificateNumber: string
-    certificatePeriodEnd: string
-    certificatePeriodStart: string
-    certificateType: string
-    distributor: string
-    format: string
-    lang: string
-    length: string
-    name: string
-    originalName: string
-    presentType: string
-    publishReviewComment: boolean
-    rating: string
-reviewComment: ""
-  } }>(`https://cinema.bamid.gov.tw/Search/RetrieveDetail`, {
-    params: {
+  const { body: ret } = await httpClient.get(`https://cinema.bamid.gov.tw/Search/RetrieveDetail`, {
+    searchParams: {
       certificateNumber
     }
   });
-
-  return ret.data;
+  const data = JSON.parse(ret);
+  return data.data;
 }
 
 export async function getVieShowNowMovieList(p = 1, maxPage = 0): Promise<{
@@ -354,8 +331,8 @@ export async function getVieShowNowMovieList(p = 1, maxPage = 0): Promise<{
   }
 
   const baseURL = `https://www.vscinemas.com.tw/vsweb/film`
-  const { data: htmlString } = await axiosInstance.get(baseURL, {
-    params: {
+  const { body: htmlString } = await httpClient.get(baseURL, {
+    searchParams: {
       p
     }
   });
@@ -371,7 +348,8 @@ export async function getVieShowNowMovieList(p = 1, maxPage = 0): Promise<{
   const list =  $liList.map((i, el) => {
     const $li = $(el);
     
-    const id = $li.find('a').attr('href').replace('detail.aspx?id=', '');
+    const href = $li.find('a').attr('href');
+    const id = href ? href.replace('detail.aspx?id=', '') : '';
     const title = $li.find('h2').text()
     const titleEN = $li.find('h3').text()
     const url = $li.find('a').attr('href')
@@ -383,8 +361,8 @@ export async function getVieShowNowMovieList(p = 1, maxPage = 0): Promise<{
       id,
       title,
       titleEN,
-      url: path.join(baseURL, url),
-      imgSrc: path.join(baseURL, imgSrc),
+      url: url ? path.join(baseURL, url) : '',
+      imgSrc: imgSrc ? path.join(baseURL, imgSrc) : '',
       time,
       theaterMarks
     };
@@ -407,8 +385,8 @@ export async function getVieShowComingMovieList(p = 1, maxPage = 0): Promise<{
   }
 
   const baseURL = `https://www.vscinemas.com.tw/vsweb/film`
-  const { data: htmlString } = await axiosInstance.get(`${baseURL}/coming.aspx`, {
-    params: {
+  const { body: htmlString } = await httpClient.get(`${baseURL}/coming.aspx`, {
+    searchParams: {
       p
     }
   });
@@ -424,7 +402,8 @@ export async function getVieShowComingMovieList(p = 1, maxPage = 0): Promise<{
   const list = $liList.map((i, el) => {
     const $li = $(el);
     
-    const id = $li.find('a').attr('href').replace('detail.aspx?id=', '');
+    const href = $li.find('a').attr('href');
+    const id = href ? href.replace('detail.aspx?id=', '') : '';
     const title = $li.find('h2').text()
     const titleEN = $li.find('h3').text()
     const url = $li.find('a').attr('href')
@@ -436,8 +415,8 @@ export async function getVieShowComingMovieList(p = 1, maxPage = 0): Promise<{
       id,
       title,
       titleEN,
-      url: path.join(baseURL, url),
-      imgSrc: path.join(baseURL, imgSrc),
+      url: url ? path.join(baseURL, url) : '',
+      imgSrc: imgSrc ? path.join(baseURL, imgSrc) : '',
       time,
       theaterMarks
     };
@@ -446,7 +425,7 @@ export async function getVieShowComingMovieList(p = 1, maxPage = 0): Promise<{
   return list.concat(await getVieShowComingMovieList(p + 1, maxPage))
 }
 
-const CinemaCodeMapping = {
+const CinemaCodeMapping: Record<string, string> = {
   TP: "台北信義威秀影城",
   MU: "MUVIE CINEMAS 台北松仁",
   MUC: "MUVIE CINEMAS 台北松仁 (MUCROWN)",
@@ -484,7 +463,7 @@ export async function getVieShowMovieShowTimes(cinemaCode: string): Promise<{
   showTimes: {
     date: string
     times: string[]
-  }
+  }[]
 }[]> {
   cinemaCode = cinemaCode.toUpperCase()
 
@@ -493,8 +472,10 @@ export async function getVieShowMovieShowTimes(cinemaCode: string): Promise<{
   }
 
   const baseURL = `https://www.vscinemas.com.tw/ShowTimes/ShowTimes/GetShowTimes`
-  const { data: htmlString } = await axiosInstance.post(baseURL, {
-    CinemaCode: cinemaCode,
+  const { body: htmlString } = await httpClient.post(baseURL, {
+    json: {
+      CinemaCode: cinemaCode,
+    }
   });
 
 
@@ -518,12 +499,12 @@ export async function getVieShowMovieShowTimes(cinemaCode: string): Promise<{
 
     return {
       id,
-      cinema: CinemaCodeMapping[cinemaCode],
+      cinema: CinemaCodeMapping[cinemaCode] || '',
       name,
       nameEN,
       showTimes: times.map((arr, idx) => {
         return {
-          date: dates[idx],
+          date: dates[idx] || '',
           times: arr
         }
       })

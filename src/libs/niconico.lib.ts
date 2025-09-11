@@ -33,7 +33,7 @@ const parseNiconicoColor = (mail: string) => {
   const defaultColor = { r: 255, g: 255, b: 255 };
   const line = mail.toLowerCase().split(/\s+/);
   const color = Object.keys(colorTable).find(color => line.includes(color));
-  const retColor = color ? colorTable[color] : defaultColor;
+  const retColor = color ? (colorTable as any)[color] : defaultColor;
   return rgbToHex(retColor.r, retColor.g, retColor.b);
 };
 
@@ -51,7 +51,7 @@ const parseNiconicoSize = (mail: string) => {
   return 25;
 };
 
-const danmakuFilter = danmaku => {
+const danmakuFilter = (danmaku: any) => {
   if (!danmaku) return false;
   if (!danmaku.text) return false;
   if (!danmaku.mode) return false;
@@ -77,7 +77,7 @@ const niconicoParser = (resultArray: any[]) => {
       date,
       date_iso_string: new Date(date * 1000).toISOString(),
     };
-  }).filter(danmakuFilter).sort((a, b) => a.time > b.time ? 1 : -1);
+  }).filter(danmakuFilter).sort((a, b) => (a?.time || 0) > (b?.time || 0) ? 1 : -1);
 };
 
 export const getNicoNicoDanmaku = async (id: string): Promise<any[]> => {
@@ -135,7 +135,7 @@ export async function getRankingList(type = 'all', term = '24h'): Promise<{
   rss.channel.pubDate = moment(rss.channel.pubDate);
   rss.channel.lastBuildDate = moment(rss.channel.lastBuildDate);
 
-  return rss.channel.item.map(item => {
+  return rss.channel.item.map((item: any) => {
     const $ = cheerio.load(`<div>${item.description}</div>`);
     const url = new URL(item.link)
 
@@ -143,7 +143,7 @@ export async function getRankingList(type = 'all', term = '24h'): Promise<{
       ...item,
       id: url.pathname.replace('/watch/', ''),
       pubDate: moment(item.pubDate).toISOString(),
-      description: decode($('.nico-description').html()) || '',
+      description: decode($('.nico-description').html() || ''),
       originDescription: item.description,
       memo: $('.nico-memo').text() || '',
       timeLength: $('.nico-info-length').text() || '',

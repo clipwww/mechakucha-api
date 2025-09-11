@@ -352,7 +352,7 @@ app.openapi(ratingRoute, async (c) => {
     const key = `movie-rating-${keyword}`;
     const cacheValue =  lruCache.get(key) as any[];
     if (cacheValue?.[0]?.no !== items?.[0]?.no && keyword.includes('戰車')) {
-      items.forEach(async item => {
+      items.forEach(async (item: any) => {
         const movieDoc = await MovieRatingModel.findOne({ no: item.no })
         if (!movieDoc) {
           const { id, ...other } = item;

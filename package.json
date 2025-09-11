@@ -9,7 +9,7 @@
     "clean": "rm -rf dist",
     "init": "mkdir dist",
     "prebuild": "bun run clean && bun run init",
-    "build": "bun run tsc",
+    "build": "bun build src/index.ts --outdir ./dist --target bun",
     "start": "bun ./dist"
   },
   "engines": {
@@ -24,12 +24,12 @@
     "@scalar/hono-api-reference": "^0.9.18",
     "@types/xml2json": "^0.11.4",
     "agenda": "^4.4.0",
-    "axios": "^0.27.2",
     "cheerio": "1.0.0-rc.12",
     "chinese-conv": "^1.0.1",
     "dotenv": "^8.6.0",
     "fast-xml-parser": "^4.3.2",
     "form-data": "^4.0.0",
+    "got": "^14.4.8",
     "he": "^1.2.0",
     "hono": "^4.0.0",
     "lodash": "^4.17.21",
@@ -44,14 +44,16 @@
     "typescript": "^4.9.5",
     "uuid": "^8.3.2",
     "web-push": "^3.6.6",
-    "zod": "^3.22.4"
+    "zod": "3"
   },
   "devDependencies": {
+    "@types/bun": "^1.2.21",
     "@types/cheerio": "^0.22.32",
     "@types/he": "^1.2.1",
     "@types/lodash": "^4.14.199",
     "@types/lru-cache": "^5.1.1",
     "@types/node": "^18.17.1",
+    "@types/node-fetch": "2",
     "@types/shortid": "^0.0.29",
     "@types/uuid": "^8.3.4",
     "@types/web-push": "^3.6.1"

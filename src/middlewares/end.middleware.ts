@@ -1,12 +1,13 @@
 import { Hono } from 'hono';
+import type { Context } from 'hono';
 import { ResultCode, ResultGenericVM } from '../view-models/result.vm';
 
-export const responseEndMiddleware = async (c, next) => {
+export const responseEndMiddleware = async (c: Context, next: () => Promise<void>) => {
   // In Hono, we don't need this middleware as we return responses directly
   await next();
 };
 
-export const errorHandlerMiddleware = (err, c) => {
+export const errorHandlerMiddleware = (err: Error | unknown, c: Context) => {
   const ret = new ResultGenericVM();
 
   if (err instanceof Error) {

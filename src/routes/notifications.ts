@@ -152,7 +152,7 @@ const lineNotifyRoute = createRoute({
 const subscribe = async (callback: string, topic: string): Promise<boolean> => {
   try {
     const formData = new FormData();
-    const hub = {
+    const hub: Record<string, string> = {
       callback,
       topic,
       verify: 'async',
@@ -173,7 +173,7 @@ const subscribe = async (callback: string, topic: string): Promise<boolean> => {
 
     return true;
   } catch (err) {
-    console.error(err.message);
+    console.error(err instanceof Error ? err.message : String(err));
     return false;
   }
 }

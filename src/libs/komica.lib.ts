@@ -1,8 +1,8 @@
-import cheerio from 'cheerio';
+import cheerio, { type Cheerio } from 'cheerio';
 import moment from 'moment';
 import { decode } from 'he';
 
-import { axiosInstance, sleep, puppeteerUtil } from '../utilities';
+import { httpClient, sleep, puppeteerUtil } from '../utilities';
 
 type BoardType = 'live' | 'new';
 
@@ -22,7 +22,7 @@ interface PostVM {
   url?: string;
 }
 
-const urlMap = {
+const urlMap: Record<string, string> = {
   new: 'https://gaia.komica1.org/79/',
   live: 'https://gaia.komica1.org/78/',
 }
@@ -50,7 +50,7 @@ const deCodeMailProtection = (href: string): string => {
   return 'mailto: ' + n(href, url.length);
 };
 
-const getPostData = ($el: cheerio.Cheerio): PostVM => {
+const getPostData = ($el: Cheerio<any>): PostVM => {
   const id = $el.attr('id')?.replace('r', '') || '';
   const title = $el.find('.title')?.text() || '';
   const text = $el.find('.quote')?.html() || '';
@@ -68,7 +68,7 @@ const getPostData = ($el: cheerio.Cheerio): PostVM => {
   return {
     id,
     title,
-    text: decode(text?.replace(/onclick/g, str => `__${str}`)),
+    text: decode(text?.replace(/onclick/g, (str: string) => `__${str}`)),
     email,
     oImg,
     sImg,
@@ -94,7 +94,7 @@ export const getAllPostList = async (boardType: BoardType | string, page = 0, ma
     if (page > 0) {
       await sleep(.5)
     }
-    const { data: htmlString, config } = await axiosInstance.get<string>(`${url}/pixmicat.php?mode=module&load=mod_threadlist&page=${page}`);
+    const { body: htmlString } = await httpClient.get(`${url}/pixmicat.php?mode=module&load=mod_threadlist&page=${page}`);
 
     const $ = cheerio.load(htmlString);
 
@@ -121,7 +121,7 @@ export const getAllPostList = async (boardType: BoardType | string, page = 0, ma
 
     return {
       title,
-      url: config.url,
+      url: `${url}/pixmicat.php?mode=module&load=mod_threadlist&page=${page}`,
       posts: posts.concat((await getAllPostList(boardType, page + 1, maxPage)).posts),
     }
   } catch (err) {
@@ -136,10 +136,9 @@ export const getAllPostList = async (boardType: BoardType | string, page = 0, ma
 
 export const getPostListResult = async (boardType: BoardType | string, page: number = 1): Promise<{ posts: PostVM[], pages: string[] }> => {
   const url = urlMap[boardType]
-  const { data: htmlString } = await axiosInstance.get<string>(`${url}${page > 1 ? `/${page}.html` : ''}`, {
+  const { body: htmlString } = await httpClient.get(`${url}${page > 1 ? `/${page}.html` : ''}`, {
     headers: {
       Cookie: 'PHPSESSID=8r99s6v7iuomkadm6agk5gkgj0; cf_chl_2=325cd2a559bf14a; cf_chl_rc_m=2; theme=dark.css; _gat_gtag_UA_114117_2=1; _gat=1; __cf_bm=ffUn3GjByM2iuP06GYa5wIosmCovhLKrTEkbVKh9d_8-1674800948-0-AUPGiAD5V7Pka7DNjzmxhMRa375azBFRsVB9E9x/ft4b7EHIgbHV3HHIIT+rwmH3iVjkmXhlXDYuKNaUtHATi6N2u0pHeHPg6cpjf4VCzSyg1Hmrf++zKezYsI8bZn23i4ObIQajZrZ/oj7hgwyEHP8=',
-      withCredentials: true,
     }
   }).catch(err => err.response);
 
@@ -182,8 +181,8 @@ export const getPostListResult = async (boardType: BoardType | string, page: num
 
 export const getPostDetails = async (boardType: BoardType | string, resId: string): Promise<{ post: PostVM, url: string }> => {
   const url = urlMap[boardType]
-  const { data: htmlString, config } = await axiosInstance.get<string>(`${url}/pixmicat.php`, {
-    params: {
+  const { body: htmlString } = await httpClient.get(`${url}/pixmicat.php`, {
+    searchParams: {
       res: resId,
     }
   });
@@ -200,6 +199,6 @@ export const getPostDetails = async (boardType: BoardType | string, resId: strin
 
   return {
     post,
-    url: config.url
+    url: `${url}/pixmicat.php?res=${resId}`
   };
 };

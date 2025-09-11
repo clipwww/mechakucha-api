@@ -1,6 +1,6 @@
 import { idGenerator } from './identity-generate';
 import { lruCache } from './lru-cache';
-import { axiosInstance } from './axios';
+import { httpClient } from './http-client';
 import { puppeteerUtil } from './puppeteer.util';
 
 function sleep(sec: number) {
@@ -10,7 +10,7 @@ function sleep(sec: number) {
 export {
   idGenerator,
   lruCache,
-  axiosInstance,
+  httpClient,
   puppeteerUtil,
   
   sleep

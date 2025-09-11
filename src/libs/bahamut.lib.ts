@@ -1,7 +1,7 @@
 import  FormData from 'form-data';
 import  moment from 'moment';
 
-import { axiosInstance } from '../utilities';
+import { httpClient } from '../utilities';
 
 interface BahamutDanmakuVM {
   "text": string;
@@ -17,13 +17,15 @@ export const getBahumutDanmaku = async (sn: string) => {
   const formData = new FormData()
   formData.append('sn', sn)
 
-  const { data } = await axiosInstance.post(`https://ani.gamer.com.tw/ajax/danmuGet.php`, formData, {
+  const { body: data } = await httpClient.post(`https://ani.gamer.com.tw/ajax/danmuGet.php`, {
+    body: formData,
     headers: {
       ...formData.getHeaders()
     }
   })
 
-  return (data as BahamutDanmakuVM[]).map(item => {
+  const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
+  return (parsedData as BahamutDanmakuVM[]).map(item => {
     return {
       ...item,
       time: item.time / 10,

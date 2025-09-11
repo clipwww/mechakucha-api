@@ -3,13 +3,13 @@ import  moment from 'moment';
 import { XMLParser } from 'fast-xml-parser';
 import { decode } from 'he';
 
-import { axiosInstance } from '../utilities';
+import { httpClient } from '../utilities';
 
 const xmlParser = new XMLParser();
 
 const BASE_URL = 'http://himado.in/';
 
-export const getHimawariDougaList = async ({ sort = 'today_view_cnt', keyword = '', cat, page }): Promise<{
+export const getHimawariDougaList = async ({ sort = 'today_view_cnt', keyword = '', cat, page }: { sort?: string, keyword?: string, cat?: string, page?: number }): Promise<{
   channel: any;
   items: {
     id: string;
@@ -20,12 +20,12 @@ export const getHimawariDougaList = async ({ sort = 'today_view_cnt', keyword = 
     date_publish: string;
   }[]
 }> => {
-  const { data: xmlString } = await axiosInstance.get(BASE_URL, {
-    params: {
+  const { body: xmlString } = await httpClient.get(BASE_URL, {
+    searchParams: {
       sort,
       keyword,
       cat,
-      page: page > 1 ? page : null,
+      page: (page && page > 1) ? page : null,
       rss: 1,
     }
   })
@@ -35,7 +35,7 @@ export const getHimawariDougaList = async ({ sort = 'today_view_cnt', keyword = 
 
   return {
     channel,
-    items: items?.map(item => {
+    items: items?.map((item: any) => {
       const $ = cheerio.load(item.description);
 
       return {
@@ -43,7 +43,7 @@ export const getHimawariDougaList = async ({ sort = 'today_view_cnt', keyword = 
         title: item.title,
         link: item.link,
         image: $('img').attr('src'),
-        description: decode($('.riRssContributor').html()),
+        description: decode($('.riRssContributor').html() || ''),
         date_publish: moment(item.pubDate).toISOString(),
       }
     }) ?? []
@@ -51,8 +51,8 @@ export const getHimawariDougaList = async ({ sort = 'today_view_cnt', keyword = 
 }
 
 export const getHimawariDougaDetails = async (id: string) => {
-  const { data: htmlString } = await axiosInstance.get(BASE_URL, {
-    params: {
+  const { body: htmlString } = await httpClient.get(BASE_URL, {
+    searchParams: {
       id,
       mode: 'movie',
     }
@@ -67,8 +67,8 @@ export const getHimawariDougaDetails = async (id: string) => {
 }
 
 export const getHimawariDanmakuList = async (keyword: string, page = 1, sort = 'comment_cnt', sortby = 'desc') => {
-  const { data: htmlString } = await axiosInstance.get(BASE_URL, {
-    params: {
+  const { body: htmlString } = await httpClient.get(BASE_URL, {
+    searchParams: {
       keyword,
       page: page - 1,
       mode: 'commentgroup',
@@ -91,11 +91,11 @@ export const getHimawariDanmakuList = async (keyword: string, page = 1, sort = '
       switch (index) {
         case 0:
           const queryParams = new URLSearchParams($(el).find('a').attr('href'));
-          group_id = queryParams.get('group_id')
+          group_id = queryParams.get('group_id') || ''
           title = $(el)?.text()?.trim() ?? '';
           break;
         case 1:
-          count = +$(el)?.text();
+          count = +($(el)?.text() || '0');
           break;
         case 2:
           source = $(el)?.text()?.trim() ?? '';
@@ -109,7 +109,7 @@ export const getHimawariDanmakuList = async (keyword: string, page = 1, sort = '
       count,
       source,
     }
-  }).get() as { group_id: string, title: string, count: string, source: string }[];
+  }).get() as { group_id: string, title: string, count: number, source: string }[];
 
   const pagenav = $('.pagenavi_res').first().text();
   const pageMatch = pagenav.match(/page (.*) of (.*) result:(.*)/)
@@ -117,24 +117,24 @@ export const getHimawariDanmakuList = async (keyword: string, page = 1, sort = '
   return {
     items,
     pageInfo: {
-      index: pageMatch ? +pageMatch[1] : page,
+      index: pageMatch && pageMatch[1] ? +pageMatch[1] : page,
       size: 30,
-      pageAmount: pageMatch ? +pageMatch[2] : 0,
-      dataAmount: pageMatch ? +pageMatch[3] : 0,
+      pageAmount: pageMatch && pageMatch[2] ? +pageMatch[2] : 0,
+      dataAmount: pageMatch && pageMatch[3] ? +pageMatch[3] : 0,
     },
   }
 }
 
 export const getHimawariDougaDanmaku = async (id: string, isGroupId = false) => {
   const url = isGroupId ? `${BASE_URL}?mode=commentgroup&group_id=${id}` : `${BASE_URL}${id}`
-  const { data: htmlString } = await axiosInstance.get(url)
+  const { body: htmlString } = await httpClient.get(url)
 
   const $ = cheerio.load(htmlString);
-  const group_id = $('input[name="group_id"]').val();
-  const key = $('input[name="key"]').val();
+  const group_id = $('input[name="group_id"]').val() as string;
+  const key = $('input[name="key"]').val() as string;
 
-  const { data: xmlString } = await axiosInstance.get(`${BASE_URL}api/player`, {
-    params: {
+  const { body: xmlString } = await httpClient.get(`${BASE_URL}api/player`, {
+    searchParams: {
       mode: 'comment',
       id,
       group_id,
@@ -146,26 +146,26 @@ export const getHimawariDougaDanmaku = async (id: string, isGroupId = false) => 
   })
 
   const $xml = $(xmlString)
-  const baseDate = parseInt($xml.find('base').attr("d"), 36);
+  const baseDate = parseInt($xml.find('base').attr("d") || '0', 36);
 
-  const ids = [];
+  const ids: string[] = [];
   $xml.find("d").each((i, e) => {
-    const index = parseInt($(e).attr("n"), 36);
-    const id = $(e).attr("u");
+    const index = parseInt($(e).attr("n") || '0', 36);
+    const id = $(e).attr("u") || '';
     ids[index] = id;
   })
 
   return $xml.find("c").map((i, e) => {
     const deleted = $(e).attr("deleted");
-    const arr = $(e).attr("p").split(",");
-    const date = baseDate - parseInt(arr[1], 36);
-    const vpos_master = parseInt(arr[0], 36)
+    const arr = ($(e).attr("p") || '').split(",");
+    const date = baseDate - parseInt(arr[1] || '0', 36);
+    const vpos_master = parseInt(arr[0] || '0', 36)
 
     return {
-      id: ids[parseInt(arr[3], 36)],
-      no: parseInt(arr[2], 36).toString(),
+      id: ids[parseInt(arr[3] || '0', 36)] || '',
+      no: parseInt(arr[2] || '0', 36).toString(),
       mail: arr[6],
-      vpos: Math.floor(parseInt(arr[0], 36) / 100 * 30),
+      vpos: Math.floor(parseInt(arr[0] || '0', 36) / 100 * 30),
       vpos_master,
       time: vpos_master / 100,
       date,
@@ -173,7 +173,7 @@ export const getHimawariDougaDanmaku = async (id: string, isGroupId = false) => 
       text: $(e).text(),
       digital_time: moment.utc(vpos_master * 10).format('HH:mm:ss'),
       date_iso_string: new Date(date * 1000).toISOString(),
-      deleted,
+      deleted: $(e).attr("deleted") || '',
     }
-  }).get().filter(item => !['1', '2'].includes(item.deleted)).sort((a, b) => a.vpos_master > b.vpos_master ? 1 : -1);
+  }).get().filter(item => !['1', '2'].includes(item.deleted || '')).sort((a, b) => a.vpos_master > b.vpos_master ? 1 : -1);
 }

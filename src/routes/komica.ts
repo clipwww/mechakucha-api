@@ -175,9 +175,8 @@ app.openapi(boardListRoute, async (c) => {
         }
         break;
       default:
-        const { posts, pages } = await getPostListResult(board, +p);
+        const { posts } = await getPostListResult(board, +p);
         result.items = posts;
-        result['pages'] = pages;
     }
 
     result.setResultValue(true, ResultCode.success)

@@ -5,7 +5,7 @@ import  fs from 'fs';
 import  FormData from 'form-data';
 
 import { m3u8toStream } from '../libs/convert.lib';
-import { puppeteerUtil, axiosInstance } from '../utilities'
+import { puppeteerUtil, httpClient } from '../utilities'
 
 export interface Anime1ListVM {
   id: string;
@@ -37,11 +37,11 @@ export const getBangumiList = async (): Promise<Anime1ListVM[]> => {
     const [id, name, description, year, season, fansub] = data;
     return {
       id: `${id}`, 
-      name, 
-      description, 
-      year, 
-      season,
-      fansub
+      name: name || '', 
+      description: description || '', 
+      year: year || '', 
+      season: season || '',
+      fansub: fansub || ''
     };
   });
 }
@@ -49,9 +49,7 @@ export const getBangumiList = async (): Promise<Anime1ListVM[]> => {
 export const getBangumiEpisode = async (id: string) => {
   async function getEpisode(url: string): Promise<{ title: string, items: Anime1BangumiVM[] }> {
     try {
-      const { data: htmlString } = await axiosInstance.get(url, {
-        // @ts-ignore
-        credentials: 'include',
+      const { body: htmlString } = await httpClient.get(url, {
         headers: {
           Cookie: "videopassword=1",
         },
@@ -71,27 +69,30 @@ export const getBangumiEpisode = async (id: string) => {
 
         switch (true) {
           case !!$el.find('iframe').length:
-            iframeSrc = $el.find('iframe')?.attr('src');
+            iframeSrc = $el.find('iframe')?.attr('src') || '';
             type = 'mp4';
             break;
           case !!$el.find('.loadvideo')?.attr('data-src'):
-            iframeSrc = $el.find('.loadvideo')?.attr('data-src');
+            iframeSrc = $el.find('.loadvideo')?.attr('data-src') || '';
             type = 'm3u8';
             break;
           case !!$el.find('.youtubePlayer').attr('data-vid'):
             iframeSrc = `https://www.youtube-nocookie.com/embed/${$el.find('.youtubePlayer').attr('data-vid')}?rel=0&autoplay=1&modestbranding=1`;
             type = 'yt';
+            break;
           case !!$el.find('video').length:
             try {
               const formData = new FormData()
-              formData.append('d', decodeURIComponent($el.find('video').attr('data-apireq')))
+              formData.append('d', decodeURIComponent($el.find('video').attr('data-apireq') || ''))
 
-               const { data } = await axiosInstance.post('https://v.anime1.me/api', formData, {
+               const { body: data } = await httpClient.post('https://v.anime1.me/api', {
+                body: formData,
                 headers: {
                   ...formData.getHeaders()
                 },
               })
-              iframeSrc = data.s[0].src
+              const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
+              iframeSrc = parsedData.s[0].src
               type = 'mp4';
               console.log(iframeSrc)
             } catch(error) {
@@ -173,16 +174,17 @@ export const getMp4Url = async (url: string): Promise<{ url: string, setCookies:
         return;
       }
  
-      const res = await axiosInstance.post(url, request.postData(), {
-        withCredentials: true,
+      const res = await httpClient.post(url, {
+        body: request.postData(),
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
         }
       })
 
+      const parsedBody = typeof res.body === 'string' ? JSON.parse(res.body) : res.body;
       reslove({
-        url: `https:${res?.data?.l}`,
-        setCookies: res.headers['set-cookie']
+        url: `https:${parsedBody?.l}`,
+        setCookies: res.headers['set-cookie'] || []
       });
     });
     // page.on('response', async (response) => {
@@ -227,11 +229,11 @@ export const getBangumiPlayerById = async (id: string): Promise<{ type: string, 
 
   switch (true) {
     case !!$('iframe').length:
-      src = $('iframe')?.attr('src');
+      src = $('iframe')?.attr('src') || '';
       type = 'mp4';
       break;
     case !!$('.loadvideo')?.attr('data-src'):
-      src = $('.loadvideo')?.attr('data-src');
+      src = $('.loadvideo')?.attr('data-src') || '';
       type = 'm3u8';
       break;
     case !!$('.youtubePlayer').attr('data-vid'):

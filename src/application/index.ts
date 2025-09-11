@@ -16,7 +16,7 @@ import { initSchedule } from '../agenda';
 moment.tz.setDefault('Asia/Taipei');
 
 export class Application {
-    private app: OpenAPIHono = null
+    private app: OpenAPIHono | null = null
     static readonly applicationName: string = "my-api";
 
     async start(): Promise<void> {
@@ -69,25 +69,6 @@ export class Application {
             },
             authentication: {
                 preferredSecurityScheme: null,
-                http: {
-                    basic: {
-                        username: '',
-                        password: '',
-                    },
-                    bearer: {
-                        token: '',
-                    },
-                },
-                apiKey: {
-                    token: '',
-                },
-                oAuth2: {
-                    clientId: '',
-                    scopes: [],
-                    flow: 'accessCode',
-                    authorizationUrl: '',
-                    tokenUrl: '',
-                },
             },
             servers: [
                 {
@@ -107,6 +88,10 @@ export class Application {
             })
             .route('/', routes)
 
+        this.app.get('/', (c) => {
+            return c.redirect('/docs')
+        })
+
         this.app.onError(errorHandlerMiddleware);
 
         return
@@ -115,7 +100,7 @@ export class Application {
     private async startListenPort() {
         const port = process.env.PORT || '3000';
         serve({
-            fetch: this.app.fetch,
+            fetch: this.app!.fetch,
             port: parseInt(port),
         });
         console.info(`${Application.applicationName}`, `port on ${port}`)
