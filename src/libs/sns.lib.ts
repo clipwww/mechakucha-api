@@ -70,7 +70,7 @@ export const crawlerInstagramFanPage = async (igAccount: string): Promise<{ href
       })
     }
   });
-
+  console.log(ret)
   if (!ret.status || ret.status.toLowerCase() !== 'ok') {
     throw Error(ret.message);
   }

@@ -11,8 +11,14 @@ const app = new OpenAPIHono();
 
 // Zod schemas
 const querySchema = z.object({
-  keyword: z.string().optional(),
-  mode: z.string().optional(),
+  keyword: z.string().optional().openapi({
+    description: '搜尋關鍵字',
+    example: '進擊的巨人'
+  }),
+  mode: z.string().optional().openapi({
+    description: '模式，可選 update',
+    example: 'update'
+  }),
 });
 
 const paramSchema = z.object({
@@ -21,62 +27,28 @@ const paramSchema = z.object({
   eId: z.string().optional(),
 });
 
-/**
- * @api {get} /agefans?keyword 取得番劇列表
- * @apiName GetAnimeList
- * @apiGroup AGE動漫
- * @apiVersion 1.0.0
- *
- * @apiParam {String} keyword 搜尋關鍵字
- *
- *
- * @apiSuccessExample Success Response
-{
-  "success": true,
-  "resultCode": "200",
-  "resultMessage": "",
-  "items": [
-    {
-      "isnew": false,
-      "id": "20190119",
-      "wd": 1,
-      "name": "公主連結！Re:Dive",
-      "mtime": "2020-06-29 23:03:52",
-      "namefornew": "第13話(完結)"
-    }
-  ]
-}
- * @apiSuccessExample Success Response With Keyword
-{
-  "success": true,
-  "resultCode": "200",
-  "resultMessage": "",
-  "items": [
-    {
-      "id": "20130023",
-      "title": "進擊的巨人",
-      "imgUrl": "https:////sc02.alicdn.com/kf/H1deba4ea3529412dbe9031f5cfad0bd00.jpg",
-      "type": "TV",
-      "originName": "進撃の巨人",
-      "studio": "WIT STUDIO",
-      "dateAired": "2013-04-07",
-      "status": "完結",
-      "tags": [
-        "熱血",
-        "懸疑",
-        "奇幻",
-        "劇情"
-      ],
-      "description": "電視動畫《進擊的巨人》改編自諫山創原作的同名漫畫，由WIT STUDIO負責制作。\n巨人支配著的世界。變成巨人的食物的人類建造起了高達50米的巨大牆壁、以自由為代價去防止牆外的巨人的侵略...。\n10歲的少年艾倫·耶格爾對牆外的世界充滿了好奇。艾倫滿足於牆內暫時和平的生活，而牆外歸來的人們卻充滿了絕望，與牆內的氛圍格格不入。艾倫把他們稱之為「家畜」，並認為這些人是「異物」。\n然而，能夠越過牆壁的超大型巨人出現了，艾倫的「夢」以及人們的「和平」瞬間土崩瓦解……"
-    }
-  ]
-}
- * 
- */
-// OpenAPI route
-const route = createRoute({
+// Response schemas
+const AnimeListResponseSchema = z.object({
+  success: z.boolean(),
+  resultCode: z.string(),
+  resultMessage: z.string(),
+  items: z.array(z.any()),
+}).openapi('AnimeListResponse');
+
+const AnimeDetailsResponseSchema = z.object({
+  success: z.boolean(),
+  resultCode: z.string(),
+  resultMessage: z.string(),
+  item: z.any(),
+}).openapi('AnimeDetailsResponse');
+
+// OpenAPI routes
+const listRoute = createRoute({
   method: 'get',
   path: '/',
+  summary: '取得番劇列表',
+  description: '取得 AGE 動漫番劇列表，可依關鍵字搜尋或取得最新更新',
+  tags: ['動畫/漫畫'],
   request: {
     query: querySchema,
   },
@@ -84,20 +56,71 @@ const route = createRoute({
     200: {
       content: {
         'application/json': {
-          schema: z.object({
-            success: z.boolean(),
-            resultCode: z.string(),
-            resultMessage: z.string(),
-            items: z.array(z.any()),
-          }),
+          schema: AnimeListResponseSchema,
         },
       },
-      description: '取得番劇列表',
+      description: '成功取得番劇列表',
     },
   },
 });
 
-app.openapi(route, async (c) => {
+const detailsRoute = createRoute({
+  method: 'get',
+  path: '/:id',
+  summary: '取得番劇詳細資訊',
+  description: '根據番劇 ID 取得詳細資訊',
+  tags: ['動畫/漫畫'],
+  request: {
+    params: z.object({
+      id: z.string().min(1).openapi({
+        description: '番劇 ID',
+        example: '20190119'
+      }),
+    }),
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: AnimeDetailsResponseSchema,
+        },
+      },
+      description: '成功取得番劇詳細資訊',
+    },
+  },
+});
+
+const videoRoute = createRoute({
+  method: 'get',
+  path: '/:id/:pId/:eId',
+  summary: '取得番劇影片',
+  description: '根據番劇 ID、播放 ID 和集數 ID 取得影片播放連結',
+  tags: ['動畫/漫畫'],
+  request: {
+    params: z.object({
+      id: z.string().min(1).openapi({
+        description: '番劇 ID',
+        example: '20190119'
+      }),
+      pId: z.string().min(1).openapi({
+        description: '播放 ID',
+        example: '12345'
+      }),
+      eId: z.string().min(1).openapi({
+        description: '集數 ID',
+        example: '1'
+      }),
+    }),
+  },
+  responses: {
+    302: {
+      description: '重定向到影片播放連結',
+    },
+  },
+});
+
+// 註冊路由
+app.openapi(listRoute, async (c) => {
   try {
     const { keyword, mode = '' } = c.req.valid('query');
 
@@ -122,9 +145,9 @@ app.openapi(route, async (c) => {
   } catch (err) {
     throw err;
   }
-})
+});
 
-app.get('/:id', async (c) => {
+app.openapi(detailsRoute, async (c) => {
   try {
     const { id } = c.req.param();
     const result = new ResultGenericVM();
@@ -144,9 +167,9 @@ app.get('/:id', async (c) => {
   } catch (err) {
     throw err;
   }
-})
+});
 
-app.get('/:id/:pId/:eId', async (c) => {
+app.openapi(videoRoute, async (c) => {
   const { id, pId, eId } = c.req.param();
 
   const key = `agefans-video-${id}-${pId}-${eId}`;
@@ -158,6 +181,6 @@ app.get('/:id/:pId/:eId', async (c) => {
   }
 
   return c.redirect(videoUrl);
-})
+});
 
 export default app;

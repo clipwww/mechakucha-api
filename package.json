@@ -1,8 +1,9 @@
 {
   "name": "mechakucha-api",
   "version": "1.1.4",
-  "description": "",
+  "description": "亂七八糟 API",
   "main": "src/index.ts",
+  "type": "module",
   "scripts": {
     "dev": "bun --watch run src/index.ts",
     "clean": "rm -rf dist",
@@ -14,16 +15,20 @@
   "engines": {
     "node": "22"
   },
-  "author": "me",
+  "author": "github:clipwww",
   "license": "ISC",
   "dependencies": {
+    "@hono/node-server": "^1.8.0",
+    "@hono/zod-openapi": "^0.9.0",
     "@line/bot-sdk": "^7.7.0",
+    "@scalar/hono-api-reference": "^0.9.18",
     "@types/xml2json": "^0.11.4",
     "agenda": "^4.4.0",
     "axios": "^0.27.2",
     "cheerio": "1.0.0-rc.12",
     "chinese-conv": "^1.0.1",
     "dotenv": "^8.6.0",
+    "fast-xml-parser": "^4.3.2",
     "form-data": "^4.0.0",
     "he": "^1.2.0",
     "hono": "^4.0.0",
@@ -39,10 +44,7 @@
     "typescript": "^4.9.5",
     "uuid": "^8.3.2",
     "web-push": "^3.6.6",
-    "fast-xml-parser": "^4.3.2",
-    "zod": "^3.22.4",
-    "@hono/zod-openapi": "^0.9.0",
-    "@hono/node-server": "^1.8.0"
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/cheerio": "^0.22.32",

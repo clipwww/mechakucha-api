@@ -1,9 +1,97 @@
-import { Hono } from 'hono';
+import { OpenAPIHono } from '@hono/zod-openapi';
+import { createRoute } from '@hono/zod-openapi';
+import { z } from 'zod';
 
 import { getAllPostList, getPostDetails, getPostListResult } from '../libs/komica.lib';
 import { ResultCode, ResultListGenericVM, ResultGenericVM } from '../view-models/result.vm';
 
-const app = new Hono();
+const app = new OpenAPIHono();
+
+// Zod schemas
+const BoardQuerySchema = z.object({
+  p: z.string().optional().openapi({
+    description: '頁數',
+    example: '1'
+  }),
+  mode: z.string().optional().openapi({
+    description: '模式，可選 all 顯示所有文章',
+    example: 'all'
+  }),
+});
+
+const BoardListResponseSchema = z.object({
+  success: z.boolean(),
+  resultCode: z.string(),
+  resultMessage: z.string(),
+  items: z.array(z.any()),
+  item: z.any().optional(),
+  pages: z.array(z.string()).optional(),
+}).openapi('BoardListResponse');
+
+const PostDetailsResponseSchema = z.object({
+  success: z.boolean(),
+  resultCode: z.string(),
+  resultMessage: z.string(),
+  item: z.any(),
+}).openapi('PostDetailsResponse');
+
+// OpenAPI routes
+const boardListRoute = createRoute({
+  method: 'get',
+  path: '/:board',
+  summary: '取得看板文章列表',
+  description: '根據看板名稱取得文章列表，可分頁和選擇模式',
+  tags: ['K島'],
+  request: {
+    params: z.object({
+      board: z.string().min(1).openapi({
+        description: '看板名稱，如 live 或 new',
+        example: 'live'
+      }),
+    }),
+    query: BoardQuerySchema,
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: BoardListResponseSchema,
+        },
+      },
+      description: '成功取得文章列表',
+    },
+  },
+});
+
+const postDetailsRoute = createRoute({
+  method: 'get',
+  path: '/:board/:id',
+  summary: '取得文章詳細資訊',
+  description: '根據看板名稱和文章 ID 取得詳細資訊',
+  tags: ['K島'],
+  request: {
+    params: z.object({
+      board: z.string().min(1).openapi({
+        description: '看板名稱',
+        example: 'live'
+      }),
+      id: z.string().min(1).openapi({
+        description: '文章 ID',
+        example: '2269359'
+      }),
+    }),
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: PostDetailsResponseSchema,
+        },
+      },
+      description: '成功取得文章詳細資訊',
+    },
+  },
+});
 
 /**
  * @api {get} /komica/:board/?p=1&mode= 取得看板文章列表
@@ -67,7 +155,8 @@ const app = new Hono();
   }
 }
  */
-app.get('/:board', async (c) => {
+// 註冊路由
+app.openapi(boardListRoute, async (c) => {
   try {
     const { board } = c.req.param();
     const { p = 1, mode = '' } = c.req.query()
@@ -97,9 +186,9 @@ app.get('/:board', async (c) => {
   } catch (err) {
     throw err;
   }
-})
+});
 
-app.get('/:board/:id', async (c) => {
+app.openapi(postDetailsRoute, async (c) => {
   try {
     const { board, id } = c.req.param();
 

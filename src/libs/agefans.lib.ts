@@ -9,7 +9,7 @@ function tify(value: string = '') {
   return originTify(value || '');
 }
 
-const BASE_URL = 'https://www.agemys.org';
+const BASE_URL = 'https://age.tv';
 
 interface SimpleAnimeVM {
   id: string;

@@ -117,10 +117,10 @@ export const getHimawariDanmakuList = async (keyword: string, page = 1, sort = '
   return {
     items,
     pageInfo: {
-      index: +pageMatch?.[1] ?? page,
+      index: pageMatch ? +pageMatch[1] : page,
       size: 30,
-      pageAmount: +pageMatch?.[2] ?? 0,
-      dataAmount: +pageMatch?.[3] ?? 0,
+      pageAmount: pageMatch ? +pageMatch[2] : 0,
+      dataAmount: pageMatch ? +pageMatch[3] : 0,
     },
   }
 }

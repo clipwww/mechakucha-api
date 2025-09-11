@@ -1,4 +1,6 @@
-import { Hono } from 'hono';
+import { OpenAPIHono } from '@hono/zod-openapi';
+import { createRoute } from '@hono/zod-openapi';
+import { z } from 'zod';
 import  moment from 'moment-timezone';
 import fetch from 'node-fetch';
 import  FormData from 'form-data';
@@ -8,7 +10,144 @@ import { parseXMLtoData } from '../libs/youtube.lib';
 import { parseCwbXMLtoItems } from '../libs/cwb.lib';
 import { ResultCode } from '../view-models/result.vm';
 
-const app = new Hono();
+const app = new OpenAPIHono();
+
+// Zod schemas for API documentation
+const PubSubChallengeQuerySchema = z.object({
+  'hub.challenge': z.string().openapi({
+    example: 'challenge_token_123',
+    description: 'PubSubHubbub challenge token'
+  }),
+  'hub.mode': z.string().optional().openapi({
+    example: 'subscribe',
+    description: 'Subscription mode'
+  }),
+  'hub.topic': z.string().optional().openapi({
+    example: 'https://www.youtube.com/xml/feeds/videos.xml?channel_id=UC123',
+    description: 'Topic URL'
+  }),
+  'hub.verify_token': z.string().optional().openapi({
+    example: 'verify_token_123',
+    description: 'Verification token'
+  })
+}).openapi('PubSubChallengeQuery');
+
+const LineNotifyRequestSchema = z.object({
+  code: z.string().openapi({
+    example: 'authorization_code_123',
+    description: 'LINE Notify authorization code'
+  })
+}).openapi('LineNotifyRequest');
+
+const TextResponseSchema = z.string().openapi({
+  example: 'ok',
+  description: 'Simple text response'
+});
+
+// Routes with OpenAPI documentation
+const ytChallengeRoute = createRoute({
+  method: 'get',
+  path: '/yt',
+  summary: 'YouTube PubSubHubbub Challenge Handler',
+  description: 'Handles Google PubSubHubbub challenge verification for YouTube notifications',
+  tags: ['工具服務'],
+  request: {
+    query: PubSubChallengeQuerySchema
+  },
+  responses: {
+    200: {
+      description: 'Challenge response for PubSubHubbub verification'
+    }
+  }
+});
+
+const cwbChallengeRoute = createRoute({
+  method: 'get',
+  path: '/cwb',
+  summary: 'CWB PubSubHubbub Challenge Handler',
+  description: 'Handles Google PubSubHubbub challenge verification for Central Weather Bureau notifications',
+  tags: ['工具服務'],
+  request: {
+    query: PubSubChallengeQuerySchema
+  },
+  responses: {
+    200: {
+      description: 'Challenge response for PubSubHubbub verification'
+    }
+  }
+});
+
+const ytNotificationRoute = createRoute({
+  method: 'post',
+  path: '/yt',
+  summary: 'YouTube Notification Handler',
+  description: 'Processes YouTube video notification updates via PubSubHubbub',
+  tags: ['工具服務'],
+  request: {
+    body: {
+      content: {
+        'application/xml': {
+          schema: z.string().openapi({
+            example: '<?xml version="1.0"?><feed>...</feed>',
+            description: 'XML notification data from YouTube'
+          })
+        }
+      }
+    }
+  },
+  responses: {
+    200: {
+      description: 'Notification processing result'
+    }
+  }
+});
+
+const cwbNotificationRoute = createRoute({
+  method: 'post',
+  path: '/cwb',
+  summary: 'CWB Notification Handler',
+  description: 'Processes Central Weather Bureau alert notifications via PubSubHubbub',
+  tags: ['工具服務'],
+  request: {
+    body: {
+      content: {
+        'application/xml': {
+          schema: z.string().openapi({
+            example: '<?xml version="1.0"?><rss>...</rss>',
+            description: 'XML notification data from CWB'
+          })
+        }
+      }
+    }
+  },
+  responses: {
+    200: {
+      description: 'Notification processing result'
+    }
+  }
+});
+
+const lineNotifyRoute = createRoute({
+  method: 'post',
+  path: '/line-notify',
+  summary: 'LINE Notify Subscription Handler',
+  description: 'Handles LINE Notify authorization code and completes subscription setup',
+  tags: ['工具服務'],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: LineNotifyRequestSchema
+        }
+      }
+    }
+  },
+  responses: {
+    200: {
+      description: 'Subscription setup result'
+    }
+  }
+});
 
 const subscribe = async (callback: string, topic: string): Promise<boolean> => {
   try {
@@ -47,11 +186,11 @@ const handleGooglePubsubhubbubChallenge = async (c: any) => {
   return c.text(query['hub.challenge'], +ResultCode.success);
 }
 
-app.get('/yt', handleGooglePubsubhubbubChallenge)
-app.get('/cwb', handleGooglePubsubhubbubChallenge)
+app.openapi(ytChallengeRoute, handleGooglePubsubhubbubChallenge);
+app.openapi(cwbChallengeRoute, handleGooglePubsubhubbubChallenge);
 
 
-app.post('/yt', async (c) => {
+app.openapi(ytNotificationRoute, async (c) => {
   const xmlString: string = await c.req.text();
 
   const { entry, self } = parseXMLtoData(xmlString);
