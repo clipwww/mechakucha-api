@@ -1,4 +1,6 @@
-import { toJson } from 'xml2json';
+import { XMLParser } from 'fast-xml-parser';
+
+const xmlParser = new XMLParser();
 
 interface EntryVM {
   id: string;
@@ -18,7 +20,7 @@ interface EntryVM {
 }
 
 export const parseXMLtoData = (xmlStr: string): { entry: EntryVM, self: string } => {
-  const data: { feed: { link: any[], entry: EntryVM } } = JSON.parse(toJson(xmlStr));
+  const data: { feed: { link: any[], entry: EntryVM } } = xmlParser.parse(xmlStr);
   const self =  data.feed?.link?.find(link => link.rel === 'self')?.href ?? '';
   return {
     entry: data?.feed?.entry,

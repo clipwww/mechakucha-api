@@ -3,9 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ResultListGenericVM = exports.ResultGenericVM = exports.ResultVM = exports.ResultCode = exports.AppError = void 0;
 class AppError extends Error {
     constructor(param) {
-        var _a;
         super(param.message);
-        this.code = (_a = param.code) !== null && _a !== void 0 ? _a : ResultCode.unknownError;
+        this.code = param.code ?? ResultCode.unknownError;
         this.name = param.name || 'AppError';
     }
 }

@@ -11,7 +11,6 @@ const notifyURL = 'https://notify-api.line.me/api/notify';
 const tokenURL = 'https://notify-bot.line.me/oauth/token';
 const statusURL = 'https://notify-api.line.me/api/status';
 const handleSubscribe = async (code, redirect_uri) => {
-    var _a;
     console.log('code', code);
     console.log('redirect_uri', redirect_uri);
     try {
@@ -33,7 +32,7 @@ const handleSubscribe = async (code, redirect_uri) => {
         const token = json.access_token;
         const status = await (0, exports.getTokenStatus)(token);
         await line_model_1.LineChatTokenModel.create({
-            name: (_a = status === null || status === void 0 ? void 0 : status.target) !== null && _a !== void 0 ? _a : '',
+            name: status?.target ?? '',
             token,
         });
         return true;
@@ -108,7 +107,9 @@ const getUserProfile = async (userId) => {
 };
 exports.getUserProfile = getUserProfile;
 const createUserProfile = async (profile) => {
-    const user = await line_model_1.LineProfileModel.create(Object.assign({}, profile));
+    const user = await line_model_1.LineProfileModel.create({
+        ...profile,
+    });
     return user.toJSON();
 };
 exports.createUserProfile = createUserProfile;

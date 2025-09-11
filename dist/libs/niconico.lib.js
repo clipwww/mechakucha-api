@@ -122,7 +122,20 @@ async function getRankingList(type = 'all', term = '24h') {
     return rss.channel.item.map(item => {
         const $ = cheerio_1.default.load(`<div>${item.description}</div>`);
         const url = new URL(item.link);
-        return Object.assign(Object.assign({}, item), { id: url.pathname.replace('/watch/', ''), pubDate: (0, moment_1.default)(item.pubDate).toISOString(), description: (0, he_1.decode)($('.nico-description').html()) || '', originDescription: item.description, memo: $('.nico-memo').text() || '', timeLength: $('.nico-info-length').text() || '', nicoInfoDate: $('.nico-info-date').text() || '', totalView: +$('.nico-info-total-view').text().replace(/,/g, ''), commentCount: +$('.nico-info-total-res').text().replace(/,/g, ''), mylistCount: +$('.nico-info-total-mylist').text().replace(/,/g, ''), thumbnailSrc: $('.nico-thumbnail img').attr('src') || '' });
+        return {
+            ...item,
+            id: url.pathname.replace('/watch/', ''),
+            pubDate: (0, moment_1.default)(item.pubDate).toISOString(),
+            description: (0, he_1.decode)($('.nico-description').html()) || '',
+            originDescription: item.description,
+            memo: $('.nico-memo').text() || '',
+            timeLength: $('.nico-info-length').text() || '',
+            nicoInfoDate: $('.nico-info-date').text() || '',
+            totalView: +$('.nico-info-total-view').text().replace(/,/g, ''),
+            commentCount: +$('.nico-info-total-res').text().replace(/,/g, ''),
+            mylistCount: +$('.nico-info-total-mylist').text().replace(/,/g, ''),
+            thumbnailSrc: $('.nico-thumbnail img').attr('src') || '',
+        };
     });
 }
 exports.getRankingList = getRankingList;

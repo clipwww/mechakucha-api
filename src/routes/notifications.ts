@@ -1,4 +1,4 @@
-import { Router, RequestHandler } from 'express';
+import { Hono } from 'hono';
 import  moment from 'moment-timezone';
 import fetch from 'node-fetch';
 import  FormData from 'form-data';
@@ -8,7 +8,7 @@ import { parseXMLtoData } from '../libs/youtube.lib';
 import { parseCwbXMLtoItems } from '../libs/cwb.lib';
 import { ResultCode } from '../view-models/result.vm';
 
-const router = Router();
+const app = new Hono();
 
 const subscribe = async (callback: string, topic: string): Promise<boolean> => {
   try {
@@ -41,23 +41,23 @@ const subscribe = async (callback: string, topic: string): Promise<boolean> => {
 
 
 
-const handleGooglePubsubhubbubChallenge: RequestHandler = (req, res) => {
-  const query = req.query;
+const handleGooglePubsubhubbubChallenge = async (c: any) => {
+  const query = c.req.query();
   console.log(query);
-  res.status(+ResultCode.success).send(query['hub.challenge']);
+  return c.text(query['hub.challenge'], +ResultCode.success);
 }
 
-router.get('/yt', handleGooglePubsubhubbubChallenge)
-router.get('/cwb', handleGooglePubsubhubbubChallenge)
+app.get('/yt', handleGooglePubsubhubbubChallenge)
+app.get('/cwb', handleGooglePubsubhubbubChallenge)
 
 
-router.post('/yt', async (req, res) => {
-  const xmlString: string = req['rawBody'];
+app.post('/yt', async (c) => {
+  const xmlString: string = await c.req.text();
 
   const { entry, self } = parseXMLtoData(xmlString);
   console.log('entry', entry)
   if (entry) {
-   
+
     sendNotifyMessage({
       message: `
 --- ${entry.author.name} 有新的通知! ---
@@ -69,15 +69,15 @@ router.post('/yt', async (req, res) => {
       // imageThumbnail: `https://img.youtube.com/vi/${entry["yt:videoId"]}/default.jpg`
     })
 
-    subscribe(`${req.protocol}://${req.hostname}${req.originalUrl}`, self);
+    const url = new URL(c.req.url);
+    subscribe(`${url.protocol}//${url.hostname}/notifications/yt`, self);
   }
 
-
-  res.status(+ResultCode.success).send(entry ? 'ok' : '不ok');
+  return c.text(entry ? 'ok' : '不ok', 200);
 })
 
-router.post('/cwb', async (req, res) => {
-  const xmlString: string = req['rawBody'];
+app.post('/cwb', async (c) => {
+  const xmlString: string = await c.req.text();
 
   const items = parseCwbXMLtoItems(xmlString);
 
@@ -93,19 +93,20 @@ ${item.link}
       })
     })
 
-    // console.log(req.hostname);
-    subscribe(`${req.protocol}://${req.hostname}${req.originalUrl}`, 'https://www.cwb.gov.tw/rss/Data/cwb_warning.xml');
+    const url = new URL(c.req.url);
+    subscribe(`${url.protocol}//${url.hostname}/notifications/cwb`, 'https://www.cwb.gov.tw/rss/Data/cwb_warning.xml');
   }
-  
-  res.status(+ResultCode.success).send(items.length ? 'ok' : '不ok');
+
+  return c.text(items.length ? 'ok' : '不ok', 200);
 })
 
 
-router.post('/line-notify', async (req, res) => {
-  const { code } = req.body;
-  const isOk = await handleSubscribe(code, `https://${req.hostname}${req.originalUrl}`);
+app.post('/line-notify', async (c) => {
+  const { code } = await c.req.json();
+  const url = new URL(c.req.url);
+  const isOk = await handleSubscribe(code, `${url.protocol}//${url.hostname}/notifications/line-notify`);
 
-  res.status(+ResultCode.success).send(isOk ? '訂閱成功' : '訂閱失敗');
+  return c.text(isOk ? '訂閱成功' : '訂閱失敗', 200);
 })
 
-export default router;
+export default app;

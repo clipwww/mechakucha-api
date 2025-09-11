@@ -2,29 +2,21 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.endMiddlewares = exports.errorHandlerMiddleware = exports.responseEndMiddleware = void 0;
 const result_vm_1 = require("../view-models/result.vm");
-const responseEndMiddleware = async (req, res, next) => {
-    if (res.result) {
-        res.json(res.result);
-    }
-    else {
-        res.status(+result_vm_1.ResultCode.error).send('No Result.');
-    }
+const responseEndMiddleware = async (c, next) => {
+    // In Hono, we don't need this middleware as we return responses directly
+    await next();
 };
 exports.responseEndMiddleware = responseEndMiddleware;
-async function errorHandlerMiddleware(error, req, res, next) {
+const errorHandlerMiddleware = (err, c) => {
     const ret = new result_vm_1.ResultGenericVM();
-    if (error instanceof result_vm_1.AppError) {
-        ret.setResultValue(false, result_vm_1.ResultCode.error, error.message);
-    }
-    else if (error instanceof Error) {
-        ret.setResultValue(false, result_vm_1.ResultCode.error, error.message);
+    if (err instanceof Error) {
+        ret.setResultValue(false, result_vm_1.ResultCode.error, err.message);
     }
     else {
-        ret.setResultValue(false, result_vm_1.ResultCode.unknownError, `${error}`);
+        ret.setResultValue(false, result_vm_1.ResultCode.unknownError, `${err}`);
     }
-    res.json(ret);
-    res.end();
-}
+    return c.json(ret, 500);
+};
 exports.errorHandlerMiddleware = errorHandlerMiddleware;
-exports.endMiddlewares = [exports.responseEndMiddleware, errorHandlerMiddleware];
+exports.endMiddlewares = [exports.responseEndMiddleware];
 //# sourceMappingURL=end.middleware.js.map

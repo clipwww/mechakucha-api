@@ -30,7 +30,6 @@ const getBangumiList = async () => {
 exports.getBangumiList = getBangumiList;
 const getBangumiEpisode = async (id) => {
     async function getEpisode(url) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
         try {
             const { data: htmlString } = await utilities_1.axiosInstance.get(url, {
                 // @ts-ignore
@@ -42,7 +41,7 @@ const getBangumiEpisode = async (id) => {
             console.log(htmlString);
             const bangumiItems = [];
             const $ = cheerio_1.default.load(htmlString);
-            const title = (_b = (_a = $('.page-title')) === null || _a === void 0 ? void 0 : _a.text()) !== null && _b !== void 0 ? _b : '';
+            const title = $('.page-title')?.text() ?? '';
             const bangumis = $('[id*="post-"]');
             for (let i = 0; i < bangumis.length; i++) {
                 const $el = $(bangumis[i]);
@@ -50,11 +49,11 @@ const getBangumiEpisode = async (id) => {
                 let type = '';
                 switch (true) {
                     case !!$el.find('iframe').length:
-                        iframeSrc = (_c = $el.find('iframe')) === null || _c === void 0 ? void 0 : _c.attr('src');
+                        iframeSrc = $el.find('iframe')?.attr('src');
                         type = 'mp4';
                         break;
-                    case !!((_d = $el.find('.loadvideo')) === null || _d === void 0 ? void 0 : _d.attr('data-src')):
-                        iframeSrc = (_e = $el.find('.loadvideo')) === null || _e === void 0 ? void 0 : _e.attr('data-src');
+                    case !!$el.find('.loadvideo')?.attr('data-src'):
+                        iframeSrc = $el.find('.loadvideo')?.attr('data-src');
                         type = 'm3u8';
                         break;
                     case !!$el.find('.youtubePlayer').attr('data-vid'):
@@ -65,7 +64,9 @@ const getBangumiEpisode = async (id) => {
                             const formData = new form_data_1.default();
                             formData.append('d', decodeURIComponent($el.find('video').attr('data-apireq')));
                             const { data } = await utilities_1.axiosInstance.post('https://v.anime1.me/api', formData, {
-                                headers: Object.assign({}, formData.getHeaders()),
+                                headers: {
+                                    ...formData.getHeaders()
+                                },
                             });
                             iframeSrc = data.s[0].src;
                             type = 'mp4';
@@ -77,11 +78,11 @@ const getBangumiEpisode = async (id) => {
                         break;
                 }
                 bangumiItems.push({
-                    id: (_g = (_f = $el.attr('id')) === null || _f === void 0 ? void 0 : _f.replace('post-', '')) !== null && _g !== void 0 ? _g : '',
-                    name: (_j = (_h = $el.find('.entry-title')) === null || _h === void 0 ? void 0 : _h.text()) !== null && _j !== void 0 ? _j : '',
+                    id: $el.attr('id')?.replace('post-', '') ?? '',
+                    name: $el.find('.entry-title')?.text() ?? '',
                     type,
                     iframeSrc,
-                    datePublished: (_k = $el.find('.published')) === null || _k === void 0 ? void 0 : _k.attr('datetime'),
+                    datePublished: $el.find('.published')?.attr('datetime'),
                 });
             }
             if ($('.nav-previous a').length) {
@@ -108,7 +109,6 @@ const getBangumiEpisode = async (id) => {
 };
 exports.getBangumiEpisode = getBangumiEpisode;
 const getM3u8Url = async (url) => {
-    var _a, _b;
     try {
         const response = await (0, node_fetch_1.default)(url, {
             // @ts-ignore
@@ -119,7 +119,7 @@ const getM3u8Url = async (url) => {
         });
         const htmlString = await response.text();
         const $ = cheerio_1.default.load(htmlString);
-        const m3u8Url = (_b = (_a = $('source')) === null || _a === void 0 ? void 0 : _a.attr('src')) !== null && _b !== void 0 ? _b : '';
+        const m3u8Url = $('source')?.attr('src') ?? '';
         return m3u8Url;
     }
     catch (err) {
@@ -138,7 +138,6 @@ const getMp4Url = async (url) => {
         });
         page.on('console', msg => console.log('PAGE LOG:', msg.text()));
         page.on('request', async (request) => {
-            var _a;
             const url = request.url();
             if (!url.includes('://v.anime1.me/api')) {
                 return;
@@ -150,7 +149,7 @@ const getMp4Url = async (url) => {
                 }
             });
             reslove({
-                url: `https:${(_a = res === null || res === void 0 ? void 0 : res.data) === null || _a === void 0 ? void 0 : _a.l}`,
+                url: `https:${res?.data?.l}`,
                 setCookies: res.headers['set-cookie']
             });
         });
@@ -177,7 +176,6 @@ const getMp4Url = async (url) => {
 };
 exports.getMp4Url = getMp4Url;
 const getBangumiPlayerById = async (id) => {
-    var _a, _b, _c;
     const response = await (0, node_fetch_1.default)(`${BASE_URL}${id}`, {
         // @ts-ignore
         credentials: 'include',
@@ -191,11 +189,11 @@ const getBangumiPlayerById = async (id) => {
     let type = '';
     switch (true) {
         case !!$('iframe').length:
-            src = (_a = $('iframe')) === null || _a === void 0 ? void 0 : _a.attr('src');
+            src = $('iframe')?.attr('src');
             type = 'mp4';
             break;
-        case !!((_b = $('.loadvideo')) === null || _b === void 0 ? void 0 : _b.attr('data-src')):
-            src = (_c = $('.loadvideo')) === null || _c === void 0 ? void 0 : _c.attr('data-src');
+        case !!$('.loadvideo')?.attr('data-src'):
+            src = $('.loadvideo')?.attr('data-src');
             type = 'm3u8';
             break;
         case !!$('.youtubePlayer').attr('data-vid'):

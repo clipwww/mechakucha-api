@@ -1,13 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
+const hono_1 = require("hono");
 const lru_cache_1 = require("../utilities/lru-cache");
 const meta_fetcher_lib_1 = require("../libs/meta-fetcher.lib");
 const result_vm_1 = require("../view-models/result.vm");
-const router = (0, express_1.Router)();
-router.get('/', async (req, res, next) => {
+const app = new hono_1.Hono();
+app.get('/', async (c) => {
     try {
-        const { url } = req.query;
+        const { url } = c.req.query();
         const result = new result_vm_1.ResultGenericVM();
         const key = `meta-fetcher-${url}`;
         const cacheValue = lru_cache_1.lruCache.get(key);
@@ -18,12 +18,12 @@ router.get('/', async (req, res, next) => {
             result.item = await (0, meta_fetcher_lib_1.fetchMetaData)(`${url}`);
             lru_cache_1.lruCache.set(key, result.item);
         }
-        res.result = result.setResultValue(true, result_vm_1.ResultCode.success);
-        next();
+        result.setResultValue(true, result_vm_1.ResultCode.success);
+        return c.json(result);
     }
     catch (err) {
-        next(err);
+        throw err;
     }
 });
-exports.default = router;
+exports.default = app;
 //# sourceMappingURL=meta-fetcher.js.map

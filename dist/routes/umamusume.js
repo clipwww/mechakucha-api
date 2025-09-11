@@ -3,12 +3,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
+const hono_1 = require("hono");
 const result_vm_1 = require("../view-models/result.vm");
 const utilities_1 = require("../utilities");
 const moment_1 = __importDefault(require("moment"));
-const router = (0, express_1.Router)();
-router.get('/', async (req, res, next) => {
+const app = new hono_1.Hono();
+app.get('/', async (c) => {
     try {
         const result = new result_vm_1.ResultGenericVM();
         const key = 'umamusume';
@@ -20,12 +20,12 @@ router.get('/', async (req, res, next) => {
             const { data: db } = await utilities_1.axiosInstance.get(`https://raw.githubusercontent.com/wrrwrr111/pretty-derby/master/src/assert/db.json`);
             result.item = db;
         }
-        res.result = result.setResultValue(true, result_vm_1.ResultCode.success);
-        next();
+        result.setResultValue(true, result_vm_1.ResultCode.success);
+        return c.json(result);
     }
     catch (err) {
-        next(err);
+        throw err;
     }
 });
-exports.default = router;
+exports.default = app;
 //# sourceMappingURL=umamusume.js.map

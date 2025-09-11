@@ -1,31 +1,21 @@
-import { NextFunction } from 'express';
+import { Hono } from 'hono';
+import { ResultCode, ResultGenericVM } from '../view-models/result.vm';
 
-import { RequestExtension, ResponseExtension } from '../view-models/extension.vm';
-import { AppError, ResultCode, ResultGenericVM } from '../view-models/result.vm';
-
-export const responseEndMiddleware = async (req: RequestExtension, res: ResponseExtension, next: NextFunction) => {
-  if (res.result) {
-    res.json(res.result);
-  } else {
-    res.status(+ResultCode.error).send('No Result.');
-  }
+export const responseEndMiddleware = async (c, next) => {
+  // In Hono, we don't need this middleware as we return responses directly
+  await next();
 };
 
-
-export async function errorHandlerMiddleware(error, req: RequestExtension, res: ResponseExtension, next) {
+export const errorHandlerMiddleware = (err, c) => {
   const ret = new ResultGenericVM();
 
-  if (error instanceof AppError) {
-    ret.setResultValue(false, ResultCode.error, error.message)
-  } else if (error instanceof Error) {
-    ret.setResultValue(false, ResultCode.error, error.message)
+  if (err instanceof Error) {
+    ret.setResultValue(false, ResultCode.error, err.message);
   } else {
-    ret.setResultValue(false, ResultCode.unknownError, `${error}`)
+    ret.setResultValue(false, ResultCode.unknownError, `${err}`);
   }
-  
-  res.json(ret);
-  res.end();
-}
 
+  return c.json(ret, 500);
+};
 
-export const endMiddlewares = [responseEndMiddleware, errorHandlerMiddleware]
+export const endMiddlewares = [responseEndMiddleware];

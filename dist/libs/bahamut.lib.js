@@ -11,10 +11,17 @@ const getBahumutDanmaku = async (sn) => {
     const formData = new form_data_1.default();
     formData.append('sn', sn);
     const { data } = await utilities_1.axiosInstance.post(`https://ani.gamer.com.tw/ajax/danmuGet.php`, formData, {
-        headers: Object.assign({}, formData.getHeaders())
+        headers: {
+            ...formData.getHeaders()
+        }
     });
     return data.map(item => {
-        return Object.assign(Object.assign({}, item), { time: item.time / 10, mode: ['rtl', 'top', 'bottom'][item.position], digital_time: moment_1.default.utc(item.time * 100).format('HH:mm:ss') });
+        return {
+            ...item,
+            time: item.time / 10,
+            mode: ['rtl', 'top', 'bottom'][item.position],
+            digital_time: moment_1.default.utc(item.time * 100).format('HH:mm:ss'),
+        };
     });
 };
 exports.getBahumutDanmaku = getBahumutDanmaku;

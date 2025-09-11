@@ -1,26 +1,22 @@
-import { Router } from 'express';
+import { Hono } from 'hono';
 
 import { ResultCode, ResultListGenericVM } from '../view-models/result.vm';
-import { ResponseExtension } from '../view-models/extension.vm';
 import { getMovieLog } from '../libs/google-sheets.lib';
 
-const router = Router();
+const app = new Hono();
 
-router.get('/', async (req, res: ResponseExtension, next) => {
+app.get('/', async (c) => {
   try {
 
     const result = new ResultListGenericVM();
 
-    
     result.items = await getMovieLog();
 
-    res.result = result.setResultValue(true, ResultCode.success)
-
-    next();
+    result.setResultValue(true, ResultCode.success);
+    return c.json(result);
   } catch (err) {
-    next(err);
+    throw err;
   }
 })
 
-
-export default router;
+export default app;

@@ -15,12 +15,11 @@ exports.config = {
 exports.lineBotMiddleware = (0, bot_sdk_1.middleware)(exports.config);
 exports.client = new bot_sdk_1.Client(exports.config);
 async function handleMessageEvent(event) {
-    var _a, _b, _c;
     const text = event.message.text;
-    let page = +((_a = text.match(/p=(.*)/)) === null || _a === void 0 ? void 0 : _a[1]);
+    let page = +text.match(/p=(.*)/)?.[1];
     page = isNaN(page) ? 1 : page;
-    const id = (_b = text.match(/id=(.*)/)) === null || _b === void 0 ? void 0 : _b[1];
-    const videoId = (_c = text.match(/videoId=(.*)/)) === null || _c === void 0 ? void 0 : _c[1];
+    const id = text.match(/id=(.*)/)?.[1];
+    const videoId = text.match(/videoId=(.*)/)?.[1];
     switch (true) {
         case text.includes('@hey'):
         case text.includes('@heybot'):

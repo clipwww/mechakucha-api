@@ -1,13 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
+const hono_1 = require("hono");
 const lru_cache_1 = require("../utilities/lru-cache");
 const sns_lib_1 = require("../libs/sns.lib");
 const result_vm_1 = require("../view-models/result.vm");
-const router = (0, express_1.Router)();
-router.get('/fb/:id', async (req, res, next) => {
+const app = new hono_1.Hono();
+app.get('/fb/:id', async (c) => {
     try {
-        const { id } = req.params;
+        const { id } = c.req.param();
         const result = new result_vm_1.ResultGenericVM();
         const key = `fb-${id}`;
         const cacheValue = lru_cache_1.lruCache.get(key);
@@ -18,16 +18,16 @@ router.get('/fb/:id', async (req, res, next) => {
             result.item = await (0, sns_lib_1.crawlerFacebookFanPage)(id);
             lru_cache_1.lruCache.set(key, result.item);
         }
-        res.result = result.setResultValue(true, result_vm_1.ResultCode.success);
-        next();
+        result.setResultValue(true, result_vm_1.ResultCode.success);
+        return c.json(result);
     }
     catch (err) {
-        next(err);
+        throw err;
     }
 });
-router.get('/ig/user/:id', async (req, res, next) => {
+app.get('/ig/user/:id', async (c) => {
     try {
-        const { id } = req.params;
+        const { id } = c.req.param();
         const result = new result_vm_1.ResultListGenericVM();
         const key = `ig-user-${id}`;
         const cacheValue = lru_cache_1.lruCache.get(key);
@@ -38,27 +38,27 @@ router.get('/ig/user/:id', async (req, res, next) => {
             result.items = await (0, sns_lib_1.crawlerInstagramFanPage)(id);
             lru_cache_1.lruCache.set(key, result.items);
         }
-        res.result = result.setResultValue(true, result_vm_1.ResultCode.success);
-        next();
+        result.setResultValue(true, result_vm_1.ResultCode.success);
+        return c.json(result);
     }
     catch (err) {
-        next(err);
+        throw err;
     }
 });
-router.get('/ig/hashtag/:tag', async (req, res, next) => {
+app.get('/ig/hashtag/:tag', async (c) => {
     try {
-        const { tag } = req.params;
-        const { end_cursor = '' } = req.query;
+        const { tag } = c.req.param();
+        const { end_cursor = '' } = c.req.query();
         const result = new result_vm_1.ResultListGenericVM();
         const { posts, page_info } = await (0, sns_lib_1.crawlerInstagramHashTag)(tag, end_cursor);
         result.items = posts;
         result.item = page_info;
-        res.result = result.setResultValue(true, result_vm_1.ResultCode.success);
-        next();
+        result.setResultValue(true, result_vm_1.ResultCode.success);
+        return c.json(result);
     }
     catch (err) {
-        next(err);
+        throw err;
     }
 });
-exports.default = router;
+exports.default = app;
 //# sourceMappingURL=sns.js.map

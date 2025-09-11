@@ -1,11 +1,10 @@
-import { Router } from 'express';
+import { Hono } from 'hono';
 
 import { lruCache } from '../utilities/lru-cache';
 import { getNicoNicoDanmaku, getRankingList } from '../libs/niconico.lib';
 import { ResultCode, ResultListGenericVM, ResultGenericVM } from '../view-models/result.vm';
-import { ResponseExtension } from '../view-models/extension.vm';
 
-const router = Router();
+const app = new Hono();
 
 /**
  * @api {get} /niconico/:id/danmaku?mode= 取得動畫彈幕
@@ -38,10 +37,10 @@ const router = Router();
 }
  * 
  */
-router.get('/:id/danmaku', async (req, res: ResponseExtension, next) => {
+app.get('/:id/danmaku', async (c) => {
   try {
-    const { id } = req.params;
-    const { mode } = req.query;
+    const { id } = c.req.param();
+    const { mode } = c.req.query();
 
     const result = new ResultListGenericVM();
     const key = `niconico-danmaku-${id}`;
@@ -58,23 +57,16 @@ router.get('/:id/danmaku', async (req, res: ResponseExtension, next) => {
     }
 
     if (mode === 'download') {
-      res.setHeader('Content-disposition', `attachment; filename=niconico-${id}.json`);
-      res.setHeader('Content-type', 'application/json');
-      res.write(JSON.stringify(result.items, null, 4), (err) => {
-        if (err) {
-          next(err);
-        }
-        res.status(+ResultCode.success).end();
-        return;
-      })
-      return;
+      c.header('Content-disposition', `attachment; filename=niconico-${id}.json`);
+      c.header('Content-type', 'application/json');
+      return c.json(result.items);
     }
 
-    res.result = result.setResultValue(true, ResultCode.success)
+    result.setResultValue(true, ResultCode.success)
 
-    next();
+    return c.json(result);
   } catch (err) {
-    next(err);
+    throw err;
   }
 })
 
@@ -115,9 +107,9 @@ router.get('/:id/danmaku', async (req, res: ResponseExtension, next) => {
 }
  * 
  */
-router.get('/ranking', async (req, res: ResponseExtension, next) => {
+app.get('/ranking', async (c) => {
   try {
-    const { type, term } = req.query;
+    const { type, term } = c.req.query();
 
     const result = new ResultListGenericVM();
     const key = `niconico-ranking-${type}-${term}`;
@@ -132,13 +124,13 @@ router.get('/ranking', async (req, res: ResponseExtension, next) => {
         lruCache.set(key, result.items)
       }
     }
-    res.result = result.setResultValue(true, ResultCode.success)
+    result.setResultValue(true, ResultCode.success)
 
-    next();
+    return c.json(result);
   } catch (err) {
-    next(err);
+    throw err;
   }
 })
 
 
-export default router;
+export default app;

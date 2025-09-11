@@ -1,10 +1,9 @@
-import { Router } from 'express';
+import { Hono } from 'hono';
 import  webPush from 'web-push';
 
 import { ResultCode, ResultGenericVM } from '../view-models/result.vm';
-import { ResponseExtension } from '../view-models/extension.vm';
 
-const router = Router();
+const app = new Hono();
 
 const tokens = [];
 webPush.setVapidDetails(
@@ -13,27 +12,27 @@ webPush.setVapidDetails(
   process.env.WEB_PUSH_PRIVATE_KEY
 )
 
-router.post('/', async (req, res: ResponseExtension, next) => {
+app.post('/', async (c) => {
   try {
     const result = new ResultGenericVM();
 
-    if (!req.body) {
-      throw Error('paramaters is empty.')
+    const body = await c.req.json();
+    if (!body) {
+      throw new Error('paramaters is empty.')
     }
-    tokens.push(req.body);
+    tokens.push(body);
 
-    res.result = result.setResultValue(true, ResultCode.success)
-
-    next();
+    result.setResultValue(true, ResultCode.success);
+    return c.json(result);
   } catch (err) {
-    next(err);
+    throw err;
   }
 })
 
-router.get('/', async (req, res: ResponseExtension, next) => {
+app.get('/', async (c) => {
   try {
     const result = new ResultGenericVM();
-    const { title, body, url } = req.query;
+    const { title, body, url } = c.req.query();
 
     const sendData = {
       title: title || '安安你好幾歲住哪',
@@ -53,13 +52,11 @@ router.get('/', async (req, res: ResponseExtension, next) => {
     }
     await Promise.all(promiseArr);
 
-    res.result = result.setResultValue(true, ResultCode.success)
-
-    next();
+    result.setResultValue(true, ResultCode.success);
+    return c.json(result);
   } catch (err) {
-    next(err);
+    throw err;
   }
 })
 
-
-export default router;
+export default app;

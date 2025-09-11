@@ -1,15 +1,14 @@
-import { Router } from 'express';
+import { Hono } from 'hono';
 
 import { lruCache } from '../utilities/lru-cache';
 import { ResultCode, ResultGenericVM } from '../view-models/result.vm';
-import { ResponseExtension } from '../view-models/extension.vm';
 import { addViewCount, getViewCount } from '../libs/blog.lib';
 
-const router = Router();
+const app = new Hono();
 
-router.get('/post/:id/view-count', async (req, res: ResponseExtension, next) => {
+app.get('/post/:id/view-count', async (c) => {
   try {
-    const { id } = req.params;
+    const { id } = c.req.param();
     const result = new ResultGenericVM();
     const cacheKey = `${id}-view-count`;
 
@@ -22,18 +21,17 @@ router.get('/post/:id/view-count', async (req, res: ResponseExtension, next) => 
       result.item = post;
     }
 
-    res.result = result.setResultValue(true, ResultCode.success)
-
-    next();
+    result.setResultValue(true, ResultCode.success);
+    return c.json(result);
   } catch (err) {
     console.log(err)
-    next(err);
+    throw err;
   }
 })
 
-router.post('/post/:id/view-count', async (req, res: ResponseExtension, next) => {
+app.post('/post/:id/view-count', async (c) => {
   try {
-    const { id } = req.params;
+    const { id } = c.req.param();
     const result = new ResultGenericVM();
     const cacheKey = `${id}-view-count`;
 
@@ -42,13 +40,12 @@ router.post('/post/:id/view-count', async (req, res: ResponseExtension, next) =>
 
     lruCache.set(cacheKey, post);
 
-    res.result = result.setResultValue(true, ResultCode.success)
-
-    next();
+    result.setResultValue(true, ResultCode.success);
+    return c.json(result);
   } catch (err) {
     console.log(err)
-    next(err);
+    throw err;
   }
 })
 
-export default router;
+export default app;

@@ -1,5 +1,7 @@
 import  fs from 'fs';
-import { toJson } from 'xml2json';
+import { XMLParser } from 'fast-xml-parser';
+
+const xmlParser = new XMLParser();
 
 export interface Alert {
   id: string;
@@ -18,7 +20,7 @@ export const parseNcdrXMLtoData = (path: string): Promise<Alert | void> => {
         return reslove();
       }
       try {
-        const alert = JSON.parse(toJson(data))
+        const alert = xmlParser.parse(data)
   
         const entry = alert?.feed?.entry ?? []
         const newEnrty = entry[entry.length - 1];

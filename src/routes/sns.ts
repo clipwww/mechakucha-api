@@ -1,15 +1,14 @@
-import { Router } from 'express';
+import { Hono } from 'hono';
 
 import { lruCache } from '../utilities/lru-cache';
 import { crawlerFacebookFanPage, crawlerInstagramFanPage, crawlerInstagramHashTag } from '../libs/sns.lib';
 import { ResultCode, ResultListGenericVM, ResultGenericVM } from '../view-models/result.vm';
-import { ResponseExtension } from '../view-models/extension.vm';
 
-const router = Router();
+const app = new Hono();
 
-router.get('/fb/:id', async (req, res: ResponseExtension, next) => {
+app.get('/fb/:id', async (c) => {
   try {
-    const { id } = req.params;
+    const { id } = c.req.param();
 
     const result = new ResultGenericVM<{
       id: string;
@@ -28,18 +27,16 @@ router.get('/fb/:id', async (req, res: ResponseExtension, next) => {
       lruCache.set(key, result.item)
     }
 
-
-    res.result = result.setResultValue(true, ResultCode.success);
-
-    next();
+    result.setResultValue(true, ResultCode.success);
+    return c.json(result);
   } catch (err) {
-    next(err)
+    throw err;
   }
 })
 
-router.get('/ig/user/:id', async (req, res: ResponseExtension, next) => {
+app.get('/ig/user/:id', async (c) => {
   try {
-    const { id } = req.params;
+    const { id } = c.req.param();
 
     const result = new ResultListGenericVM<{
       href: string;
@@ -56,33 +53,29 @@ router.get('/ig/user/:id', async (req, res: ResponseExtension, next) => {
       lruCache.set(key, result.items)
     }
 
-
-    res.result = result.setResultValue(true, ResultCode.success);
-
-    next();
+    result.setResultValue(true, ResultCode.success);
+    return c.json(result);
   } catch (err) {
-    next(err)
+    throw err;
   }
 })
 
-router.get('/ig/hashtag/:tag', async (req, res: ResponseExtension, next) => {
+app.get('/ig/hashtag/:tag', async (c) => {
   try {
-    const { tag } = req.params;
-    const { end_cursor = '' } = req.query;
+    const { tag } = c.req.param();
+    const { end_cursor = '' } = c.req.query();
 
     const result = new ResultListGenericVM<any>();
 
     const { posts, page_info  } = await crawlerInstagramHashTag(tag, end_cursor as string);
     result.items = posts;
-    result.item = page_info; 
+    result.item = page_info;
 
-
-    res.result = result.setResultValue(true, ResultCode.success);
-
-    next();
+    result.setResultValue(true, ResultCode.success);
+    return c.json(result);
   } catch (err) {
-    next(err)
+    throw err;
   }
 })
 
-export default router;
+export default app;

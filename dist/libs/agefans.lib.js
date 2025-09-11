@@ -44,7 +44,6 @@ const getAnimeUpdate = async () => {
     const { data: htmlString } = await utilities_1.axiosInstance.get(`${BASE_URL}/update`);
     const $ = cheerio_1.default.load(htmlString);
     const items = $('.video_item').map((_, li) => {
-        var _a, _b;
         const $li = $(li);
         const $link = $li.find('a');
         const href = $link.attr('href');
@@ -53,14 +52,13 @@ const getAnimeUpdate = async () => {
             link: href,
             name: tify($link.text()),
             imgUrl: $li.find('img').attr('src') || '',
-            description: tify((_b = (_a = $li.find('.video_item--info')) === null || _a === void 0 ? void 0 : _a.text()) === null || _b === void 0 ? void 0 : _b.trim())
+            description: tify($li.find('.video_item--info')?.text()?.trim())
         };
     }).get();
     return items;
 };
 exports.getAnimeUpdate = getAnimeUpdate;
 const getAnimeDetails = async (id) => {
-    var _a, _b;
     const { data: htmlString } = await utilities_1.axiosInstance.get(`${BASE_URL}/detail/${id}`);
     const $ = cheerio_1.default.load(htmlString);
     const $img = $('img.poster');
@@ -110,10 +108,9 @@ const getAnimeDetails = async (id) => {
         const $movurl = $(movurl);
         if ($movurl.css('display') !== 'none') {
             episodeList = $movurl.find('li').map((i, li) => {
-                var _a, _b;
                 const $li = $(li);
                 const href = $li.find('a').attr('href');
-                const playid = (_b = (_a = href.match(/(playid=)+([\w-]*)?/)) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.replace('playid=', '');
+                const playid = href.match(/(playid=)+([\w-]*)?/)?.[0]?.replace('playid=', '');
                 return {
                     id: playid,
                     pId: playid.split('_')[0],
@@ -124,8 +121,15 @@ const getAnimeDetails = async (id) => {
             }).get();
         }
     });
-    const desc = (_b = (_a = $('.detail_imform_desc_pre p')) === null || _a === void 0 ? void 0 : _a.html()) !== null && _b !== void 0 ? _b : '';
-    return Object.assign(Object.assign({ id, title: tify($img.attr('alt')), imgUrl: `https://${$img.attr('src')}`, description: tify((0, he_1.decode)(desc)) }, animeObj), { episodeList });
+    const desc = $('.detail_imform_desc_pre p')?.html() ?? '';
+    return {
+        id,
+        title: tify($img.attr('alt')),
+        imgUrl: `https://${$img.attr('src')}`,
+        description: tify((0, he_1.decode)(desc)),
+        ...animeObj,
+        episodeList,
+    };
 };
 exports.getAnimeDetails = getAnimeDetails;
 const getAnimeVideo = async (id, pId, eId) => {
@@ -135,7 +139,7 @@ const getAnimeVideo = async (id, pId, eId) => {
         },
         maxRedirects: 0
     });
-    return (data === null || data === void 0 ? void 0 : data.vurl) || `${BASE_URL}/play/${id}?playid=${pId}_${eId}`;
+    return data?.vurl || `${BASE_URL}/play/${id}?playid=${pId}_${eId}`;
 };
 exports.getAnimeVideo = getAnimeVideo;
 const queryAnimeList = async (keyword, page = 1) => {
@@ -147,7 +151,6 @@ const queryAnimeList = async (keyword, page = 1) => {
     });
     const $ = cheerio_1.default.load(htmlString);
     const list = $('.blockcontent1 .cell').map((i, cell) => {
-        var _a, _b;
         const $cell = $(cell);
         let type, originName, studio, dateAired, status, tags, description;
         $cell.find('.cell_imform_kv').each((i, kv) => {
@@ -178,7 +181,7 @@ const queryAnimeList = async (keyword, page = 1) => {
             }
         });
         return {
-            id: (_b = (_a = $cell.find('.cell_imform_name').attr('href')) === null || _a === void 0 ? void 0 : _a.replace('detail', '')) === null || _b === void 0 ? void 0 : _b.replace(/\//g, ''),
+            id: $cell.find('.cell_imform_name').attr('href')?.replace('detail', '')?.replace(/\//g, ''),
             title: tify($cell.find('.cell_imform_name').text()),
             imgUrl: `https://${$cell.find('img').attr('src')}`,
             type,
