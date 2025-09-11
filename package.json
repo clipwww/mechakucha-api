@@ -9,7 +9,7 @@
     "clean": "rm -rf dist",
     "init": "mkdir dist",
     "prebuild": "bun run clean && bun run init",
-    "build": "bun build src/index.ts --outdir ./dist --target bun",
+    "build": "bun build src/index.ts --outdir ./dist --target node",
     "start": "bun ./dist"
   },
   "engines": {
