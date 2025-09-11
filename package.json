@@ -5,7 +5,7 @@
   "main": "src/index.ts",
   "type": "module",
   "scripts": {
-    "dev": "bun --watch run src/index.ts",
+    "dev": "NODE_ENV=development bun --watch run src/index.ts",
     "clean": "rm -rf dist",
     "init": "mkdir dist",
     "prebuild": "bun run clean && bun run init",

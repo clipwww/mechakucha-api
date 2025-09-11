@@ -16,14 +16,68 @@ const DanmakuQuerySchema = z.object({
   }),
 });
 
+// 巴哈姆特彈幕 Schema
+const BahamutDanmakuSchema = z.object({
+  text: z.string().openapi({
+    description: '彈幕文字內容',
+    example: '我來啦'
+  }),
+  color: z.string().openapi({
+    description: '彈幕顏色（十六進制）',
+    example: '#FFFFFF'
+  }),
+  size: z.number().openapi({
+    description: '彈幕文字大小',
+    example: 1
+  }),
+  position: z.number().openapi({
+    description: '彈幕位置（0=右到左, 1=頂部, 2=底部）',
+    example: 0
+  }),
+  time: z.number().openapi({
+    description: '彈幕出現時間（秒）',
+    example: 8.2
+  }),
+  sn: z.number().openapi({
+    description: '動畫 SN 編號',
+    example: 9753573
+  }),
+  userid: z.string().openapi({
+    description: '發送彈幕的用戶 ID',
+    example: 'amy10856'
+  }),
+  mode: z.string().openapi({
+    description: '彈幕顯示模式（rtl=右到左, top=頂部, bottom=底部）',
+    example: 'rtl'
+  }),
+  digital_time: z.string().openapi({
+    description: '數位時間格式（HH:mm:ss）',
+    example: '00:00:08'
+  }),
+}).openapi('BahamutDanmaku');
+
+// 響應 Schema
 const DanmakuResponseSchema = z.union([
   z.object({
-    success: z.boolean(),
-    resultCode: z.string(),
-    resultMessage: z.string(),
-    items: z.array(z.any()),
+    success: z.boolean().openapi({
+      description: '操作是否成功',
+      example: true
+    }),
+    resultCode: z.string().openapi({
+      description: '結果代碼',
+      example: '200'
+    }),
+    resultMessage: z.string().openapi({
+      description: '結果訊息',
+      example: ''
+    }),
+    items: z.array(BahamutDanmakuSchema).openapi({
+      description: '彈幕數據列表'
+    }),
   }),
-  z.array(z.any())
+  z.array(BahamutDanmakuSchema).openapi({
+    description: '彈幕數據列表（下載模式）'
+  })
 ]).openapi('DanmakuResponse');
 
 // OpenAPI route
@@ -31,13 +85,13 @@ const danmakuRoute = createRoute({
   method: 'get',
   path: '/:sn/danmaku',
   summary: '取得巴哈姆特動畫彈幕',
-  description: '根據動畫 SN 編號取得彈幕資料',
+  description: '根據動畫 SN 編號取得巴哈姆特動畫瘋的彈幕資料。支援一般查詢和 JSON 下載模式',
   tags: ['動畫/漫畫'],
   request: {
     params: z.object({
       sn: z.string().min(1).openapi({
         description: '動畫 SN 編號',
-        example: '12345'
+        example: '9753573'
       }),
     }),
     query: DanmakuQuerySchema,

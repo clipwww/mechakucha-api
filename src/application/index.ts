@@ -15,6 +15,8 @@ import { initSchedule } from '../agenda';
 
 moment.tz.setDefault('Asia/Taipei');
 
+const isDev = process.env.NODE_ENV === 'development';
+
 export class Application {
     private app: OpenAPIHono | null = null
     static readonly applicationName: string = "my-api";
@@ -35,13 +37,13 @@ export class Application {
         this.app.doc('/doc', {
             openapi: '3.0.0',
             info: {
-                version: '1.0.0',
+                version: '2.0.0',
                 title: 'MechakuCha API',
                 description: '滅茶苦茶 API',
             },
             servers: [
                 {
-                    url: `http://localhost:${process.env.PORT || '3000'}`,
+                    url: isDev ? `http://localhost:${process.env.PORT || '3000'}` : 'https://mechakucha-api.vercel.app',
                     description: '開發環境',
                 },
             ],
@@ -72,7 +74,7 @@ export class Application {
             },
             servers: [
                 {
-                    url: `http://localhost:${process.env.PORT || '3000'}`,
+                    url: isDev ? `http://localhost:${process.env.PORT || '3000'}` : 'https://mechakucha-api.vercel.app',
                     description: '開發環境',
                 },
             ],

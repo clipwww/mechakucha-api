@@ -3,7 +3,6 @@ import { MessageEvent, TextEventMessage, FlexBubble } from '@line/bot-sdk';
 
 import { handleMovieList, handleVieShowComingMovieList } from './movie';
 import { handleNicoRankList } from './niconico';
-import { handleHimawariDougaList } from './himawari';
 import { handleAnime1List, handleAnime1BangumiEpisode, handleAnime1Video } from './anime1';
 import { handleAgefansList, handleAgefansEpisode, handleAgefansVideo } from './agefans';
 import { handleKomicaList } from './komica';
@@ -36,8 +35,6 @@ export async function handleMessageEvent(event: MessageEvent) {
       return handleVieShowComingMovieList(event, page)
     case text.includes('@Nico排行'):
       return handleNicoRankList(event, page);
-    case text.includes('@向日葵動畫'):
-      return handleHimawariDougaList(event, page);
     case text.includes('@Anime1'):
       switch (true) {
         case !!id:
@@ -133,14 +130,6 @@ function replyActionList(event: MessageEvent) {
             },
             "margin": "none",
             "offsetTop": "none"
-          },
-          {
-            "type": "button",
-            "action": {
-              "type": "message",
-              "label": "向日葵動畫",
-              "text": "@向日葵動畫"
-            }
           },
           {
             "type": "button",
