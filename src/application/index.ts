@@ -15,7 +15,7 @@ import { initSchedule } from '../agenda';
 
 moment.tz.setDefault('Asia/Taipei');
 
-const isDev = process.env.NODE_ENV === 'development';
+const isDev = import.meta.env.NODE_ENV === 'development';
 
 export class Application {
     private app: OpenAPIHono | null = null
