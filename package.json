@@ -1,6 +1,6 @@
 {
   "name": "mechakucha-api",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "亂七八糟 API",
   "main": "src/index.ts",
   "type": "module",
