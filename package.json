@@ -1,6 +1,6 @@
 {
   "name": "mechakucha-api",
-  "version": "2.0.13",
+  "version": "2.0.14",
   "description": "亂七八糟 API",
   "main": "dist/index.js",
   "type": "module",
