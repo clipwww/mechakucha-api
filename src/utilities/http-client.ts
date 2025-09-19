@@ -9,18 +9,18 @@ export const httpClient = got.extend({
   },
   hooks: {
     beforeRequest: [
-      (options: any) => {
+      (options) => {
         console.log(`[${options.method?.toUpperCase()}] ${options.url?.toString()} | query: ${JSON.stringify(options.searchParams || {})} | data: ${JSON.stringify(options.json || {})}`);
       }
     ],
     beforeError: [
-      (error: any) => {
+      (error) => {
         console.error(`[Request Error] ${error.message}`);
         return error;
       }
     ],
     afterResponse: [
-      (response: any) => {
+      (response) => {
         console.log(`[Response] ${response.statusCode} ${response.url}`);
         return response;
       }
