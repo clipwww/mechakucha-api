@@ -12,14 +12,5 @@
       "dest": "/dist/index.js"
     }
   ],
-  "crons": [
-    {
-      "path": "/cron/nico-ranking",
-      "schedule": "0 9,18,23 * * *"
-    },
-    {
-      "path": "/cron/vieshow-coming",
-      "schedule": "0 16 * * *"
-    }
-  ]
+  "crons": []
 }
