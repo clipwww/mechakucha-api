@@ -44,7 +44,7 @@ const getMovieRecordsRoute = createRoute({
 // 註冊路由
 app.openapi(getMovieRecordsRoute, async (c) => {
   try {
-    const result = new ResultListGenericVM();
+    const result = new ResultListGenericVM<any>();
 
     result.items = await getMovieLog();
 

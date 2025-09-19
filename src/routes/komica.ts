@@ -239,7 +239,7 @@ app.openapi(boardListRoute, async (c) => {
     const { board } = c.req.param();
     const { p = 1, mode = '' } = c.req.query()
 
-    const result = new ResultListGenericVM();
+    const result = new ResultListGenericVM<any>();
 
     switch (mode) {
       case 'all':
@@ -269,7 +269,7 @@ app.openapi(postDetailsRoute, async (c) => {
   try {
     const { board, id } = c.req.param();
 
-    const result = new ResultGenericVM();
+    const result = new ResultGenericVM<any>();
     const { post, url } = await getPostDetails(board, id);
     result.item = {
       ...post,

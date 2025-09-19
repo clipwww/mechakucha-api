@@ -1,5 +1,5 @@
 
-import { FlexMessage, MessageEvent } from '@line/bot-sdk';
+import type { FlexMessage, MessageEvent } from '@line/bot-sdk';
 
 import { getPostListResult } from '../komica.lib';
 import { client } from './index';

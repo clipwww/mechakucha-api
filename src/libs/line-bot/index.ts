@@ -1,5 +1,5 @@
 import { middleware, Client } from '@line/bot-sdk';
-import { MessageEvent, TextEventMessage, FlexBubble } from '@line/bot-sdk';
+import type { MessageEvent, TextEventMessage, FlexBubble } from '@line/bot-sdk';
 
 import { handleMovieList, handleVieShowComingMovieList } from './movie';
 import { handleNicoRankList } from './niconico';
@@ -9,8 +9,12 @@ import { handleKomicaList } from './komica';
 
 
 export const config = {
-  channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN,
-  channelSecret: process.env.LINE_CHANNEL_SECRET
+  channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN || '',
+  channelSecret: process.env.LINE_CHANNEL_SECRET || ''
+}
+
+if (!config.channelAccessToken || !config.channelSecret) {
+  throw new Error('LINE_CHANNEL_ACCESS_TOKEN and LINE_CHANNEL_SECRET must be set')
 }
 
 export const lineBotMiddleware = middleware(config);
@@ -20,7 +24,8 @@ export const client = new Client(config);
 
 export async function handleMessageEvent(event: MessageEvent) {
   const text = (event.message as TextEventMessage).text;
-  let page = +text.match(/p=(.*)/)?.[1];
+  const pageMatch = text.match(/p=(.*)/);
+  let page = pageMatch && pageMatch[1] ? +pageMatch[1] : 1;
   page = isNaN(page) ? 1 : page;
   const id = text.match(/id=(.*)/)?.[1];
   const videoId = text.match(/videoId=(.*)/)?.[1];

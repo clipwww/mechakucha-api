@@ -114,7 +114,7 @@ app.openapi(danmakuRoute, async (c) => {
     const { sn } = c.req.param();
     const { mode } = c.req.query();
 
-    const result = new ResultListGenericVM();
+    const result = new ResultListGenericVM<any>();
     const key = `bahamut-danmaku-${sn}`;
     const cacheItems = lruCache.get(key) as any[];
 

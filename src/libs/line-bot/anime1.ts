@@ -1,5 +1,5 @@
 
-import { FlexBubble, FlexMessage, MessageEvent, VideoMessage } from '@line/bot-sdk';
+import type { FlexMessage, MessageEvent, VideoMessage } from '@line/bot-sdk';
 
 import { getBangumiEpisode, getBangumiList, getBangumiPlayerById } from '../anime1.lib';
 import { client } from './index';

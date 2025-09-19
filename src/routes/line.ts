@@ -84,7 +84,7 @@ const createUserRoute = createRoute({
 app.openapi(getUserRoute, async (c) => {
   try {
     const { id } = c.req.param();
-    const result = new ResultGenericVM();
+    const result = new ResultGenericVM<Awaited<ReturnType<typeof getUserProfile>>>();
 
     const user = await getUserProfile(id);
 
@@ -100,7 +100,7 @@ app.openapi(getUserRoute, async (c) => {
 app.openapi(createUserRoute, async (c) => {
   try {
     const { profile } = await c.req.json();
-    const result = new ResultGenericVM();
+    const result = new ResultGenericVM<Awaited<ReturnType<typeof getUserProfile>>>();
 
     const user = await createUserProfile(profile);
 

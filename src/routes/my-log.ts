@@ -164,7 +164,7 @@ const getMiLogRoute = createRoute({
 // 註冊路由
 app.openapi(getMovieLogRoute, async (c) => {
   try {
-    const result = new ResultListGenericVM();
+    const result = new ResultListGenericVM<Awaited<ReturnType<typeof getMovieLog>>>();
 
     result.items = await getMovieLog();
 
@@ -179,7 +179,7 @@ app.openapi(getMiLogRoute, async (c) => {
   try {
     const { type } = c.req.param();
 
-    const result = new ResultListGenericVM();
+    const result = new ResultListGenericVM<Awaited<ReturnType<typeof getMiLog>>>();
 
     result.items = await getMiLog(type);
 

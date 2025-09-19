@@ -1,5 +1,5 @@
 
-import { VideoMessage, FlexMessage, MessageEvent } from '@line/bot-sdk';
+import type { VideoMessage, FlexMessage, MessageEvent } from '@line/bot-sdk';
 
 import { getAnimeUpdate, getAnimeDetails, getAnimeVideo } from '../agefans.lib';
 import { client } from './index';
@@ -120,6 +120,9 @@ export async function handleAgefansEpisode(event: MessageEvent, id: string) {
 
 export async function handleAgefansVideo(event: MessageEvent, videoId: string) {
   const [id, pId, eId] = videoId.split(',')
+  if (!id || !pId || !eId) {
+    throw new Error('Invalid video ID format')
+  }
   const url = await getAnimeVideo(id, pId, eId);
   console.log(url)
 

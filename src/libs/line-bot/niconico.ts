@@ -1,5 +1,5 @@
 
-import { FlexBubble, FlexMessage, MessageEvent } from '@line/bot-sdk';
+import type { FlexMessage, MessageEvent } from '@line/bot-sdk';
 
 import { getRankingList } from '../niconico.lib';
 import { client } from './index';

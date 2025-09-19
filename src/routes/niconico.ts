@@ -127,7 +127,7 @@ app.openapi(danmakuRoute, async (c) => {
     const { id } = c.req.param();
     const { mode } = c.req.query();
 
-    const result = new ResultListGenericVM();
+    const result = new ResultListGenericVM<any>();
     const key = `niconico-danmaku-${id}`;
     const cacheItems = lruCache.get(key) as any[];
 
@@ -159,7 +159,7 @@ app.openapi(rankingRoute, async (c) => {
   try {
     const { type, term } = c.req.query();
 
-    const result = new ResultListGenericVM();
+    const result = new ResultListGenericVM<any>();
     const key = `niconico-ranking-${type}-${term}`;
     const cacheItems = lruCache.get(key) as any[];
 

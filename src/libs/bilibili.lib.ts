@@ -23,7 +23,11 @@ export const getBiliBiliDanmaku = async (id: string): Promise<any[]> => {
   return $('d').map((i, el) => {
     const $d = $(el);
     const p = $d.attr('p');
+    if (!p) return null;
+
     const [time, mode, size, color, create, bottom, sender, id] = p.split(',');
+    if (!time || !mode || !size || !color || !create || !bottom || !sender || !id) return null;
+
     return {
       id,
       sender,
@@ -39,5 +43,5 @@ export const getBiliBiliDanmaku = async (id: string): Promise<any[]> => {
       date: create,
       date_iso_string: new Date(+create * 1000).toISOString(),
     };
-  }).get().sort((a, b) => a.time > b.time ? 1 : -1);
+  }).get().filter(Boolean).sort((a, b) => a.time > b.time ? 1 : -1);
 }

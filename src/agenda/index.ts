@@ -1,4 +1,4 @@
-import { Agenda, JobAttributesData, JobPriority, Job } from 'agenda/dist';
+import { Agenda, type JobAttributesData, Job } from 'agenda/dist';
 
 import { client } from '../libs/line-bot';
 import { getRankingMessage } from '../libs/line-bot/niconico';

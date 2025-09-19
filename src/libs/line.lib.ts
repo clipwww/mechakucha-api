@@ -2,7 +2,7 @@ import fetch from 'node-fetch';
 import  FormData from 'form-data';
 
 import { LineChatTokenModel, LineProfileModel } from '../nosql/models/line.model';
-import { LineProfile } from '../view-models/line.vm';
+import type { LineProfile } from '../view-models/line.vm';
 
 const notifyURL = 'https://notify-api.line.me/api/notify';
 const tokenURL = 'https://notify-bot.line.me/oauth/token';
@@ -62,7 +62,9 @@ export const postNotifyMessage = async (token: string, params: Params): Promise<
     const form = new FormData();
 
     for (const key in params) {
-      form.append(key, params[key]);
+      if (params.hasOwnProperty(key)) {
+        form.append(key, params[key as keyof Params] as string);
+      }
     }
 
     const ret = await fetch(notifyURL, {
@@ -77,6 +79,7 @@ export const postNotifyMessage = async (token: string, params: Params): Promise<
     return json.status === 200;
   } catch (err) {
     console.error(err);
+    return false;
   }
 }
 
@@ -115,6 +118,9 @@ export const getUserProfile = async (userId: string) => {
   const user = await LineProfileModel.findOne({
     userId,
   })
+  if (!user) {
+    throw new Error('User not found');
+  }
   return user.toJSON();
 }
 

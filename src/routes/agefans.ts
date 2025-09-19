@@ -303,7 +303,7 @@ app.openapi(listRoute, async (c) => {
   try {
     const { keyword, mode = '' } = c.req.valid('query');
 
-    const result = new ResultListGenericVM();
+    const result = new ResultListGenericVM<any>();
 
     const key = `agefans-list-${keyword}-${mode}`;
     const cacheItems = lruCache.get(key) as any[];
@@ -329,10 +329,10 @@ app.openapi(listRoute, async (c) => {
 app.openapi(detailsRoute, async (c) => {
   try {
     const { id } = c.req.param();
-    const result = new ResultGenericVM();
+    const result = new ResultGenericVM<Awaited<ReturnType<typeof getAnimeDetails>>>();
 
     const key = `agefans-details-${id}`;
-    const cacheItem = lruCache.get(key);
+    const cacheItem = lruCache.get(key) as Awaited<ReturnType<typeof getAnimeDetails>> | undefined;
 
     if (cacheItem) {
       result.item = cacheItem;

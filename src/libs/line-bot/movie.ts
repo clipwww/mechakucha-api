@@ -1,5 +1,5 @@
 
-import { FlexBubble, FlexMessage, MessageEvent } from '@line/bot-sdk';
+import type { FlexBubble, FlexMessage, MessageEvent } from '@line/bot-sdk';
 import { lruCache } from '../../utilities';
 
 import { getMovieListGroupByDate, getVieShowComingMovieList } from '../movie.lib';
@@ -22,7 +22,7 @@ export async function getRecentMovieMessage(page = 1): Promise<FlexMessage> {
         size: 'micro',
         hero: {
           type: "image",
-          url: movie.poster.replace('http', 'https'),
+          url: movie.poster ? movie.poster.replace('http', 'https') : 'https://via.placeholder.com/300x400?text=No+Image',
           size: "full",
           backgroundColor: '#dddddd'
         },

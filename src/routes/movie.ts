@@ -838,7 +838,7 @@ app.openapi(ratingRoute, async (c) => {
     let { keyword } = c.req.query();
     keyword = keyword ? `${keyword}` : ''
 
-    const result = new ResultListGenericVM();
+    const result = new ResultListGenericVM<any>();
 
     const items = await searchMovieRating(keyword);
     result.items = items;
@@ -877,7 +877,7 @@ app.openapi(ratingDetailRoute, async (c) => {
     }
     const key = `movie-rating-details-${certificateNumber}`;
 
-    const result = new ResultGenericVM();
+    const result = new ResultGenericVM<any>();
     const cacheValue =  lruCache.get(key)
 
     if (cacheValue) {
@@ -898,7 +898,7 @@ app.openapi(ratingDetailRoute, async (c) => {
 
 app.openapi(cityRoute, async (c) => {
   try {
-    const result = new ResultListGenericVM();
+    const result = new ResultListGenericVM<any>();
     result.items = await getCityList();
 
     result.setResultValue(true, ResultCode.success);
@@ -910,7 +910,7 @@ app.openapi(cityRoute, async (c) => {
 
 app.openapi(movieListRoute, async (c) => {
   try {
-    const result = new ResultListGenericVM();
+    const result = new ResultListGenericVM<any>();
     result.items = await getMovieList();
 
     result.setResultValue(true, ResultCode.success);
@@ -922,7 +922,7 @@ app.openapi(movieListRoute, async (c) => {
 
 app.openapi(movieListGroupRoute, async (c) => {
   try {
-    const result = new ResultListGenericVM();
+    const result = new ResultListGenericVM<any>();
     result.items = await getMovieListGroupByDate();
 
     result.setResultValue(true, ResultCode.success);
@@ -934,7 +934,7 @@ app.openapi(movieListGroupRoute, async (c) => {
 
 app.openapi(nextMovieRoute, async (c) => {
   try {
-    const result = new ResultListGenericVM();
+    const result = new ResultListGenericVM<any>();
     result.items = await getMovieListGroupByDate('next');
 
     result.setResultValue(true, ResultCode.success);
@@ -947,7 +947,7 @@ app.openapi(nextMovieRoute, async (c) => {
 app.openapi(theaterRoute, async (c) => {
   try {
     const { cityId } = c.req.query();
-    const result = new ResultListGenericVM();
+    const result = new ResultListGenericVM<any>();
     result.items = await getTheaterList(cityId as string);
 
     result.setResultValue(true, ResultCode.success);
@@ -961,7 +961,7 @@ app.openapi(movieTimesRoute, async (c) => {
   try {
     const { movieId } = c.req.param()
     const { cityId } = c.req.query();
-    const result = new ResultListGenericVM();
+    const result = new ResultListGenericVM<any>();
     const { item, items } = await getMovieTimes(movieId, cityId as string);
 
     result.item = item;
@@ -978,7 +978,7 @@ app.openapi(theaterTimesRoute, async (c) => {
   try {
     const { theaterId } = c.req.param();
     const { date, cityId } = c.req.query();
-    const result = new ResultListGenericVM();
+    const result = new ResultListGenericVM<any>();
     const { item, items } = await getTheaterTimes(theaterId, cityId as string, date as string);
 
     result.item = item;
@@ -993,7 +993,7 @@ app.openapi(theaterTimesRoute, async (c) => {
 
 app.openapi(vieshowNowRoute, async (c) => {
   try {
-    const result = new ResultListGenericVM();
+    const result = new ResultListGenericVM<any>();
     
     const key = `movie-vieshow-now`;
 
@@ -1017,7 +1017,7 @@ app.openapi(vieshowNowRoute, async (c) => {
 
 app.openapi(vieshowComingRoute, async (c) => {
   try {
-    const result = new ResultListGenericVM();
+    const result = new ResultListGenericVM<any>();
     
     const key = `movie-vieshow-coming`;
 
@@ -1042,7 +1042,7 @@ app.openapi(vieshowComingRoute, async (c) => {
 app.openapi(vieshowShowTimesRoute, async (c) => {
   try {
     const { 'cinema-code': cinemaCode } = c.req.query()
-    const result = new ResultListGenericVM();
+    const result = new ResultListGenericVM<any>();
 
     if (!cinemaCode) {
       throw new Error('cinema-code is empty.')
