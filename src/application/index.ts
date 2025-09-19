@@ -14,7 +14,7 @@ import routes from '../routes';
 
 moment.tz.setDefault('Asia/Taipei');
 
-const isDev = import.meta.env.NODE_ENV === 'development';
+const isDev = false
 
 export class Application {
     private app: OpenAPIHono | null = null
