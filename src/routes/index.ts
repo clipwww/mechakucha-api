@@ -14,6 +14,7 @@ import line from './line';
 import myLog from './my-log';
 import blog from './blog';
 import webPush from './web-push';
+import cron from './cron';
 
 const app = new OpenAPIHono();
 
@@ -31,6 +32,7 @@ app
 .route('/my-log', myLog)
 .route('/blog', blog)
 .route('/web-push', webPush)
+.route('/cron', cron)
 
 // Apply end middlewares to all routes
 app.use('*', ...endMiddlewares);
