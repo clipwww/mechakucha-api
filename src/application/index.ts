@@ -27,9 +27,9 @@ export class Application {
         await this.startListenPort();
     }
 
-    getApp(): OpenAPIHono {
+    async getApp(): Promise<OpenAPIHono> {
         connectMongoDB();
-        this.setRouters();
+        await this.setRouters();
         return this.app!;
     }
 
