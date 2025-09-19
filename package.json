@@ -22,6 +22,7 @@
     "agenda": "^4.4.0",
     "cheerio": "1.0.0-rc.12",
     "chinese-conv": "^1.0.1",
+    "chrome-aws-lambda": "^10.1.0",
     "dotenv": "^8.6.0",
     "fast-xml-parser": "^4.3.2",
     "form-data": "^4.0.0",
