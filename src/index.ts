@@ -1,6 +1,8 @@
 import { Application } from "./application";
 
+
 const application = new Application();
-export default application.getApp();
+application.start();
+process.on('unhandledRejection', console.dir);
 
 

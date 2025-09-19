@@ -11,10 +11,11 @@ import  moment from 'moment-timezone';
 import { connectMongoDB } from '../nosql/mongodb-data-accessor';
 import { lineWebhookMiddlewares, errorHandlerMiddleware } from '../middlewares';
 import routes from '../routes';
+import { initSchedule } from '../agenda';
 
 moment.tz.setDefault('Asia/Taipei');
 
-const isDev = false
+const isDev = false;
 
 export class Application {
     private app: OpenAPIHono | null = null
@@ -25,12 +26,6 @@ export class Application {
         connectMongoDB();
         this.setRouters();
         await this.startListenPort();
-    }
-
-    async getApp(): Promise<OpenAPIHono> {
-        connectMongoDB();
-        await this.setRouters();
-        return this.app!;
     }
 
 
@@ -113,6 +108,7 @@ export class Application {
         console.info(`${Application.applicationName}`, `port on ${port}`)
         console.info(`📖 API 文檔: http://localhost:${port}/docs`);
         console.info(`📋 OpenAPI JSON: http://localhost:${port}/doc`);
+        initSchedule();
     }
 
 }
