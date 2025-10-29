@@ -3,7 +3,7 @@ import { createRoute } from '@hono/zod-openapi';
 import { z } from 'zod';
 
 import { ResultCode, ResultListGenericVM } from '../view-models/result.vm';
-import { getMovieLog, getMiLog } from '../libs/google-sheets.lib';
+import { getMovieLog, getMiLog, getBaseballLog } from '../libs/google-sheets.lib';
 
 const app = new OpenAPIHono();
 
@@ -98,6 +98,57 @@ const MiLogSchema = z.object({
   }),
 }).openapi('MiLog');
 
+const BaseballLogSchema = z.object({
+  id: z.string().openapi({
+    description: '唯一標識符（Base64編碼）',
+    example: 'MjAyNS84Lzgg5LiL5Y2IIDIxOjQwOjAwLOWKh+WgtOeJiOOAjOmsvOa7heS5i+WIg+OAjeeEoemZkOWfjuevhyDnrKzkuIDnq6Ag54yX56qp5bqn5YaN6KWyLOaXpeacrCwyRCzmnpflj6PlqIHnp4AsMjQwLDIwLDEsMCwyNjA='
+  }),
+  memo: z.string().openapi({
+    description: '備註',
+    example: ''
+  }),
+  date: z.string().openapi({
+    description: '比賽日期（ISO格式）',
+    example: '2025-09-07T00:00:00.000Z'
+  }),
+  gameName: z.string().openapi({
+    description: '比賽名稱',
+    example: '例行賽'
+  }),
+  league: z.string().openapi({
+    description: '聯盟/主辦',
+    example: 'CPBL'
+  }),
+  awayTeam: z.string().openapi({
+    description: '客隊',
+    example: '台鋼雄鷹'
+  }),
+  homeTeam: z.string().openapi({
+    description: '主隊',
+    example: '味全龍'
+  }),
+  score: z.string().openapi({
+    description: '比數',
+    example: '1:11'
+  }),
+  venue: z.string().openapi({
+    description: '場地',
+    example: '台北大巨蛋'
+  }),
+  price: z.number().openapi({
+    description: '票價',
+    example: 600
+  }),
+  seat: z.string().openapi({
+    description: '座位',
+    example: 'L5內野508區'
+  }),
+  recordLink: z.string().openapi({
+    description: '賽事紀錄連結',
+    example: 'https://www.cpbl.com.tw/box?year=2025&KindCode=A&gameSno=313'
+  }),
+}).openapi('BaseballLog');
+
 const LogListResponseSchema = z.object({
   success: z.boolean().openapi({
     description: '操作是否成功',
@@ -111,10 +162,64 @@ const LogListResponseSchema = z.object({
     description: '結果訊息',
     example: ''
   }),
-  items: z.array(z.union([MovieLogSchema, MiLogSchema])).openapi({
+  items: z.array(z.union([MovieLogSchema, MiLogSchema, BaseballLogSchema])).openapi({
     description: '日誌項目列表'
   }),
 }).openapi('LogListResponse');
+
+const MovieLogListResponseSchema = z.object({
+  success: z.boolean().openapi({
+    description: '操作是否成功',
+    example: true
+  }),
+  resultCode: z.string().openapi({
+    description: '結果代碼',
+    example: '200'
+  }),
+  resultMessage: z.string().openapi({
+    description: '結果訊息',
+    example: ''
+  }),
+  items: z.array(MovieLogSchema).openapi({
+    description: '電影觀看記錄列表'
+  }),
+}).openapi('MovieLogListResponse');
+
+const MiLogListResponseSchema = z.object({
+  success: z.boolean().openapi({
+    description: '操作是否成功',
+    example: true
+  }),
+  resultCode: z.string().openapi({
+    description: '結果代碼',
+    example: '200'
+  }),
+  resultMessage: z.string().openapi({
+    description: '結果訊息',
+    example: ''
+  }),
+  items: z.array(MiLogSchema).openapi({
+    description: '個人記錄列表'
+  }),
+}).openapi('MiLogListResponse');
+
+const BaseballLogListResponseSchema = z.object({
+  success: z.boolean().openapi({
+    description: '操作是否成功',
+    example: true
+  }),
+  resultCode: z.string().openapi({
+    description: '結果代碼',
+    example: '200'
+  }),
+  resultMessage: z.string().openapi({
+    description: '結果訊息',
+    example: ''
+  }),
+  items: z.array(BaseballLogSchema).openapi({
+    description: '進場看球記錄列表'
+  }),
+}).openapi('BaseballLogListResponse');
 
 // OpenAPI routes
 const getMovieLogRoute = createRoute({
@@ -127,7 +232,7 @@ const getMovieLogRoute = createRoute({
     200: {
       content: {
         'application/json': {
-          schema: LogListResponseSchema,
+          schema: MovieLogListResponseSchema,
         },
       },
       description: '成功取得電影觀看記錄列表',
@@ -153,10 +258,28 @@ const getMiLogRoute = createRoute({
     200: {
       content: {
         'application/json': {
-          schema: LogListResponseSchema,
+          schema: MiLogListResponseSchema,
         },
       },
       description: '成功取得個人記錄列表',
+    },
+  },
+});
+
+const getBaseballLogRoute = createRoute({
+  method: 'get',
+  path: '/baseball',
+  summary: '取得進場看球記錄',
+  description: '從 Google Sheets 取得所有進場看球記錄，包含比賽詳情和票價資訊',
+  tags: ['我的 Log'],
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: BaseballLogListResponseSchema,
+        },
+      },
+      description: '成功取得進場看球記錄列表',
     },
   },
 });
@@ -182,6 +305,19 @@ app.openapi(getMiLogRoute, async (c) => {
     const result = new ResultListGenericVM<Awaited<ReturnType<typeof getMiLog>>>();
 
     result.items = await getMiLog(type);
+
+    result.setResultValue(true, ResultCode.success);
+    return c.json(result);
+  } catch (err) {
+    throw err;
+  }
+});
+
+app.openapi(getBaseballLogRoute, async (c) => {
+  try {
+    const result = new ResultListGenericVM<Awaited<ReturnType<typeof getBaseballLog>>>();
+
+    result.items = await getBaseballLog();
 
     result.setResultValue(true, ResultCode.success);
     return c.json(result);

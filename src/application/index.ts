@@ -75,8 +75,16 @@ export class Application {
             servers: [
                 {
                     url: isDev ? `http://localhost:${process.env.PORT || '3000'}` : 'https://mechakucha-api.vercel.app',
-                    description: '開發環境',
+                    description: '',
                 },
+                {
+                    url: `http://localhost:${process.env.PORT || '3000'}`,
+                    description: '本地測試環境',
+                },
+                {
+                    url: 'https://mechakucha-api.vercel.app',
+                    description: '正式環境',
+                }
             ],
         }));
 

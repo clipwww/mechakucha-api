@@ -112,3 +112,62 @@ export const getMiLog = async (sheetName: string | 'sport' | 'sleep' | 'activity
     return [];
   }
 }
+
+export const getBaseballLog = async () => {
+  const COLUMN_MAPPING = {
+    '日期': 'date',
+    '比賽名稱': 'gameName',
+    '聯盟/主辦': 'league',
+    '客隊': 'awayTeam',
+    '主隊': 'homeTeam',
+    '比數': 'score',
+    '場地': 'venue',
+    '票價': 'price',
+    '座位': 'seat',
+    '備註': 'memo',
+    '賽事紀錄連結': 'recordLink'
+  }
+
+  try {
+    const response = await fetchGoogleSheet('1wUt7W8p7c-tlaUCZOI6OwGJODfO-TE7VwPMaBvlv9pQ', '進場看球紀錄');
+    const data = JSON.parse(response.body);
+
+    let keyArr: Array<string | number> = [];
+    return (data.values as Array<Array<string | number>>).reduce((pre: any[], cur, index: number) => {
+      if (index === 0) {
+        keyArr = cur;
+        return pre;
+      }
+
+      const newObj: Record<string, any> = {
+        id: Buffer.from(cur.join(',')).toString('base64'),
+        memo: '',
+      }
+
+      cur.forEach((value, index) => {
+        if (index >= keyArr.length) return;
+        const header = keyArr[index];
+        if (!header) return;
+        const key = COLUMN_MAPPING[header as keyof typeof COLUMN_MAPPING] || header;
+        switch(key) {
+          case 'date':
+            newObj[key] = moment(value, 'YYYY/MM/DD').toISOString();
+            break;
+          case 'price':
+            newObj[key] = isNaN(+value) || !value ? value : +value;
+            break;
+          default:
+            newObj[key] = value;
+            break;
+        }
+      })
+
+      pre.push(newObj);
+      return pre;
+    }, [])
+
+  } catch (err) {
+    console.log(err)
+    return [];
+  }
+}
