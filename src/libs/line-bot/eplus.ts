@@ -62,15 +62,17 @@ async function checkEplusTickets(): Promise<TicketInfo[]> {
 }
 
 export async function getEplusWbcTicketMessage(): Promise<FlexMessage | null> {
-  console.log(`[${new Date().toLocaleString()}] 開始檢查 eplus WBC 門票...`);
+  console.log(`[EPLUS] checking tickets | ${new Date().toISOString()}`);
 
   try {
     const ticketInfoList = await checkEplusTickets();
 
     if (ticketInfoList.length === 0) {
-      console.log('目前沒有可購票項目');
+      console.log('[EPLUS] no tickets available');
       return null;
     }
+
+    console.log(`[EPLUS] found ${ticketInfoList.length} tickets | ${ticketInfoList.map(t => t.articleTitle).join(', ')}`);
 
     const bubbles: FlexBubble[] = ticketInfoList.map((ticket) => ({
       type: 'bubble',

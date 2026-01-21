@@ -24,22 +24,27 @@ export const agenda = new Agenda({
 // });
 
 agenda.define('send nico ranking', {}, async (job: Job<JobAttributesData>) => {
-  console.log(`send nico ranking at ${job.attrs.failedAt}`)
+  console.log(`[AGENDA] send nico ranking | ${new Date().toISOString()}`)
   const message = await getRankingMessage();
   client.broadcast(message)
+  console.log(`[AGENDA] send nico ranking | broadcast done`)
 });
 
 agenda.define('send vieshow coming', {}, async (job: Job<JobAttributesData>) => {
-  console.log(`send vieshow coming at ${job.attrs.failedAt}`)
+  console.log(`[AGENDA] send vieshow coming | ${new Date().toISOString()}`)
   const message = await getVieShowComingMovieListMessage();
   client.broadcast(message)
+  console.log(`[AGENDA] send vieshow coming | broadcast done`)
 });
 
 agenda.define('eplus 2026 wbc ticket check', {}, async (job: Job<JobAttributesData>) => {
-  console.log(`eplus 2026 wbc ticket check at ${+ new Date()}`);
+  console.log(`[AGENDA] eplus wbc check | ${new Date().toISOString()}`);
   const message = await getEplusWbcTicketMessage();
   if (message) {
     client.broadcast(message);
+    console.log(`[AGENDA] eplus wbc check | broadcast sent`);
+  } else {
+    console.log(`[AGENDA] eplus wbc check | no tickets available`);
   }
 })
 
@@ -60,5 +65,8 @@ export async function initSchedule() {
   agenda.every("*/15 * * * *", 'eplus 2026 wbc ticket check', {}, {
     timezone: 'Asia/Taipei'
   });
+
+  // Execute immediately on schedule init
+  agenda.now('eplus 2026 wbc ticket check', {});
 }
 
