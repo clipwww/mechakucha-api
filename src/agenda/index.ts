@@ -3,6 +3,7 @@ import { Agenda, type JobAttributesData, Job } from 'agenda/dist';
 import { client } from '../libs/line-bot';
 import { getRankingMessage } from '../libs/line-bot/niconico';
 import { getVieShowComingMovieListMessage } from '../libs/line-bot/movie';
+import { getEplusWbcTicketMessage } from '../libs/line-bot/eplus';
 
 const mongoConnectionString = `${process.env.MONGODB_URI}?retryWrites=true&w=majority`;
 
@@ -34,6 +35,14 @@ agenda.define('send vieshow coming', {}, async (job: Job<JobAttributesData>) => 
   client.broadcast(message)
 });
 
+agenda.define('eplus 2026 wbc ticket check', {}, async (job: Job<JobAttributesData>) => {
+  console.log(`eplus 2026 wbc ticket check at ${+ new Date()}`);
+  const message = await getEplusWbcTicketMessage();
+  if (message) {
+    client.broadcast(message);
+  }
+})
+
 export async function initSchedule() {
   console.log('init agenda')
   await agenda.start();
@@ -45,6 +54,10 @@ export async function initSchedule() {
   });
 
   agenda.every("0 16 * * *", 'send vieshow coming', {}, {
+    timezone: 'Asia/Taipei'
+  });
+
+  agenda.every("*/15 * * * *", 'eplus 2026 wbc ticket check', {}, {
     timezone: 'Asia/Taipei'
   });
 }
