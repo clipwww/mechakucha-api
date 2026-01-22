@@ -1,9 +1,9 @@
 import { Agenda, type JobAttributesData, Job } from 'agenda/dist';
 
-import { client } from '../libs/line-bot';
-import { getRankingMessage } from '../libs/line-bot/niconico';
-import { getVieShowComingMovieListMessage } from '../libs/line-bot/movie';
-import { getEplusWbcTicketMessage } from '../libs/line-bot/eplus';
+import { getRankingText } from '../libs/line-bot/niconico';
+import { getVieShowComingMovieListText } from '../libs/line-bot/movie';
+import { getEplusWbcTicketText } from '../libs/line-bot/eplus';
+import { sendTelegramMessage } from '../libs/telegram.lib';
 
 const mongoConnectionString = `${process.env.MONGODB_URI}?retryWrites=true&w=majority`;
 
@@ -25,23 +25,23 @@ export const agenda = new Agenda({
 
 agenda.define('send nico ranking', {}, async (job: Job<JobAttributesData>) => {
   console.log(`[AGENDA] send nico ranking | ${new Date().toISOString()}`)
-  const message = await getRankingMessage();
-  client.broadcast(message)
+  const message = await getRankingText();
+  await sendTelegramMessage({ message });
   console.log(`[AGENDA] send nico ranking | broadcast done`)
 });
 
 agenda.define('send vieshow coming', {}, async (job: Job<JobAttributesData>) => {
   console.log(`[AGENDA] send vieshow coming | ${new Date().toISOString()}`)
-  const message = await getVieShowComingMovieListMessage();
-  client.broadcast(message)
+  const message = await getVieShowComingMovieListText();
+  await sendTelegramMessage({ message });
   console.log(`[AGENDA] send vieshow coming | broadcast done`)
 });
 
 agenda.define('eplus 2026 wbc ticket check', {}, async (job: Job<JobAttributesData>) => {
   console.log(`[AGENDA] eplus wbc check | ${new Date().toISOString()}`);
-  const message = await getEplusWbcTicketMessage();
+  const message = await getEplusWbcTicketText();
   if (message) {
-    client.broadcast(message);
+    await sendTelegramMessage({ message });
     console.log(`[AGENDA] eplus wbc check | broadcast sent`);
   } else {
     console.log(`[AGENDA] eplus wbc check | no tickets available`);

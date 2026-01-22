@@ -60,6 +60,22 @@ export async function getRankingMessage(page = 1): Promise<FlexMessage> {
   };
 }
 
+export async function getRankingText(page = 1): Promise<string> {
+  const items = await getRankingList();
+  const pageItems = items.slice((page - 1) * 12, page * 12);
+
+  if (!pageItems.length) {
+    return 'Nico排行目前沒有資料';
+  }
+
+  const lines = pageItems.map((item, index) => {
+    const order = index + 1 + (page - 1) * 12;
+    return `${order}. ${item.title}\n${item.link}`;
+  });
+
+  return `🎬 Nico排行 (p=${page})\n\n${lines.join('\n\n')}`;
+}
+
 export async function handleNicoRankList(event: MessageEvent, page = 1) {
   const message = await getRankingMessage(page);
 

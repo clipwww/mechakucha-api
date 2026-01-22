@@ -6,7 +6,7 @@ import { lruCache } from '../utilities/lru-cache';
 import { searchMovieRating, getCityList, getMovieList, getMovieListGroupByDate, getTheaterList, getMovieTimes, getTheaterTimes, searchMovieRatingDetails, getVieShowComingMovieList, getVieShowNowMovieList, getVieShowMovieShowTimes } from '../libs/movie.lib';
 import { ResultCode, ResultGenericVM, ResultListGenericVM } from '../view-models/result.vm';
 import { MovieRatingModel } from '../nosql/models/movie.model'
-import { sendNotifyMessage } from '../libs/line.lib';
+import { sendTelegramMessage } from '../libs/telegram.lib';
 
 // Zod Schemas for OpenAPI
 const MovieRatingQuerySchema = z.object({
@@ -852,7 +852,7 @@ app.openapi(ratingRoute, async (c) => {
         if (!movieDoc) {
           const { id, ...other } = item;
           await MovieRatingModel.create(other);
-          sendNotifyMessage({
+          sendTelegramMessage({
             message: `
 --- 電影分級查詢結果: "${keyword}" ---
 找到一筆新的資料: ${item.title}

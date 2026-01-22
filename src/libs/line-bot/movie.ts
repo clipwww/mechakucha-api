@@ -165,3 +165,32 @@ export async function getVieShowComingMovieListMessage(page = 1): Promise<FlexMe
     }
   }
 }
+
+export async function getVieShowComingMovieListText(page = 1): Promise<string> {
+
+  const key = `movie-vieshow-coming`;
+
+  const cacheValue =  lruCache.get(key) as {
+    id: string;
+    title: string;
+    titleEN: string;
+    imgSrc: string;
+    url: string;
+    time: string;
+    theaterMarks: string[];
+  }[]
+
+  const movieList = cacheValue ? cacheValue : await getVieShowComingMovieList(page);
+  const items = movieList.slice(0, 12);
+
+  if (!items.length) {
+    return '威秀影城近期上映電影目前沒有資料';
+  }
+
+  const lines = items.map((movie, index) => {
+    const theaterMarks = movie.theaterMarks.length ? ` (${movie.theaterMarks.join(', ')})` : '';
+    return `${index + 1}. ${movie.title}\n${movie.time}${theaterMarks}\n${movie.url}`;
+  });
+
+  return `🎞️ 威秀影城近期上映電影\n\n${lines.join('\n\n')}`;
+}

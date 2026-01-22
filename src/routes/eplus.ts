@@ -3,8 +3,8 @@ import { createRoute } from '@hono/zod-openapi';
 import { z } from 'zod';
 
 import { ResultCode, ResultListGenericVM } from '../view-models/result.vm';
-import { checkEplusTickets, getEplusWbcTicketMessage, type TicketInfo } from '../libs/line-bot/eplus';
-import { client } from '../libs/line-bot';
+import { checkEplusTickets, getEplusWbcTicketText, type TicketInfo } from '../libs/line-bot/eplus';
+import { sendTelegramMessage } from '../libs/telegram.lib';
 
 const app = new OpenAPIHono();
 
@@ -73,9 +73,9 @@ app.openapi(notifyTicketsRoute, async (c) => {
     const result = new ResultListGenericVM<TicketInfo>();
     result.items = await checkEplusTickets();
 
-    const message = await getEplusWbcTicketMessage();
+    const message = await getEplusWbcTicketText();
     if (message) {
-      client.broadcast(message);
+      await sendTelegramMessage({ message });
     }
 
     result.setResultValue(true, ResultCode.success);

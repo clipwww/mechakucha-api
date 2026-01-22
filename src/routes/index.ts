@@ -15,6 +15,7 @@ import myLog from './my-log';
 import blog from './blog';
 import webPush from './web-push';
 import eplus from './eplus';
+import telegram from './telegram';
 
 const app = new OpenAPIHono();
 
@@ -33,6 +34,7 @@ app
 .route('/blog', blog)
 .route('/web-push', webPush)
 .route('/eplus', eplus)
+.route('/telegram', telegram)
 
 // Apply end middlewares to all routes
 app.use('*', ...endMiddlewares);

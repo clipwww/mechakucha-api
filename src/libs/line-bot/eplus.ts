@@ -207,3 +207,25 @@ export async function getEplusWbcTicketMessage(): Promise<FlexMessage | null> {
     return null;
   }
 }
+
+export async function getEplusWbcTicketText(): Promise<string | null> {
+  console.log(`[EPLUS] checking tickets (text) | ${new Date().toISOString()}`);
+
+  try {
+    const ticketInfoList = await checkEplusTickets();
+
+    if (ticketInfoList.length === 0) {
+      console.log('[EPLUS] no tickets available');
+      return null;
+    }
+
+    const lines = ticketInfoList.map((ticket) => {
+      return `#${ticket.index} ${ticket.articleTitle}\n📅 ${ticket.date}`;
+    });
+
+    return `🎫 eplus WBC C組售票通知\n共 ${ticketInfoList.length} 場有票\n\n${lines.join('\n\n')}\n\n🔗 ${TARGET_URL}`;
+  } catch (error: any) {
+    console.error('eplus 檢查過程中發生錯誤:', error.message);
+    return null;
+  }
+}

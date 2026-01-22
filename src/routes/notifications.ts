@@ -5,7 +5,8 @@ import  moment from 'moment-timezone';
 import fetch from 'node-fetch';
 import  FormData from 'form-data';
 
-import { sendNotifyMessage, handleSubscribe } from '../libs/line.lib';
+import { handleSubscribe } from '../libs/line.lib';
+import { sendTelegramMessage } from '../libs/telegram.lib';
 import { parseXMLtoData } from '../libs/youtube.lib';
 import { parseCwbXMLtoItems } from '../libs/cwb.lib';
 import { ResultCode } from '../view-models/result.vm';
@@ -197,7 +198,7 @@ app.openapi(ytNotificationRoute, async (c) => {
   console.log('entry', entry)
   if (entry) {
 
-    sendNotifyMessage({
+        sendTelegramMessage({
       message: `
 --- ${entry.author.name} 有新的通知! ---
 影片標題: ${entry.title}
@@ -222,7 +223,7 @@ app.post('/cwb', async (c) => {
 
   if (items.length) {
     items.forEach(item => {
-      sendNotifyMessage({
+      sendTelegramMessage({
         message: `
 --- 中央氣象局警報、特報 ---
 ${item.title}
