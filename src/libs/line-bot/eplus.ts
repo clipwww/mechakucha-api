@@ -4,13 +4,13 @@ import * as cheerio from 'cheerio';
 
 const TARGET_URL = "https://eplus.tickets/en/sf/ibt/detail/0260360001-P0030081P0030082P0030083P0030084P0030085P0030086P0030087P0030088P0030089P0030090?P6=i00";
 
-interface TicketInfo {
+export interface TicketInfo {
   articleTitle: string;
   date: string;
   index: number;
 }
 
-async function checkEplusTickets(): Promise<TicketInfo[]> {
+export async function checkEplusTickets(): Promise<TicketInfo[]> {
   const response = await axios.get(TARGET_URL, {
     headers: {
       "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:147.0) Gecko/20100101 Firefox/147.0",

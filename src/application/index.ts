@@ -116,7 +116,9 @@ export class Application {
         console.info(`${Application.applicationName}`, `port on ${port}`)
         console.info(`📖 API 文檔: http://localhost:${port}/docs`);
         console.info(`📋 OpenAPI JSON: http://localhost:${port}/doc`);
-        initSchedule();
+        if (!process.env.VERCEL) {
+            initSchedule();
+        }
     }
 
 }

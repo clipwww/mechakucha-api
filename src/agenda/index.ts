@@ -62,7 +62,7 @@ export async function initSchedule() {
     timezone: 'Asia/Taipei'
   });
 
-  agenda.every("*/15 * * * *", 'eplus 2026 wbc ticket check', {}, {
+  agenda.every("*/10 * * * *", 'eplus 2026 wbc ticket check', {}, {
     timezone: 'Asia/Taipei'
   });
 
