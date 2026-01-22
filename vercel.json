@@ -12,10 +12,5 @@
       "dest": "dist/index.js"
     }
   ],
-  "crons": [
-    {
-      "path": "/eplus/wbc/notify",
-      "schedule": "*/10 * * * *"
-    }
-  ]
+  "crons": []
 }
