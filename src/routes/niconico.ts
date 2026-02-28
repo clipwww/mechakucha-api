@@ -76,8 +76,9 @@ const RankingResponseSchema = z.object({
 const danmakuRoute = createRoute({
   method: 'get',
   path: '/:id/danmaku',
-  summary: '取得 NicoNico 動畫彈幕',
-  description: '根據動畫 ID 取得 NicoNico 動畫的彈幕資料',
+  summary: '⛔ [已棄用] 取得 NicoNico 動畫彈幕',
+  description: '⛔ 已棄用：NicoNico 已停用舊版 nmsg.nicovideo.jp 彈幕 API，此端點無法正常取得資料。',
+  deprecated: true,
   tags: ['動畫/漫畫'],
   request: {
     params: z.object({

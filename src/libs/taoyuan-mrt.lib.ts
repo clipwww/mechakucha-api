@@ -1,8 +1,7 @@
-import fs from 'node:fs';
-import path from 'node:path';
 import https from 'node:https';
 import { XMLParser } from 'fast-xml-parser';
 import { httpClient } from '../utilities/http-client';
+import stationTimeTableXml from '../data/StationTimeTable.xml' with { type: 'text' };
 
 const BASE_URL = 'https://opendata.tycg.gov.tw/api/v1/dataset.api_access';
 
@@ -111,14 +110,12 @@ let timetableCache: TimetableData[] | null = null;
 export function getTimetableData(): TimetableData[] {
   if (timetableCache) return timetableCache;
 
-  const xmlPath = path.resolve(import.meta.dirname, '../data/StationTimeTable.xml');
-  const xml = fs.readFileSync(xmlPath, 'utf-8');
   const parser = new XMLParser({
     ignoreAttributes: true,
     isArray: (name) => name === 'Timetable' || name === 'StationTimeTable',
     numberParseOptions: { leadingZeros: false, hex: false },
   });
-  const parsed = parser.parse(xml);
+  const parsed = parser.parse(stationTimeTableXml);
   const items: TimetableData[] = parsed.ArrayOfStationTimeTable.StationTimeTable.map((item: any) => ({
     ...item,
     Direction: String(item.Direction),

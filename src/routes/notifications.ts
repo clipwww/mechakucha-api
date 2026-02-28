@@ -65,8 +65,8 @@ const ytChallengeRoute = createRoute({
 const cwbChallengeRoute = createRoute({
   method: 'get',
   path: '/cwb',
-  summary: 'CWB PubSubHubbub Challenge Handler',
-  description: 'Handles Google PubSubHubbub challenge verification for Central Weather Bureau notifications',
+  summary: '⚠️ CWB PubSubHubbub Challenge Handler',
+  description: 'ℹ️ 中央氣象局已於 2023/09 改制為「中央氣象署」(CWA)，RSS feed URL 可能已變更。Handles Google PubSubHubbub challenge verification for CWB/CWA notifications',
   tags: ['工具服務'],
   request: {
     query: PubSubChallengeQuerySchema
@@ -106,8 +106,8 @@ const ytNotificationRoute = createRoute({
 const cwbNotificationRoute = createRoute({
   method: 'post',
   path: '/cwb',
-  summary: 'CWB Notification Handler',
-  description: 'Processes Central Weather Bureau alert notifications via PubSubHubbub',
+  summary: '⚠️ CWB Notification Handler',
+  description: 'ℹ️ 中央氣象局已於 2023/09 改制為「中央氣象署」(CWA)，RSS feed URL 可能已變更。Processes CWB/CWA alert notifications via PubSubHubbub',
   tags: ['工具服務'],
   request: {
     body: {
@@ -131,8 +131,9 @@ const cwbNotificationRoute = createRoute({
 const lineNotifyRoute = createRoute({
   method: 'post',
   path: '/line-notify',
-  summary: 'LINE Notify Subscription Handler',
-  description: 'Handles LINE Notify authorization code and completes subscription setup',
+  summary: '⛔ [已棄用] LINE Notify Subscription Handler',
+  description: '⛔ 已棄用：LINE Notify 已於 2025/03/31 終止服務。此端點已無法使用。',
+  deprecated: true,
   tags: ['工具服務'],
   request: {
     body: {

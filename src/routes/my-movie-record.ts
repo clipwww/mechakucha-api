@@ -9,10 +9,54 @@ const app = new OpenAPIHono();
 
 // Zod schemas
 const MovieRecordSchema = z.object({
-  date: z.string().openapi({ example: '2024-01-15' }),
-  movie: z.string().openapi({ example: '蜘蛛人：無家日' }),
-  rating: z.string().optional().openapi({ example: '8.5' }),
-  notes: z.string().optional().openapi({ example: '很好看' }),
+  id: z.string().openapi({
+    description: '唯一標識符（Base64編碼）',
+    example: 'MjAyNS84Lzgg5LiL5Y2IIDIxOjQwOjAw...'
+  }),
+  memo: z.string().openapi({
+    description: '備註',
+    example: ''
+  }),
+  date: z.string().openapi({
+    description: '觀影日期時間（ISO格式）',
+    example: '2025-08-08T13:40:00.000Z'
+  }),
+  title: z.string().openapi({
+    description: '片名',
+    example: '劇場版「鬼滅之刃」無限城篇 第一章 猗窩座再襲'
+  }),
+  area: z.string().openapi({
+    description: '國別',
+    example: '日本'
+  }),
+  version: z.string().openapi({
+    description: '版本',
+    example: '2D'
+  }),
+  theater: z.string().openapi({
+    description: '影城',
+    example: '林口威秀'
+  }),
+  price: z.number().openapi({
+    description: '票價',
+    example: 240
+  }),
+  fee: z.number().openapi({
+    description: '手續費',
+    example: 20
+  }),
+  tickets: z.number().openapi({
+    description: '張數',
+    example: 1
+  }),
+  discount: z.number().openapi({
+    description: '折扣',
+    example: 0
+  }),
+  cost: z.number().openapi({
+    description: '總花費',
+    example: 260
+  }),
 }).openapi('MovieRecord');
 
 const MovieRecordListResponseSchema = z.object({
