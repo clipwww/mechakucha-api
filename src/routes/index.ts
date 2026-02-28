@@ -16,6 +16,7 @@ import blog from './blog';
 import webPush from './web-push';
 import eplus from './eplus';
 import telegram from './telegram';
+import taoyuanMrt from './taoyuan-mrt';
 
 const app = new OpenAPIHono();
 
@@ -35,6 +36,7 @@ app
 .route('/web-push', webPush)
 .route('/eplus', eplus)
 .route('/telegram', telegram)
+.route('/taoyuan-mrt', taoyuanMrt)
 
 // Apply end middlewares to all routes
 app.use('*', ...endMiddlewares);

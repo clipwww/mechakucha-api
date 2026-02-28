@@ -26,6 +26,7 @@ export const agenda = new Agenda({
 agenda.define('send nico ranking', {}, async (job: Job<JobAttributesData>) => {
   console.log(`[AGENDA] send nico ranking | ${new Date().toISOString()}`)
   const message = await getRankingText();
+  console.log(message);
   await sendTelegramMessage({ message });
   console.log(`[AGENDA] send nico ranking | broadcast done`)
 });
@@ -33,6 +34,7 @@ agenda.define('send nico ranking', {}, async (job: Job<JobAttributesData>) => {
 agenda.define('send vieshow coming', {}, async (job: Job<JobAttributesData>) => {
   console.log(`[AGENDA] send vieshow coming | ${new Date().toISOString()}`)
   const message = await getVieShowComingMovieListText();
+  console.log(message);
   await sendTelegramMessage({ message });
   console.log(`[AGENDA] send vieshow coming | broadcast done`)
 });
