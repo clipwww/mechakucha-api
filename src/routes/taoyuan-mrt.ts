@@ -138,8 +138,13 @@ const timetableRoute = createRoute({
   method: 'get',
   path: '/timetable',
   summary: '站別時刻表資料',
-  description: '查詢各站的發車時刻（來源：本地 XML，共 72 筆）',
+  description: '查詢各站的發車時刻（快取 7 天，可用 force-reload=1 強制重新取得）',
   tags: [TAG],
+  request: {
+    query: z.object({
+      'force-reload': z.enum(['0', '1']).optional().openapi({ description: '傳入 1 時忽略快取，強制重新取得最新資料' }),
+    }),
+  },
   responses: {
     200: {
       content: {
@@ -213,7 +218,8 @@ app.openapi(travelTimeRoute, async (c) => {
 app.openapi(timetableRoute, async (c) => {
   const result = new ResultListGenericVM();
   try {
-    result.items = getTimetableData();
+    const forceReload = c.req.valid('query')['force-reload'] === '1';
+    result.items = await getTimetableData(forceReload);
     result.setResultValue(true, ResultCode.success);
   } catch (e: any) {
     result.setResultValue(false, ResultCode.error, e.message);

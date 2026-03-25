@@ -1,8 +1,10 @@
+@bot_token = ''
+
 ### 設定 Telegram Webhook
-GET https://api.telegram.org/bot{token}/setWebhook?url=https%3A%2F%2F50178b56531e.ngrok-free.app%2Ftelegram%2Fwebhook
+GET https://api.telegram.org/bot{{bot_token}}/setWebhook?url=https://mechakucha-api.vercel.app/telegram/webhook
 
 ### 測試 Webhook 接收 Telegram 訊息
-POST https://50178b56531e.ngrok-free.app/telegram/webhook
+POST https://mechakucha-api.vercel.app/telegram/webhook
 Content-Type: application/json
 X-Telegram-Bot-Api-Secret-Token: your-secret-token-here
 
@@ -28,3 +30,6 @@ X-Telegram-Bot-Api-Secret-Token: your-secret-token-here
     "text": "Hello"
   }
 }
+
+#### 取得桃園捷運時刻表
+GET https://mechakucha-api.vercel.app/taoyuan-mrt/timetable

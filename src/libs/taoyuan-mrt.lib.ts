@@ -1,7 +1,7 @@
 import https from 'node:https';
+import LRU from 'lru-cache';
 import { XMLParser } from 'fast-xml-parser';
 import { httpClient } from '../utilities/http-client';
-import stationTimeTableXml from '../data/StationTimeTable.xml' with { type: 'text' };
 
 const BASE_URL = 'https://opendata.tycg.gov.tw/api/v1/dataset.api_access';
 
@@ -105,28 +105,74 @@ export interface FirstLastTrainData {
   VersionID: string;
 }
 
-let timetableCache: TimetableData[] | null = null;
+/** XML 解析後的原始型別（數字欄位尚未轉為字串） */
+interface RawTimetableEntry {
+  Sequence: number;
+  ArrivalTime: string;
+  DepartureTime: string;
+  TrainType: number;
+}
 
-export function getTimetableData(): TimetableData[] {
-  if (timetableCache) return timetableCache;
+interface RawStationTimeTable {
+  RouteID: string;
+  LineID: string;
+  StationID: string;
+  StationName: { Zh_tw: string; En: string };
+  Direction: number;
+  DestinationStaionID: string;
+  DestinStationName: { Zh_tw: string; En: string };
+  Timetables: { Timetable: RawTimetableEntry[] } | null;
+  ServiceDays: ServiceDays;
+  SrcUpdateTime: string;
+  UpdateTime: string;
+  VersionID: number;
+}
+
+interface RawParsedXml {
+  ArrayOfStationTimeTable: {
+    StationTimeTable: RawStationTimeTable[];
+  };
+}
+
+const SEVEN_DAYS = 1000 * 60 * 60 * 24 * 7;
+const timetableCache = new LRU<string, TimetableData[]>({
+  max: 1,
+  maxAge: SEVEN_DAYS,
+});
+const TIMETABLE_CACHE_KEY = 'timetable';
+
+export async function getTimetableData(forceReload = false): Promise<TimetableData[]> {
+  if (!forceReload) {
+    const cached = timetableCache.get(TIMETABLE_CACHE_KEY);
+    if (cached) return cached;
+  }
+
+  const xml = await httpClient.get(BASE_URL, {
+    agent: { https: agent },
+    searchParams: {
+      rid: RESOURCE_IDS.timetable,
+      format: 'xml',
+      limit: 1000,
+    },
+  }).text();
 
   const parser = new XMLParser({
     ignoreAttributes: true,
     isArray: (name) => name === 'Timetable' || name === 'StationTimeTable',
     numberParseOptions: { leadingZeros: false, hex: false },
   });
-  const parsed = parser.parse(stationTimeTableXml);
-  const items: TimetableData[] = parsed.ArrayOfStationTimeTable.StationTimeTable.map((item: any) => ({
+  const parsed = parser.parse(xml) as RawParsedXml;
+  const items: TimetableData[] = parsed.ArrayOfStationTimeTable.StationTimeTable.map((item) => ({
     ...item,
     Direction: String(item.Direction),
     VersionID: String(item.VersionID),
-    Timetables: (Array.isArray(item.Timetables?.Timetable) ? item.Timetables.Timetable : []).map((t: any) => ({
+    Timetables: (item.Timetables?.Timetable ?? []).map((t) => ({
       ...t,
       TrainType: String(t.TrainType),
     })),
   }));
 
-  timetableCache = items;
+  timetableCache.set(TIMETABLE_CACHE_KEY, items);
   return items;
 }
 

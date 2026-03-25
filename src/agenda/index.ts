@@ -69,6 +69,6 @@ export async function initSchedule() {
   });
 
   // Execute immediately on schedule init
-  agenda.now('eplus 2026 wbc ticket check', {});
+  // agenda.now('eplus 2026 wbc ticket check', {});
 }
 
