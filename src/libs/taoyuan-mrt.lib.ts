@@ -147,14 +147,15 @@ export async function getTimetableData(forceReload = false): Promise<TimetableDa
     if (cached) return cached;
   }
 
-  const xml = await httpClient.get(BASE_URL, {
+  const xml = await httpClient.get(`https://opendata.tycg.gov.tw/api/v1/dataset/8e6201c2-1968-4920-aba3-1a68093dab53/resource/83358afd-010a-4989-b63a-bbf20692e408/download`, {
     agent: { https: agent },
     searchParams: {
-      rid: RESOURCE_IDS.timetable,
-      format: 'xml',
-      limit: 1000,
+      // rid: RESOURCE_IDS.timetable,
+      // format: 'xml',
+      // limit: 1000,
     },
   }).text();
+  console.log(xml)
 
   const parser = new XMLParser({
     ignoreAttributes: true,
@@ -162,6 +163,7 @@ export async function getTimetableData(forceReload = false): Promise<TimetableDa
     numberParseOptions: { leadingZeros: false, hex: false },
   });
   const parsed = parser.parse(xml) as RawParsedXml;
+  
   const items: TimetableData[] = parsed.ArrayOfStationTimeTable.StationTimeTable.map((item) => ({
     ...item,
     Direction: String(item.Direction),

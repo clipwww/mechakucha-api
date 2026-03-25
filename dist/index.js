@@ -308667,14 +308667,11 @@ async function getTimetableData(forceReload = false) {
     if (cached)
       return cached;
   }
-  const xml2 = await httpClient.get(BASE_URL5, {
+  const xml2 = await httpClient.get(`https://opendata.tycg.gov.tw/api/v1/dataset/8e6201c2-1968-4920-aba3-1a68093dab53/resource/83358afd-010a-4989-b63a-bbf20692e408/download`, {
     agent: { https: agent },
-    searchParams: {
-      rid: RESOURCE_IDS.timetable,
-      format: "xml",
-      limit: 1000
-    }
+    searchParams: {}
   }).text();
+  console.log(xml2);
   const parser2 = new import_fast_xml_parser4.XMLParser({
     ignoreAttributes: true,
     isArray: (name) => name === "Timetable" || name === "StationTimeTable",

@@ -32,4 +32,5 @@ X-Telegram-Bot-Api-Secret-Token: your-secret-token-here
 }
 
 #### 取得桃園捷運時刻表
-GET https://mechakucha-api.vercel.app/taoyuan-mrt/timetable
+GET http://localhost:8086/taoyuan-mrt/timetable
+// ?force-reload=1
